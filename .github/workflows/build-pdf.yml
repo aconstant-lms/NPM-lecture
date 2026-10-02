@@ -1,0 +1,58 @@
+# Compile the lecture notes on every push to main and publish the PDF
+# as the asset of a rolling release called "latest".
+# Stable link: https://github.com/aconstant-lms/npm-lecture/releases/latest
+name: Build PDF
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-pdf
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile main.tex (full TeX Live, latexmk)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          latexmk_use_lualatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error -halt-on-error
+
+      - name: Check the log (undefined references, duplicate labels)
+        run: |
+          ! grep -E "undefined references|Reference .* undefined|multiply defined" main.log
+
+      - name: Name the PDF
+        run: cp main.pdf NPM_lecture_notes.pdf
+
+      - name: Publish as release "latest"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          MSG=$(git log -1 --pretty=%s)
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest NPM_lecture_notes.pdf \
+            --target "$GITHUB_SHA" \
+            --title "Lecture notes - latest build ($DATE)" \
+            --notes "Built from commit ${GITHUB_SHA::7}: $MSG" \
+            --latest
+
+      - name: Keep the PDF and log as workflow artifacts (90 days)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lecture-notes
+          path: |
+            main.pdf
+            main.log

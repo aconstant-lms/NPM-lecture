@@ -19,4 +19,8 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   no undefined references, no multiply-defined labels and no overfull boxes.
 - Figures from scripts: `cd scripts/ch1 && python3 <script>.py` (outputs into figures/ch1).
 - Commit with a clear message per round of corrections (e.g. "ch2: fix Voigt table, add exercise on ...")
-  and push to `main`. Send the compiled PDF to the author after each round.
+  and push to `main`. The commit message becomes the release note, so make it readable for the author.
+- Every push to `main` triggers `.github/workflows/build-pdf.yml`, which compiles the book and publishes
+  `NPM_lecture_notes.pdf` on the release "latest": https://github.com/aconstant-lms/npm-lecture/releases/latest
+  After pushing, check the run succeeded (`gh run list` / Actions tab) and give the author that link;
+  attach the PDF in the conversation only if asked.

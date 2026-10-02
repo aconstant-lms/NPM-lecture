@@ -1,5 +1,7 @@
 # Nonlinear Problems in Mechanics: lecture notes (first draft)
 
+**Latest PDF:** [releases/latest](https://github.com/aconstant-lms/npm-lecture/releases/latest) — rebuilt automatically on every push to `main`.
+
 ## Build
     pdflatex main && pdflatex main && pdflatex main
 No BibTeX: every chapter carries its own `chapterbib` list (keys must be unique book-wide).
