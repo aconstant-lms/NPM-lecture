@@ -4,6 +4,7 @@
 % Sources: "Why variational formulations matter in functional analysis"
 % (v4), lecture notes C1, slides L01-L02 (constraints, Legendre-Fenchel).
 
+\framepart{Outline}
 This chapter develops a single idea: a wide class of elliptic boundary value
 problems can be recast as variational problems, and this reformulation is not
 a cosmetic convenience. It is the natural entry point into existence theory,
@@ -29,7 +30,7 @@ constraints and finite elements.
   symmetric weak form, and recognize when no energy exists.
 \end{itemize}
 
-\paragraph{Outline.} Section~\ref{sec:var-intro} explains why the question
+\paragraph{Plan of the chapter.} Section~\ref{sec:var-intro} explains why the question
 matters. Section~\ref{sec:var-discrete} works out the discrete picture:
 springs, the Tonti diagram, the minimum of the energy, symmetry and
 reciprocity. Sections~\ref{sec:var-weak}--\ref{sec:var-elliptic} pass to the
@@ -38,13 +39,14 @@ Lax--Milgram theorem and general elliptic operators.
 Section~\ref{sec:var-dual} constructs the dual problem,
 Section~\ref{sec:var-lagrange} adds constraints, Section~\ref{sec:var-fem}
 discretizes by finite elements, and Section~\ref{sec:var-phys} returns to
-physics with minimal surfaces. Exercises with solutions are collected in
-Section~\ref{sec:var-exo}. The technical definitions of the variational
+physics with minimal surfaces. A summary, exercises with solutions
+(page~\pageref{sec:var-exo}) and the references close the chapter. The technical definitions of the variational
 derivatives (G\^ateaux, Fr\'echet, functional derivative) are given in
 Appendix~\ref{app:derivatives}.
 
 %======================================================================
 \section{Introduction}\label{sec:var-intro}
+\index{variational formulation}\index{weak form}\index{Euler--Lagrange equation}\index{Tonti diagram}%
 Variational formulations translate differential or operator equations into
 problems of minimizing, or finding critical points of, a functional over a
 well-chosen function space. This translation unlocks the tools of functional
@@ -65,6 +67,7 @@ theorem, is used throughout; the whole family of identities is collected in
 Appendix~\ref{app:ibp}. The model problem of the chapter is
 
 \begin{gbox}{Model problem}
+\index{Poisson problem}\index{energy!Dirichlet}%
 \begin{equation}\label{eq:poisson}
   -\Delta u = f \ \text{in } \Omega, \qquad u = 0 \ \text{on } \partial\Omega,
   \qquad f \in L^2(\Omega),
@@ -85,6 +88,7 @@ place where the main ideas can be seen with linear algebra alone.
 
 \subsection{Positive definiteness of \texorpdfstring{$\mat{A}\T\mat{A}$}{AtA} and \texorpdfstring{$\mat{A}\T\mat{C}\mat{A}$}{AtCA}}
 \begin{proposition}\label{prop:AtCA}
+\index{positive definiteness!of AtCA@of $\mat{A}\T\mat{C}\mat{A}$}\index{least squares}%
 Let $\mat{A}$ be an $m\times n$ matrix ($n\le m$) with independent columns.
 Then $\mat{A}\T\mat{A}$ is symmetric positive definite. More generally, if
 $\mat{C}$ is symmetric positive definite, so is $\mat{A}\T\mat{C}\mat{A}$.
@@ -104,6 +108,7 @@ be invertible, nor even square: only the independence of its columns is
 required.
 
 \subsection{A chain of springs}\label{ssec:springs}
+\index{spring chain}\index{compatibility}\index{equilibrium!discrete}\index{constitutive law!Hooke (springs)}%
 Consider four springs connecting three masses between two fixed walls.
 \begin{center}
 \begin{tikzpicture}[scale=1]
@@ -145,6 +150,7 @@ $\mat{C}=\diag(c_1,c_2,c_3,c_4)$ the spring stiffnesses;
 Combining, $\vf=\mat{B}\T\vect{\sigma}=\mat{B}\T\mat{C}\mat{B}\,\vu=\mat{K}\vu$.
 
 \paragraph{$\mat{B}\T$ and $\mat{B}$ are transposes, and not by accident.} The
+\index{virtual work!discrete}\index{transpose and adjoint}%
 internal work done stretching the springs equals the external work done at
 the nodes,
 \[
@@ -166,6 +172,7 @@ $u(x)=\tfrac12x(1-x)$ of $-u''=1$, $u(0)=u(1)=0$; the same matrix reappears as
 the finite element stiffness matrix in Section~\ref{sec:var-fem}.
 
 \subsection{Duality: the Tonti diagram}
+\index{Tonti diagram!discrete}\index{stiffness matrix}%
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[node distance=1.4cm and 3.6cm]
@@ -197,6 +204,7 @@ the internal potential energy minus the work of the external forces.
 
 \subsection{The minimum of the energy}
 \begin{theorem}\label{thm:min-discrete}
+\index{energy!minimum (discrete)}\index{minimum principle!discrete}%
 Let $\mat{K}$ be symmetric positive definite and
 $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vu\T\vf$. Then $W$ is minimal exactly at the
 solution of $\mat{K}\vu=\vf$, and $W_{\min}=-\tfrac12\vf\T\mat{K}^{-1}\vf$.
@@ -221,6 +229,7 @@ $\mat{K}\vu=\vf$, and $W_{\min}=-2.5=-\tfrac12\vf\T\mat{K}^{-1}\vf$.}
 \end{figure}
 
 The positive definiteness of $\mat{K}$ can be quantified. Expanding $\vu$ in
+\index{Rayleigh quotient}\index{coercivity!discrete}\index{boundedness!discrete}%
 the orthonormal eigenbasis of $\mat{K}$ gives
 \begin{equation}\label{eq:rayleigh}
   \lambda_{\min}\,|\vu|^2\le\vu\T\mat{K}\vu\le\lambda_{\max}\,|\vu|^2 .
@@ -231,6 +240,7 @@ Section~\ref{sec:var-lm}, here verified on a matrix
 (Exercise~\ref{exo:lm-constants}).
 
 \subsection{Symmetry, energy and path independence}\label{ssec:symmetry}
+\index{symmetry!and existence of an energy}\index{path independence}%
 Positive definiteness makes $W$ a genuine energy, bounded below and strictly
 convex. Symmetry is what makes it exist at all. For a linear system
 $\vF=\mat{K}\vu$, the work along a loading path from state $A$ to state $B$ is
@@ -245,6 +255,7 @@ $J(u)=\tfrac12a(u,u)-L(u)$, a non-symmetric one generally has none
 (Exercises~\ref{exo:guess-energy} and~\ref{exo:no-energy}).
 
 \subsection{Reciprocity: the Maxwell--Betti theorem}\label{ssec:reciprocity}
+\index{reciprocity!Maxwell--Betti}\index{Maxwell--Betti theorem}\index{Faraday experiment}%
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[scale=1]
@@ -284,6 +295,7 @@ credited to Clebsch ($\sim$1862), Maxwell (1864), Betti (1872) and Rayleigh
 (1873).}\draftnote{Faraday attribution: keep as the name of the classroom demo?}
 
 \begin{proposition}\label{prop:reciprocity}
+\index{reciprocity!and symmetry}\index{flexibility matrix}%
 Let $\vF=\mat{K}\vu$ with $\mat{K}$ invertible. The reciprocity identity
 \[
   \vF^{(1)}\cdot\vu^{(2)}=\vF^{(2)}\cdot\vu^{(1)}
@@ -305,6 +317,7 @@ Chapter~\ref{ch:rg}.
 
 \subsection{Circuits and trusses: the same linear algebra}
 \paragraph{A resistor network.} Replace masses by nodes, displacements $\vu$ by
+\index{resistor network}%
 potentials and springs by resistors. Ohm's law $\sigma_i=c_ie_i$ is the
 constitutive law, $\mat{C}=\diag(\text{conductances})$, and Kirchhoff's current
 law at the nodes is exactly $\mat{B}\T\vect{\sigma}=\vf$ (injected currents).
@@ -313,6 +326,7 @@ ladder and a spring chain obey identical linear algebra. It is the discrete
 analogue of $-\dive(\tA(\vx)\nabla u)=f$ (Section~\ref{sec:var-elliptic}).
 
 \paragraph{A small truss.} Let $\mat{B}$ map joint displacements to bar
+\index{truss}\index{energy!complementary (discrete)}%
 elongations in a planar truss, $\mat{C}=\diag(E_iA_i/L_i)$ collect the bar
 stiffnesses, and $\mat{B}\T\vect{\sigma}=\vf$ express the equilibrium of the
 joints. Minimizing $W(\vu)$ is the discrete \emph{potential energy principle}.
@@ -324,6 +338,7 @@ the role of $-\dive$ and $\mat{C}^{-1}$ that of the conjugate energy.
 
 %======================================================================
 \section{Weak and strong forms: the right function space}\label{sec:var-weak}
+\index{weak form}\index{strong form}\index{Sobolev space}\index{integration by parts!weak form}%
 Integration by parts lowers the number of derivatives required, moving the
 natural setting from $H^2$ down to $H^1$. This is why Sobolev spaces and
 elliptic PDE theory are so intertwined~\cite{AdamsFournier2003,Evans2010}.
@@ -363,6 +378,7 @@ Appendix~\ref{app:derivatives}.
 
 %======================================================================
 \section{Existence by minimization: the direct method}\label{sec:var-direct}
+\index{direct method}\index{lower semicontinuity}\index{minimizing sequence}\index{Poincar\'e inequality}\index{coercivity!of an energy}%
 Recasting a PDE as a minimization problem turns existence into the question
 of whether a functional attains its infimum. Weak compactness and lower
 semicontinuity answer it without constructing the solution~\cite{Dacorogna2008}.
@@ -395,6 +411,7 @@ sense.
 
 %======================================================================
 \section{The Lax--Milgram theorem}\label{sec:var-lm}
+\index{Lax--Milgram theorem}\index{coercivity!of a bilinear form}\index{boundedness!of a bilinear form}%
 Two functional-analytic hypotheses on a bilinear form, boundedness and
 coercivity, give existence \emph{and} uniqueness, independently of the
 specific PDE~\cite{LaxMilgram1954}.
@@ -428,6 +445,7 @@ Boundedness alone is not enough. Two examples, one linear and one nonlinear,
 show what breaks.
 
 \paragraph{(a) A linear resonance.} On $H^1_0(0,1)$ take
+\index{resonance}\index{Wirtinger inequality}\index{Fredholm alternative}%
 \[
   a(u,v)=\int_0^1u'v'\dd x-\pi^2\int_0^1uv\dd x,
 \]
@@ -454,6 +472,7 @@ one-parameter family $u_c$ of solutions.}
 \end{figure}
 
 \paragraph{(b) A nonlinear double well.} Lax--Milgram is a linear theorem, but
+\index{double well}\index{Allen--Cahn equation}\index{second variation}\index{stability!of a critical point}%
 the coercivity intuition reappears in the second variation. On $(0,1)$ take
 \[
   E[u]=\int_0^1\Bigl(\frac{\varepsilon^2}{2}(u')^2+W(u)\Bigr)\dd x,
@@ -483,6 +502,7 @@ $0$; a $\pm0.02$ perturbation decides whether the system ends at $+1$ or $-1$.}
 
 %======================================================================
 \section{General elliptic operators}\label{sec:var-elliptic}
+\index{elliptic operator!general}\index{uniform ellipticity}\index{G\aa rding inequality@G{\aa}rding inequality}%
 The Poisson problem uses the simplest elliptic operator. The Lax--Milgram
 framework is built for the general second-order case, where the minimization
 approach does not always apply~\cite{GilbargTrudinger2001,Evans2010}.
@@ -518,6 +538,7 @@ $a_\lambda(u,v)=a(u,v)+\lambda\int uv$, which is coercive, or one invokes the
 finite-dimensional exceptional set related to the eigenvalues of the operator.
 
 \paragraph{Where Lax--Milgram goes further than minimization.} Lax--Milgram
+\index{convection--diffusion}\index{symmetry!of a bilinear form}%
 does not require $a$ to be symmetric; minimization does. A quadratic energy
 $J(u)=\tfrac12a(u,u)-L(u)$ has $\delta J(u)[v]=a(u,v)-L(v)$ only when $a$ is
 symmetric (Section~\ref{ssec:symmetry}). The convection term
@@ -528,6 +549,7 @@ boundary terms to $a$ (Exercises~\ref{exo:neumann} and~\ref{exo:robin}).
 
 %======================================================================
 \section{Duality}\label{sec:var-dual}
+\index{duality}\index{energy!complementary}%
 Variational problems are optimization problems, so convex duality
 applies~\cite{EkelandTemam1999,Rockafellar1970}: the primal (energy) problem
 has a dual (complementary energy) problem, and for convex functionals the two
@@ -542,6 +564,7 @@ meet at the optimum.
 
 \subsection{The Legendre--Fenchel transform}
 \begin{gbox}{Legendre--Fenchel transform}
+\index{Legendre--Fenchel transform}\index{convex conjugate}\index{Fenchel--Young inequality}%
 For a convex function $F$ on a space $X$, its conjugate on the dual space is
 \[
   F^\ast(\vp)=\sup_{\vx}\bigl[\vp\cdot\vx-F(\vx)\bigr].
@@ -577,6 +600,7 @@ the tangent of slope $p$.}
 \end{figure}
 
 \subsection{Constructing the dual of the Poisson problem}
+\index{duality!Fenchel--Rockafellar}\index{adjoint operator!of the gradient}%
 Split $J$ into two convex pieces joined by the linear operator
 $\Lambda=\nabla$:
 \[
@@ -604,6 +628,7 @@ $+\infty$ otherwise: it becomes a constraint.
 \end{enumerate}
 
 \begin{gbox}{Primal and dual problems}
+\index{primal problem}\index{dual problem}%
 \[
   \min_{u\in H^1_0(\Omega)}\Bigl(\tfrac12\int_\Omega|\nabla u|^2-\int_\Omega fu\Bigr)
   \;=\;
@@ -622,11 +647,13 @@ Exercise~\ref{exo:primal-dual} checks it numerically.
 
 %======================================================================
 \section{Constraints and Lagrange multipliers}\label{sec:var-lagrange}
+\index{constraint}\index{Lagrange multiplier}\index{Lagrangian}%
 Many problems minimize an energy under constraints: imposed displacements,
 incompressibility, contact, plasticity. The Lagrangian turns the constrained
 problem into an unconstrained saddle-point problem.
 
 \begin{gbox}{Constrained optimization}
+\index{Karush--Kuhn--Tucker conditions}\index{saddle point}\index{complementarity condition}%
 Let $C$ and $\vect{A}=(A_1,\dots,A_m)$ be convex functions on $\R^n$.
 \begin{itemize}
 \item \emph{Problem $\mathcal P$:} minimize $C(\vx)$ under the constraint
@@ -666,6 +693,7 @@ Exercises~\ref{exo:kkt1}--\ref{exo:kkt4} work through four cases.
 
 %======================================================================
 \section{Galerkin approximation and finite elements}\label{sec:var-fem}
+\index{Galerkin method}\index{C\'ea's lemma@C\'ea's lemma}\index{finite element method!one-dimensional}\index{stiffness matrix}%
 The weak formulation is exactly what finite element methods discretize:
 restrict the problem to a finite-dimensional subspace, solve a linear system,
 and control the error with C\'ea's lemma~\cite{Cea1964}
@@ -698,6 +726,7 @@ Chapter~\ref{ch:elliptic}.
 
 %======================================================================
 \section{Physical interpretation: energies come first}\label{sec:var-phys}
+\index{minimal surface}\index{soap film}%
 Many equations of physics and geometry \emph{are} Euler--Lagrange equations of
 an energy or action~\cite{GilbargTrudinger2001}: the PDE is a consequence of a
 minimization principle, not an artificial reformulation.
@@ -725,7 +754,7 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
 (Chapter~\ref{ch:elliptic}).
 
 %======================================================================
-\section{Summary}
+\framepart{Summary}
 \begin{gbox*}
 \begin{itemize}
   \item \textbf{Existence} follows from minimizing a coercive, weakly lower
@@ -756,7 +785,7 @@ total variation, and many machine learning objectives written as regularized
 energy minimization.
 
 %======================================================================
-\section{Exercises}\label{sec:var-exo}
+\framepart{Exercises}\label{sec:var-exo}
 Part~I checks results numerically or symbolically: every script was run
 (\texttt{numpy}/\texttt{scipy} for numerical checks, \texttt{sympy} for
 symbolic ones) and its output is quoted in the comments. Part~II is
@@ -764,9 +793,10 @@ paper-and-pencil practice with variational calculus. Part~III treats
 constraints and convex conjugates. Solutions are given in small type after
 each exercise.
 
-\subsection*{Part I: computational verification}
+\framesub{Part I: computational verification}
 
 \exercise{Minimizing by gradient descent}\label{exo:gd}
+\index{gradient descent}%
 For the spring chain ($\mat{K}=\operatorname{tridiag}(-1,2,-1)$,
 $\vf=(1,1,1)\T$), minimize $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu$ by
 gradient descent and compare with the direct solution of $\mat{K}\vu=\vf$.
@@ -863,6 +893,7 @@ the value $W_{\min}$ of Theorem~\ref{thm:min-discrete}.
 \end{solution}
 
 \exercise{Convergence rate of the discrete chain}\label{exo:conv}
+\index{convergence rate}%
 Solve $-u''=\sin\pi x$ on $(0,1)$, $u(0)=u(1)=0$ (exact solution
 $\sin(\pi x)/\pi^2$) with the chain matrix for increasing $n$ and measure the
 convergence rate.
@@ -956,11 +987,12 @@ a unit load at node~1 moves node~3 by $\tfrac14$, and a unit load at node~3
 moves node~1 by $\tfrac14$.
 \end{solution}
 
-\subsection*{Part II: variational calculus practice}
+\framesub{Part II: variational calculus practice}
 
 \paragraph{From energy to strong form, through the weak form.}
 
 \exercise{Natural boundary conditions}\label{exo:neumann}
+\index{boundary condition!natural}\index{boundary condition!essential}\index{boundary condition!Neumann}\index{compatibility condition}%
 On $\Omega=(0,1)$ consider, over the unconstrained space $V=H^1(0,1)$,
 \[
   E[u]=\int_0^1\tfrac12(u')^2\dd x-\int_0^1fu\dd x-g\,u(1).
@@ -998,6 +1030,7 @@ print(sp.solve([sp.diff(E,a1), sp.diff(E,a2)], [a1,a2])) # a1=0, a2=-1/2
 \end{solution}
 
 \exercise{A reaction term}\label{exo:reaction}
+\index{reaction--diffusion}%
 Derive the strong form of
 $E[u]=\int_\Omega\bigl(\tfrac12|\nabla u|^2+\tfrac12c\,u^2-fu\bigr)\dd x$ over
 $H^1_0(\Omega)$, $c>0$ constant.
@@ -1012,6 +1045,7 @@ parts. In 1D with $c=2$, $f=x$: $u=x/2-\sinh(\sqrt2x)/(2\sinh\sqrt2)$
 \end{solution}
 
 \exercise{A nonlinear energy}\label{exo:plaplace}
+\index{p-Laplacian@$p$-Laplacian}\index{energy!nonlinear}%
 Derive the strong form of $E[u]=\int_0^1\tfrac14(u')^4\dd x-\int_0^1fu\dd x$
 over $H^1_0(0,1)$.
 \begin{solution}
@@ -1041,6 +1075,7 @@ linear $p=2$ solution for the same load $f=6$.}
 \paragraph{Guessing the energy from a weak form.}
 
 \exercise{Reconstruct the energy}\label{exo:guess-energy}
+\index{energy!from a weak form}%
 Find $J$ whose first variation is the weak form: find $u\in H^1(\Omega)$ with
 \[
   \int_\Omega\kappa\nabla u\cdot\nabla v\dd x+\int_\Omega\sigma uv\dd x
@@ -1058,6 +1093,7 @@ Here $a$ is symmetric, so
 \end{solution}
 
 \exercise{When no energy exists}\label{exo:no-energy}
+\index{energy!non-existence}%
 For the convection--diffusion weak form
 $\int_\Omega\nabla u\cdot\nabla v+\int_\Omega(\vb\cdot\nabla u)v=\int_\Omega fv$
 on $H^1_0(\Omega)$, $\vb\neq\vzero$ constant, is there an energy $J$ with
@@ -1076,6 +1112,7 @@ part vanishes only on the diagonal $a(u,u)$ (Exercise~\ref{exo:skew}).
 \paragraph{Integration by parts in practice.}
 
 \exercise{Self-adjointness}\label{exo:selfadj}
+\index{self-adjointness}%
 Let $u,v\in H^2(\Omega)\cap H^1_0(\Omega)$. Use Green's second identity to show
 $\int_\Omega u\Delta v=\int_\Omega v\Delta u$.
 \begin{solution}
@@ -1087,6 +1124,7 @@ and the minimization approach possible.
 \end{solution}
 
 \exercise{The Robin problem}\label{exo:robin}
+\index{boundary condition!Robin}%
 Derive the weak form of $-\Delta u=f$ in $\Omega$, $\partial_nu+\alpha u=g$ on
 $\partial\Omega$ ($\alpha>0$), and its energy.
 \begin{solution}
@@ -1117,7 +1155,7 @@ $u=x^2+y^2-2z^2$: $\int|\nabla u|^2=\int(4x^2+4y^2+16z^2)=8$; on the boundary, t
 $x=1$, $y=1$, $z=1$ give $\tfrac43$, $\tfrac43$, $\tfrac{16}3$ and the others $0$: total $8$.
 \end{solution}
 
-\subsection*{Part III: constraints and convex conjugates}
+\framesub{Part III: constraints and convex conjugates}
 
 \exercise{An equality constraint}\label{exo:kkt1}
 Minimize $C(\vx)=\tfrac12(x_1^2+x_2^2)$ subject to $x_1-x_2=1$.
@@ -1142,6 +1180,7 @@ check: $x_1-x_2=1$, $x_2-x_3=2$.
 \end{solution}
 
 \exercise{A quadratic form on the circle}\label{exo:kkt3}
+\index{eigenvalue problem!as constrained minimization}%
 Minimize $C(\vx)=ax_1^2+2bx_1x_2+cx_2^2$ subject to $x_1^2+x_2^2=1$.
 \begin{solution}
 With $\mat{H}=\begin{psmallmatrix}a&b\\b&c\end{psmallmatrix}$,
@@ -1155,6 +1194,7 @@ in the course.
 \end{solution}
 
 \exercise{The saddle-point system}\label{exo:kkt4}
+\index{saddle point!system}%
 Minimize $C(\vx)=\tfrac12\vx\T\mat{H}\vx-\vx\T\vf$, $\mat{H}$ symmetric
 positive definite, subject to $\mat{P}\vx=\vb$ ($\mat{P}$ of full row rank).
 \begin{solution}

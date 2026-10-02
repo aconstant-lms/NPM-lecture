@@ -4,6 +4,7 @@
 % Sources: lecture notes C1 (Section 3), slides L01 "Elasticity" (2025)
 % and L02 "Elasticity, constraints, Lagrangian".
 
+\framepart{Outline}
 The two model problems of continuum mechanics treated in this chapter, steady
 diffusion and linear elasticity, share the structure found in
 Chapter~\ref{ch:var} for a chain of springs: a kinematic operator, a
@@ -13,14 +14,28 @@ its vector--tensor version. For both we state the equations, the weak form,
 the two energy principles, and the approximation by the Ritz--Galerkin and
 finite element methods.
 
-\paragraph{Outline.} Section~\ref{sec:diff} treats steady diffusion.
+\paragraph{By the end of this chapter you should be able to:}
+\begin{itemize}
+  \item write the strong form, the weak form and the energies of a diffusion
+  or a linear elasticity problem, with its essential and natural boundary
+  conditions;
+  \item handle the tensor of elastic moduli $\bbC$: its symmetries, its matrix
+  representation, isotropy and the conditions of positive definiteness;
+  \item state and prove the minimum of the potential energy and the maximum
+  of the complementary energy, and use them to bound the solution;
+  \item build a Ritz--Galerkin approximation, impose displacements with
+  Lagrange multipliers, and recognize the finite element method as a
+  particular case.
+\end{itemize}
+
+\paragraph{Plan of the chapter.} Section~\ref{sec:diff} treats steady diffusion.
 Sections~\ref{sec:el-eq}--\ref{sec:el-moduli} state the equations of linear
 elasticity and discuss the elastic moduli. Section~\ref{sec:el-structure}
 displays the common structure of the equations, Section~\ref{sec:el-vw} the
 principle of virtual work and Section~\ref{sec:el-energy} the energy
 principles. Section~\ref{sec:el-ritz} presents approximate solutions, from
-Ritz--Galerkin to finite elements. Exercises with solutions are in
-Section~\ref{sec:el-exo}. Classical references for the mechanics are
+Ritz--Galerkin to finite elements. A summary, exercises with solutions
+(page~\pageref{sec:el-exo}) and the references close the chapter. Classical references for the mechanics are
 \cite{Germain1983,Salencon2001,Coirier1997,SoutasLittle1973,ConstantinescuKorsunsky2007};
 for the structure of the equations \cite{StrangAM}; for finite elements
 \cite{Hughes1987,BonnetFrangi2007}.
@@ -48,6 +63,7 @@ energy density & $\tfrac12\nabla u\cdot\tk\nabla u$ & $\tfrac12\eps:\bbC:\eps$\\
 
 %======================================================================
 \section{Steady diffusion}\label{sec:diff}
+\index{diffusion}\index{conductivity tensor}\index{boundary condition!essential}\index{boundary condition!natural}%
 A potential $u$ (temperature, electric potential, hydraulic head,
 concentration, out-of-plane displacement) drives a flux. The physical
 settings are listed in Table~\ref{tab:rg-phys} of Chapter~\ref{ch:rg}.
@@ -103,6 +119,7 @@ constant (Exercise~\ref{exo:neumann}).
 \end{itemize}
 
 \paragraph{The complementary energy.} The dual problem of
+\index{energy!complementary (diffusion)}%
 Section~\ref{sec:var-dual} is posed on statically admissible fluxes
 $\vp$, satisfying $\dive\vp+f=0$ in $\Omega$ and $\vp\cdot\vn=\pD$ on
 $S_\varphi$:
@@ -114,6 +131,7 @@ At the solution $\vp=\tk\nabla u$ and $J(u)=J^\ast(\vp)$
 
 %======================================================================
 \section{Linear elasticity: the equations}\label{sec:el-eq}
+\index{elasticity!equations}\index{strain}\index{stress}\index{Hooke's law}%
 \begin{figure}[h]
 \centering
 \includegraphics[width=5.5cm]{figures/ch2/3D_body.pdf}
@@ -153,6 +171,7 @@ $\sigma_{ij}=C_{ijkl}\varepsilon_{kl}$, $\sigma_{ij,j}+f_i=0$, $\sigma_{ij}n_j=t
 \end{gbox}
 
 \paragraph{Classical boundary conditions.} The partition $S_u$/$S_t$ is a
+\index{boundary condition!elasticity}\index{contact!frictionless}%
 simplification: in general, at each boundary point, three complementary
 components are prescribed. With $\vt_1,\vt_2$ two unit tangent vectors:
 \begin{itemize}
@@ -167,6 +186,7 @@ components are prescribed. With $\vt_1,\vt_2$ two unit tangent vectors:
 %======================================================================
 \section{Elastic moduli}\label{sec:el-moduli}
 \subsection{The tensor of elastic moduli}
+\index{elastic moduli}\index{elastic moduli!symmetries}\index{compliance tensor}%
 The constitutive law
 \[
   \sig=\bbC:\eps,\qquad \sigma_{ij}=C_{ijkl}\varepsilon_{kl},
@@ -194,6 +214,7 @@ Section~\ref{ssec:symmetry}: without it the work of deformation would depend
 on the path, and no stored energy would exist.
 
 \paragraph{Matrix representation.} With the minor symmetries, stresses and
+\index{Voigt notation}\index{Mandel notation}\index{elastic moduli!matrix representation}%
 strains have six independent components and $\bbC$ is represented by a
 symmetric $6\times6$ matrix:
 \begin{equation}\label{eq:voigt}
@@ -217,6 +238,7 @@ $2$ and $4$; the orthonormal (Mandel) basis, with factors $\sqrt2$, avoids
 this asymmetry.
 
 \paragraph{Measured values.} Table~\ref{tab:compliances} gives elastic
+\index{elastic moduli!measured values}%
 compliances of crystals at room temperature.
 \begin{table}[h]
 \centering\small
@@ -248,6 +270,7 @@ nickel read as 0.799/0.844 (slides: 7.99/8.44); duplicate NaCl row removed;
 please check cadmium $s_{33}$, $s_{13}$ against the source.}
 
 \subsection{Anisotropy and isotropy}
+\index{anisotropy}\index{elasticity!anisotropic}\index{symmetry classes}%
 Depending on its symmetry group, a linear elastic material belongs to one of
 eight classes, from triclinic (21 moduli) to isotropic (2 moduli)
 (Figure~\ref{fig:anisotropy})~\cite{Chadwick2001}. The directional
@@ -274,6 +297,7 @@ cubic crystals.}
 \end{figure}
 
 \begin{gbox}{Isotropic elasticity}
+\index{elasticity!isotropic}\index{Lam\'e constants@Lam\'e constants}\index{Young's modulus}\index{Poisson's ratio}\index{bulk modulus}%
 \begin{gather}
   \bbC=\lambda\,\tI\otimes\tI+2\mu\,\bbI,\qquad
   \sig=\lambda(\tr\eps)\,\tI+2\mu\,\eps,\\
@@ -297,6 +321,7 @@ $C_{2323}=\mu=\tfrac12(C_{1111}-C_{1122})$.
 \end{gbox}
 
 \subsection{Positive definiteness of \texorpdfstring{$\bbC$}{C}}
+\index{material stability}\index{positive definiteness!of the elastic moduli}%
 \begin{figure}[h]
 \centering
 \includegraphics[height=3cm]{figures/ch2/material_stability.pdf}
@@ -328,6 +353,7 @@ and $-1<\nu<\tfrac12$ (Exercise~\ref{exo:posdef}).
 \end{figure}
 
 \paragraph{Negative Poisson's ratio.} Thermodynamics allows $-1<\nu<\tfrac12$.
+\index{auxetic material}\index{Poisson's ratio!negative}%
 Nothing forbids $\nu<0$: \emph{auxetic} materials expand laterally when
 stretched. Architected materials, such as the polymer beam network of
 Figure~\ref{fig:auxetic}, reach strongly negative apparent Poisson's ratios.
@@ -341,6 +367,7 @@ configuration; (c) apparent Poisson's ratio as a function of the strain.}
 
 %======================================================================
 \section{Structure of the equations}\label{sec:el-structure}
+\index{Tonti diagram!elasticity}\index{Navier equations}\index{admissible fields!kinematically}\index{admissible fields!statically}%
 The equations of elasticity have the structure of the spring chain of
 Chapter~\ref{ch:var} (Figure~\ref{fig:tonti-el}): the gradient operator
 $\eps[\cdot]$ plays the role of $\mat{B}$, the divergence that of $\mat{B}\T$,
@@ -380,6 +407,7 @@ $\Sad$.
 
 %======================================================================
 \section{Virtual work: the weak form of the balance}\label{sec:el-vw}
+\index{virtual power principle}\index{virtual work!continuum}\index{rigid body motion}%
 For a virtual velocity (or displacement) field $\vv$ define the virtual
 powers of the external, internal and inertial forces:
 \[
@@ -420,6 +448,7 @@ $\vu\in\Kad(\vuD,S_u)$ such that
 
 %======================================================================
 \section{Energy principles}\label{sec:el-energy}
+\index{energy!potential}\index{energy!complementary (elasticity)}\index{thermoelasticity}\index{initial stress}%
 We include an initial stress $\sig_0$ and a thermal strain
 $\talpha\,\theta^D$ (thermal expansion tensor $\talpha$, prescribed
 temperature change $\theta^D$), so that
@@ -445,6 +474,7 @@ $\hat{\tens{s}}=\tens{s}-\sig_0+\bbC:\talpha\,\theta^D$,
 \end{gbox}
 
 \begin{gbox}{Extremal properties}
+\index{minimum principle!potential energy}\index{maximum principle!complementary energy}\index{energy bounds}%
 Let $(\vu,\eps,\sig)$ be the solution of a regular thermoelastic problem.
 \begin{itemize}
 \item $\vu$ \emph{minimizes} the potential energy over the kinematically
@@ -506,6 +536,7 @@ fields) touch at the solution.}
 
 %======================================================================
 \section{Approximate solutions: from Ritz--Galerkin to finite elements}\label{sec:el-ritz}
+\index{Ritz--Galerkin method}\index{approximate solution}%
 Closed-form solutions exist only for simple geometries. The equations can be
 solved approximately by finite differences, by series expansions, or by the
 energy principle: the Ritz--Rayleigh/Galerkin technique, of which finite
@@ -552,6 +583,7 @@ motion). By Theorem~\ref{thm:min-discrete} the minimum is the solution of
 \]
 
 \subsection{Imposed displacements as constraints}\label{ssec:ritz-lagrange}
+\index{Lagrange multiplier!imposed displacements}\index{reaction forces}%
 Instead of building the boundary conditions into the trial fields, write
 them as linear constraints on the unknowns, $\mat{P}\vu=\vuD$, and minimize
 the potential energy subject to them (Section~\ref{sec:var-lagrange}). The
@@ -573,6 +605,7 @@ freedom (Exercise~\ref{exo:lagrange-el}). Cast3M, for instance, imposes
 displacement conditions this way.
 
 \subsection{Which trial functions?}
+\index{conditioning}\index{trial functions}%
 \begin{itemize}
 \item \emph{Global bases} of $L^2(\Omega)$. Polynomials give a full,
 badly conditioned matrix $\mat{K}$: its eigenvalues spread over many orders of
@@ -585,6 +618,7 @@ conditioned.
 \end{itemize}
 
 \subsection{Finite elements}
+\index{finite element method}\index{mesh}%
 The finite element method is the Ritz--Galerkin method with a particular
 choice of $\vw_m$: the domain $\Omega$ is approximated by a mesh $\Omega_h$
 of elements, $\Omega_h\to\Omega$ as $h\to0$, and the unknowns are the nodal
@@ -604,6 +638,7 @@ function of a node, linear on each triangle.}
 \end{figure}
 
 \paragraph{Shape functions.}
+\index{finite element method!shape functions}\index{Hermite cubics}%
 \begin{itemize}
 \item \emph{Linear elements in one dimension:} $w=a+bx$; the unknowns are the
 nodal values.
@@ -629,6 +664,7 @@ mid-edges (Figure~\ref{fig:shape}).
 \end{figure}
 
 \paragraph{Matrix structure.} The discrete equations reproduce the Tonti
+\index{Tonti diagram!finite elements}\index{finite element method!Gauss points}%
 diagram (Figure~\ref{fig:tonti-fem}):
 \[
   \bigl(\mat{B}\T\mat{C}\mat{B}\bigr)\,\mat{u}=\mat{F},\qquad \mat{P}\mat{u}=\mat{u}^D,
@@ -664,24 +700,30 @@ $[\sig]\to\mat{B}\T\to[\vf]$.}
 \end{figure}
 
 %======================================================================
-\section{Conclusions}
-\begin{gbox}{Take-home messages}
+\framepart{Summary}
+\begin{gbox*}
 \begin{itemize}
-  \item The same structure appears in all frameworks: discrete springs,
-  diffusion, elasticity, finite elements.
-  \item The adjoint differential operator ($-\dive$ of $\nabla$ or of $\eps$)
-  corresponds to the transpose matrix ($\mat{B}\T$ of $\mat{B}$).
-  \item The solution is unique because of the convexity, i.e.\ the positive
-  definiteness of the energy, and of the displacement boundary conditions,
+  \item \textbf{The same structure} appears in all frameworks: discrete
+  springs, diffusion, elasticity, finite elements (Table~\ref{tab:diff-el},
+  Figures~\ref{fig:tonti-el} and~\ref{fig:tonti-fem}).
+  \item \textbf{Adjoint and transpose.} The adjoint differential operator
+  ($-\dive$ of $\nabla$ or of $\eps$) corresponds to the transpose matrix
+  ($\mat{B}\T$ of $\mat{B}$); virtual work expresses this duality.
+  \item \textbf{Elastic moduli.} $\bbC$ has minor and major symmetries
+  ($21$ moduli in general, $2$ for isotropy) and must be positive definite:
+  $K>0$, $\mu>0$, i.e.\ $E>0$ and $-1<\nu<\tfrac12$.
+  \item \textbf{Uniqueness} follows from convexity, i.e.\ the positive
+  definiteness of the energy, and from the displacement boundary conditions,
   which eliminate rigid motions.
-  \item Two energy principles bound the solution from both sides; the
-  Ritz--Galerkin and finite element methods minimize the potential energy on
-  a finite-dimensional space.
+  \item \textbf{Two energy principles} bound the solution from both sides;
+  the Ritz--Galerkin and finite element methods minimize the potential energy
+  on a finite-dimensional space, and imposed displacements can be enforced by
+  Lagrange multipliers, the reactions.
 \end{itemize}
-\end{gbox}
+\end{gbox*}
 
 %======================================================================
-\section{Exercises}\label{sec:el-exo}
+\framepart{Exercises}\label{sec:el-exo}
 
 \exercise{Lam\'e and engineering constants}\label{exo:lame}
 (a) From $\sig=\lambda(\tr\eps)\tI+2\mu\eps$, compute the response to a
@@ -703,6 +745,7 @@ $\bbS$ in the box.
 \end{solution}
 
 \exercise{Positive definiteness of isotropic elasticity}\label{exo:posdef}
+\index{incompressibility}%
 (a) Prove~\eqref{eq:iso-energy}. (b) Show that $\bbC$ is positive definite iff
 $K>0$ and $\mu>0$. (c) Show that this is equivalent to $E>0$ and
 $-1<\nu<\tfrac12$. What happens as $\nu\to\tfrac12$?
@@ -750,6 +793,7 @@ value is $-\tfrac12\int\sig:\eps$, minus the stored energy, as for the springs
 \end{solution}
 
 \exercise{Complementary energy in diffusion}\label{exo:diff-comp}
+\index{constitutive relation error}\index{a posteriori error estimation}%
 Show that $J^\ast(\vp)\le J(v)$ for all admissible $v$ and $\vp$
 in~\eqref{eq:diffusion-energy}--\eqref{eq:diffusion-comp}, with equality at
 the solution.
@@ -820,6 +864,7 @@ finite element basis like $1/h^2$.
 \end{solution}
 
 \exercise{Anti-plane shear}\label{exo:antiplane}
+\index{anti-plane shear}%
 Let $\vu=w(x_1,x_2)\,\ve_3$ in an isotropic body. (a) Compute $\eps$ and
 $\sig$. (b) Show that, without body forces, equilibrium reduces to $\Delta w=0$.
 (c) What is the boundary condition on a traction-free crack face with normal

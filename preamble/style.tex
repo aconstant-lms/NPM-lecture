@@ -20,6 +20,8 @@
 \usepackage{microtype}
 \usepackage{etoolbox}
 \usepackage{fancyhdr}
+\usepackage{imakeidx}
+\makeindex[intoc,columns=2,options=-s preamble/index.ist]
 \usepackage[explicit]{titlesec}
 \usepackage{hyperref}
 \hypersetup{colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black,
@@ -118,13 +120,36 @@
     amplitude=3pt,pre length=0.15cm,post length=0.15cm},thick}
 }
 
+%---- framing parts of every chapter --------------------------------------
+% Outline, Summary, Exercises, References: unnumbered, roman small caps,
+% listed in the table of contents. \framesub is the level below (e.g. the
+% parts of the exercises). A \label placed after \framepart works with
+% \nameref and \pageref (not with \ref, since the part has no number).
+\makeatletter
+\newcommand{\framepart}[1]{%
+  \par\addvspace{4.5ex plus 1ex minus .5ex}%
+  \phantomsection
+  \addcontentsline{toc}{section}{\protect\textsc{#1}}%
+  \markright{#1}%
+  \def\@currentlabelname{#1}%
+  {\noindent\normalfont\Large\scshape #1\par}%
+  \nobreak\vspace{0.6ex}\nobreak
+  {\color{gray!55}\hrule height 0.4pt}%
+  \nobreak\vspace{1.6ex plus .3ex}%
+  \@afterheading}
+\newcommand{\framesub}[1]{%
+  \par\addvspace{3ex plus .8ex minus .3ex}%
+  {\noindent\normalfont\large\scshape #1\par}%
+  \nobreak\vspace{1ex plus .2ex}%
+  \@afterheading}
+\makeatother
+
 %---- per-chapter bibliographies -----------------------------------------
 % Each chapter ends with \begin{chapterbib}{99} ... \end{chapterbib}.
 % Numbering restarts in every chapter; keys must be unique book-wide.
 \makeatletter
 \newenvironment{chapterbib}[1]
-  {\section*{References}%
-   \addcontentsline{toc}{section}{References}%
+  {\framepart{References}%
    \small
    \list{\@biblabel{\@arabic\c@enumiv}}%
      {\settowidth\labelwidth{\@biblabel{#1}}%

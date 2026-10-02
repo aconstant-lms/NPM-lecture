@@ -5,6 +5,7 @@
 ## Build
     pdflatex main && pdflatex main && pdflatex main
 No BibTeX: every chapter carries its own `chapterbib` list (keys must be unique book-wide).
+The index is produced by makeindex, run automatically by `imakeidx` (style `preamble/index.ist`).
 `\drafttrue` / `\draftfalse` in `main.tex` shows/hides the red notes to the author.
 Uncomment `\includeonly{...}` in `main.tex` to compile a single chapter.
 

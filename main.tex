@@ -2,8 +2,9 @@
 %  Nonlinear Problems in Mechanics -- Lecture notes
 %  A. Constantinescu, LMS, CNRS & Ecole Polytechnique
 %
-%  Build:  pdflatex main  (three passes; no BibTeX needed --
-%          each chapter carries its own bibliography)
+%  Build:  pdflatex main (three passes; no BibTeX needed -- each
+%          chapter carries its own bibliography). The index is built by
+%          makeindex, called automatically by imakeidx (or use latexmk).
 %  Work on one chapter: uncomment the \includeonly line.
 %======================================================================
 \documentclass[11pt,a4paper,twoside,openright]{book}
@@ -30,5 +31,8 @@
 \appendix
 \include{appendices/appA_variational_derivatives}
 \include{appendices/appB_integration_by_parts}
+
+\backmatter
+\printindex
 
 \end{document}

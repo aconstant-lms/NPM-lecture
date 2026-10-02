@@ -4,6 +4,7 @@
 % Source: slides L01 "Variational calculus" (functional, Gateaux,
 % Frechet, functional derivative, problem settings, exercises).
 
+\framepart{Outline}
 This appendix collects the technical definitions behind the first variation
 used throughout Chapter~\ref{ch:var}: the G\^ateaux and Fr\'echet derivatives
 of a functional, the functional derivative, and the Euler--Lagrange equations
@@ -28,6 +29,7 @@ first-order linear approximation, in the spirit of a Taylor expansion
 %======================================================================
 \section{G\^ateaux and Fr\'echet derivatives}
 \begin{gbox}{Derivatives of a functional}
+\index{Gateaux derivative@G\^ateaux derivative}\index{Frechet derivative@Fr\'echet derivative}\index{functional derivative}\index{first variation}%
 \begin{description}[style=nextline,leftmargin=1em,font=\sffamily\bfseries]
 \item[G\^ateaux (weak, directional) derivative]
 \begin{equation}\label{eq:gateaux}
@@ -63,6 +65,7 @@ exist and coincide; the distinction matters for non-smooth or non-convex
 energies.
 
 \paragraph{Two examples in $\R^2$} (Figure~\ref{fig:gateaux}).
+\index{Gateaux derivative@G\^ateaux derivative!vs Fr\'echet}%
 \begin{itemize}
 \item $g_1(x,y)=\dfrac{x^2y}{x^2+y^2}$, $g_1(0,0)=0$. Along a direction
 $\vv=(v_1,v_2)$, $g_1(\alpha\vv)/\alpha=v_1^2v_2/|\vv|^2$: all directional
@@ -88,6 +91,7 @@ differentiable: along the parabola $y=x^2$ (black curve) it grows like $x/2$.}
 %======================================================================
 \section{Three equivalent problem settings}
 \begin{gbox}{Problem settings}
+\index{weak form}\index{strong form}\index{energy!minimization}%
 \begin{description}[style=nextline,leftmargin=1em,font=\sffamily\bfseries]
 \item[Energy minimization] Find $u_0$ minimizing $\mathcal W(u)$ over $V$.
 \item[Weak formulation (virtual work)]
@@ -124,6 +128,7 @@ Integrating the second term by parts (Theorem~\ref{thm:ibp}):
   +\int_{\partial\Omega}\frac{\partial\mathcal F}{\partial(\nabla u)}\cdot\vn\,v\dd s .
 \]
 \begin{gbox}{Euler--Lagrange equations}
+\index{Euler--Lagrange equation}\index{boundary condition!natural}%
 \begin{equation}\label{eq:EL}
   \frac{\delta\mathcal W}{\delta u}=\frac{\partial\mathcal F}{\partial u}
   -\dive\frac{\partial\mathcal F}{\partial(\nabla u)}=0\ \ \text{in }\Omega,
@@ -135,6 +140,7 @@ there is no condition.
 \end{gbox}
 
 \paragraph{General first-order operators.} More generally, let
+\index{adjoint operator!formal}\index{beam!Euler--Bernoulli}%
 $\mathcal W(u)=\int_\Omega\mathcal F(Du)\dd x$ with $D$ a linear differential
 operator (components $D_i$). Then
 \[
@@ -166,6 +172,7 @@ transpose of a matrix.
 
 %======================================================================
 \section{Second variation and convexity}
+\index{second variation}\index{convexity}%
 The second G\^ateaux derivative,
 $\delta^2\mathcal W(u)[v,w]=\frac{\partial^2}{\partial\alpha\,\partial\beta}\mathcal W(u+\alpha v+\beta w)\big|_{0}$,
 is symmetric in $(v,w)$ when it exists and is continuous (Schwarz). This is
@@ -177,7 +184,26 @@ critical point at which the second variation takes negative values is
 unstable (the double well of Section~\ref{sec:var-lm}).
 
 %======================================================================
-\section{Exercises}
+\framepart{Summary}
+\begin{gbox*}
+\begin{itemize}
+  \item The \textbf{G\^ateaux derivative} is the derivative along straight
+  lines, $\frac{\dd}{\dd\alpha}\mathcal W(u_0+\alpha v)|_{\alpha=0}$; the
+  \textbf{Fr\'echet derivative} is a uniform linear approximation. Fr\'echet
+  implies G\^ateaux, not conversely.
+  \item An energy problem has three settings: \textbf{minimization},
+  \textbf{weak form} ($\delta\mathcal W(u)[v]=0$ for all $v$) and
+  \textbf{strong form} ($\delta\mathcal W/\delta u=0$, the Euler--Lagrange
+  equations, with natural boundary conditions).
+  \item For $\mathcal W=\int\mathcal F(Du)$ the Euler--Lagrange operator is
+  $D^\ast\,\partial\mathcal F/\partial(Du)$: the formal adjoint of a
+  differential operator plays the role of the transpose of a matrix.
+  \item The \textbf{second variation} is symmetric; its sign decides
+  convexity, uniqueness and stability.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
 
 \exercise{A membrane, or steady heat conduction}\label{exo:A-membrane}
 Find the three problem settings for

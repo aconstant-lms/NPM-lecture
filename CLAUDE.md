@@ -8,6 +8,13 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   4th-order tensors blackboard bold (`\bbC`, `\bbS`, `\bbI`, `\tensf{}`), matrices bold upright (`\mat{K}`).
 - Style is the RG style of Chapter 3 (`preamble/style.tex`): short declarative sentences, sans-serif headings,
   key statements in `gbox`, exercises with `\exercise{Title}\label{exo:...}` + `solution` environment.
+- Every chapter (and appendix) follows the frame: `\framepart{Outline}` (objectives + plan), numbered
+  sections, `\framepart{Summary}` (a `gbox*` of bold-led items), `\framepart{Exercises}` (sub-parts with
+  `\framesub{...}`), and the `chapterbib` which prints the `References` frame part. Frame parts are
+  unnumbered, in small caps: refer to them with `\pageref`/`\nameref`, never `\ref`.
+- Index concepts with `\index{concept}` or `\index{concept!subconcept}` on the line after a section label,
+  `\paragraph`, `gbox` title or exercise label (never inside captions or math). Reuse existing top-level
+  entries (see the printed index) instead of creating near-duplicates; use `sortkey@Display` for accents/math.
 - Each chapter ends with its own `chapterbib`; bibitem keys must be unique across the whole book.
 - Labels are prefixed per chapter: ch1 `sec:var-*`, ch2 `sec:el-*`/`sec:diff`, ch3 `*:rg-*`, appendices `app:*`.
 - Author comments in the sources look like `%% AC: ...`; process them when asked, then delete them.

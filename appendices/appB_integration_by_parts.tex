@@ -3,6 +3,7 @@
 %======================================================================
 % Sources: "Why variational formulations matter", Section 11; notes C1.
 
+\framepart{Outline}
 Every weak formulation and every adjoint computation in this book rests on a
 small family of classical identities. Throughout, $\Omega\subset\R^3$ is a
 bounded domain with Lipschitz boundary $\partial\Omega$, outward unit normal
@@ -13,6 +14,7 @@ $(\cdot)_{,j}=\partial(\cdot)/\partial x_j$.
 %======================================================================
 \section{The divergence theorem}
 \begin{theorem}[Gauss--Ostrogradsky]\label{thm:div}
+\index{divergence theorem}\index{Gauss--Ostrogradsky theorem}\index{Stokes theorem}%
 For a vector field $\vF\in C^1(\overline\Omega;\R^3)$,
 \[
   \int_\Omega\dive\vF\dd x=\int_{\partial\Omega}\vF\cdot\vn\dd s,
@@ -36,6 +38,7 @@ calculus and keep the names separate, following~\cite{MarsdenTromba2011}.}
 %======================================================================
 \section{Scalar fields}
 \begin{theorem}[Integration by parts, scalar times vector]\label{thm:ibp}
+\index{integration by parts!scalar field}%
 For $u\in C^1(\overline\Omega)$ and $\vF\in C^1(\overline\Omega;\R^3)$,
 applying Theorem~\ref{thm:div} to $\dive(u\vF)=u\dive\vF+\nabla u\cdot\vF$,
 \[
@@ -48,11 +51,13 @@ equation (Section~\ref{sec:var-phys}); with $\vF=\vp$ the adjoint
 $\Lambda^\ast\vp=-\dive\vp$ of Section~\ref{sec:var-dual}.
 
 \begin{corollary}[Componentwise]\label{cor:comp}
+\index{integration by parts!componentwise}%
 For $i=1,2,3$ and $u,v\in C^1(\overline\Omega)$,
 $\displaystyle\int_\Omega u\,v_{,i}\dd x=-\int_\Omega u_{,i}\,v\dd x+\int_{\partial\Omega}uv\,n_i\dd s$.
 \end{corollary}
 
 \begin{theorem}[Green's first identity]\label{thm:green1}
+\index{Green's identities!first}%
 Taking $\vF=\nabla v$ in Theorem~\ref{thm:ibp},
 \[
   \int_\Omega\nabla u\cdot\nabla v\dd x=-\int_\Omega u\,\Delta v\dd x
@@ -63,6 +68,7 @@ This is the identity that passes from the strong to the weak form of
 $-\Delta u=f$ (Section~\ref{sec:var-weak}).
 
 \begin{theorem}[Green's second identity]\label{thm:green2}
+\index{Green's identities!second}%
 Subtracting Theorem~\ref{thm:green1} from itself with $u$ and $v$ exchanged,
 \[
   \int_\Omega\bigl(u\,\Delta v-v\,\Delta u\bigr)\dd x
@@ -75,6 +81,7 @@ theorem (Section~\ref{ssec:reciprocity}) and the starting point of the
 reciprocity gap (Chapter~\ref{ch:rg}).
 
 \begin{theorem}[Matrix coefficient field]\label{thm:ibp-matrix}
+\index{integration by parts!matrix coefficient}%
 For a second-order tensor field $\tA\in C^1(\overline\Omega;\R^{3\times3})$ and
 $u,v\in C^1(\overline\Omega)$, Theorem~\ref{thm:ibp} with $\vF=\tA\nabla u$ gives
 \[
@@ -95,6 +102,7 @@ For a second-order tensor field $\sig$, the divergence is the vector
 $(\dive\sig)_i=\sigma_{ij,j}$, and $\sig\vn$ has components $\sigma_{ij}n_j$.
 
 \begin{theorem}[Tensor times vector]\label{thm:ibp-tensor}
+\index{integration by parts!tensor field}\index{reciprocity!Betti (elasticity)}%
 For $\sig\in C^1(\overline\Omega;\R^{3\times3})$ and
 $\vv\in C^1(\overline\Omega;\R^3)$,
 \[
@@ -121,6 +129,7 @@ gives the Betti reciprocity theorem of elasticity,
 
 %======================================================================
 \section{Domains with a cut}
+\index{integration by parts!cracked domain}\index{jump}%
 When $\Omega$ contains a crack $\Gamma$ with lips $\Gamma^\pm$, the identities
 hold in $\OG=\Omega\setminus\Gamma$, whose boundary consists of $\partial\Omega$
 and of both lips. If $\vn$ is the normal of $\Gamma$ pointing towards
@@ -134,7 +143,9 @@ This is how the jump of the potential across the crack appears in the
 reciprocity gap identity~\eqref{eq:rg-rg}.
 
 %======================================================================
-\section{Where each identity is used}
+\framepart{Summary}
+All the identities follow from the divergence theorem and a product rule.
+The table lists where each one is used in the book.
 \begin{center}
 \renewcommand{\arraystretch}{1.15}
 \begin{tabular}{ll}
