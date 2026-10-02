@@ -1,0 +1,13 @@
+# LaTeX build products
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+main.pdf
+# Python
+__pycache__/
+# macOS
+.DS_Store

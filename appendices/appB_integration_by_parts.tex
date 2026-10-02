@@ -1,0 +1,169 @@
+%======================================================================
+\chapter[Integration by parts: the Gauss--Ostrogradsky family]{Integration by parts:\\ the Gauss--Ostrogradsky family}\label{app:ibp}
+%======================================================================
+% Sources: "Why variational formulations matter", Section 11; notes C1.
+
+Every weak formulation and every adjoint computation in this book rests on a
+small family of classical identities. Throughout, $\Omega\subset\R^3$ is a
+bounded domain with Lipschitz boundary $\partial\Omega$, outward unit normal
+$\vn$ and surface measure $\dd s$~\cite{MarsdenTromba2011,Evans2010B}. Indices
+refer to Cartesian components, with summation over repeated indices and
+$(\cdot)_{,j}=\partial(\cdot)/\partial x_j$.
+
+%======================================================================
+\section{The divergence theorem}
+\begin{theorem}[Gauss--Ostrogradsky]\label{thm:div}
+For a vector field $\vF\in C^1(\overline\Omega;\R^3)$,
+\[
+  \int_\Omega\dive\vF\dd x=\int_{\partial\Omega}\vF\cdot\vn\dd s,
+  \qquad\text{i.e.}\qquad
+  \int_\Omega F_{i,i}\dd x=\int_{\partial\Omega}F_in_i\dd s .
+\]
+\end{theorem}
+This is the master identity; every formula below follows from it and a
+product rule. By density it extends to Sobolev fields, with boundary values
+understood as traces.\footnote{On the names: the divergence theorem is due to
+Gauss (1813, a special case) and Ostrogradsky (1826, the general proof),
+independently of the curl theorem now called after Stokes. That theorem was
+itself communicated by Kelvin to Stokes in a letter of 2 July 1850 and owes
+its name to a question Stokes set in the 1854 Smith's Prize
+examination~\cite{Katz1979}, hence the name Kelvin--Stokes. All of these are
+special cases of the generalized Stokes theorem for differential forms,
+$\int_Md\omega=\int_{\partial M}\omega$, which is why the divergence theorem
+is sometimes called ``Stokes' theorem'' too. We stay with classical vector
+calculus and keep the names separate, following~\cite{MarsdenTromba2011}.}
+
+%======================================================================
+\section{Scalar fields}
+\begin{theorem}[Integration by parts, scalar times vector]\label{thm:ibp}
+For $u\in C^1(\overline\Omega)$ and $\vF\in C^1(\overline\Omega;\R^3)$,
+applying Theorem~\ref{thm:div} to $\dive(u\vF)=u\dive\vF+\nabla u\cdot\vF$,
+\[
+  \int_\Omega u\dive\vF\dd x=-\int_\Omega\nabla u\cdot\vF\dd x
+  +\int_{\partial\Omega}u\,(\vF\cdot\vn)\dd s .
+\]
+\end{theorem}
+With $\vF=\nabla u/\sqrt{1+|\nabla u|^2}$ it gives the minimal surface
+equation (Section~\ref{sec:var-phys}); with $\vF=\vp$ the adjoint
+$\Lambda^\ast\vp=-\dive\vp$ of Section~\ref{sec:var-dual}.
+
+\begin{corollary}[Componentwise]\label{cor:comp}
+For $i=1,2,3$ and $u,v\in C^1(\overline\Omega)$,
+$\displaystyle\int_\Omega u\,v_{,i}\dd x=-\int_\Omega u_{,i}\,v\dd x+\int_{\partial\Omega}uv\,n_i\dd s$.
+\end{corollary}
+
+\begin{theorem}[Green's first identity]\label{thm:green1}
+Taking $\vF=\nabla v$ in Theorem~\ref{thm:ibp},
+\[
+  \int_\Omega\nabla u\cdot\nabla v\dd x=-\int_\Omega u\,\Delta v\dd x
+  +\int_{\partial\Omega}u\,\partial_nv\dd s .
+\]
+\end{theorem}
+This is the identity that passes from the strong to the weak form of
+$-\Delta u=f$ (Section~\ref{sec:var-weak}).
+
+\begin{theorem}[Green's second identity]\label{thm:green2}
+Subtracting Theorem~\ref{thm:green1} from itself with $u$ and $v$ exchanged,
+\[
+  \int_\Omega\bigl(u\,\Delta v-v\,\Delta u\bigr)\dd x
+  =\int_{\partial\Omega}\bigl(u\,\partial_nv-v\,\partial_nu\bigr)\dd s .
+\]
+\end{theorem}
+This symmetric form makes the Laplacian self-adjoint
+(Exercise~\ref{exo:selfadj}). It is the continuum form of the reciprocity
+theorem (Section~\ref{ssec:reciprocity}) and the starting point of the
+reciprocity gap (Chapter~\ref{ch:rg}).
+
+\begin{theorem}[Matrix coefficient field]\label{thm:ibp-matrix}
+For a second-order tensor field $\tA\in C^1(\overline\Omega;\R^{3\times3})$ and
+$u,v\in C^1(\overline\Omega)$, Theorem~\ref{thm:ibp} with $\vF=\tA\nabla u$ gives
+\[
+  \int_\Omega\tA\nabla u\cdot\nabla v\dd x
+  =-\int_\Omega\dive(\tA\nabla u)\,v\dd x+\int_{\partial\Omega}v\,(\tA\nabla u)\cdot\vn\dd s .
+\]
+If $\tA$ is symmetric, exchanging $u$ and $v$ and subtracting gives the
+second identity
+$\int_\Omega\bigl(u\dive(\tA\nabla v)-v\dive(\tA\nabla u)\bigr)
+=\int_{\partial\Omega}\bigl(u\,(\tA\nabla v)\cdot\vn-v\,(\tA\nabla u)\cdot\vn\bigr)$.
+\end{theorem}
+It is used for the general elliptic operator (Section~\ref{sec:var-elliptic})
+and for the diffusion problem (Section~\ref{sec:diff}).
+
+%======================================================================
+\section{Tensor fields}
+For a second-order tensor field $\sig$, the divergence is the vector
+$(\dive\sig)_i=\sigma_{ij,j}$, and $\sig\vn$ has components $\sigma_{ij}n_j$.
+
+\begin{theorem}[Tensor times vector]\label{thm:ibp-tensor}
+For $\sig\in C^1(\overline\Omega;\R^{3\times3})$ and
+$\vv\in C^1(\overline\Omega;\R^3)$,
+\[
+  \int_\Omega\sig:\nabla\vv\dd x=-\int_\Omega(\dive\sig)\cdot\vv\dd x
+  +\int_{\partial\Omega}(\sig\vn)\cdot\vv\dd s .
+\]
+If $\sig$ is symmetric, $\sig:\nabla\vv=\sig:\eps[\vv]$ with
+$\eps[\vv]=\tfrac12(\nabla\vv+\nabla\vv\T)$.
+\end{theorem}
+\begin{proof}
+Apply Theorem~\ref{thm:div} to the vector $F_j=\sigma_{ij}v_i$:
+$F_{j,j}=\sigma_{ij,j}v_i+\sigma_{ij}v_{i,j}$ and $F_jn_j=(\sigma_{ij}n_j)v_i$.
+For symmetric $\sig$, the antisymmetric part of $\nabla\vv$ does not
+contribute to $\sig:\nabla\vv$.
+\end{proof}
+This identity gives the principle of virtual work (Section~\ref{sec:el-vw}):
+the divergence on symmetric tensors is minus the adjoint of the symmetric
+gradient. With $\sig=\bbC:\eps[\vu]$ and $\bbC$ having the major symmetry, it
+gives the Betti reciprocity theorem of elasticity,
+\[
+  \int_\Omega\bigl(\vu\cdot\dive\sig[\vv]-\vv\cdot\dive\sig[\vu]\bigr)\dd x
+  =\int_{\partial\Omega}\bigl(\vu\cdot\sig[\vv]\vn-\vv\cdot\sig[\vu]\vn\bigr)\dd s .
+\]
+
+%======================================================================
+\section{Domains with a cut}
+When $\Omega$ contains a crack $\Gamma$ with lips $\Gamma^\pm$, the identities
+hold in $\OG=\Omega\setminus\Gamma$, whose boundary consists of $\partial\Omega$
+and of both lips. If $\vn$ is the normal of $\Gamma$ pointing towards
+$\Gamma^+$, the outward normal of $\OG$ is $-\vn$ on $\Gamma^+$ and $+\vn$ on
+$\Gamma^-$. For a field $\vF$ smooth on each side,
+\[
+  \int_{\OG}\dive\vF\dd x=\int_{\partial\Omega}\vF\cdot\vn\dd s
+  -\int_\Gamma\jump{\vF}\cdot\vn\dd s,\qquad\jump{\vF}=\vF^+-\vF^- .
+\]
+This is how the jump of the potential across the crack appears in the
+reciprocity gap identity~\eqref{eq:rg-rg}.
+
+%======================================================================
+\section{Where each identity is used}
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{ll}
+\toprule
+\sffamily where used & \sffamily identity\\
+\midrule
+weak form of $-\Delta u=f$ (Section~\ref{sec:var-weak}) & Green's first identity, Theorem~\ref{thm:green1}\\
+symmetry of $a(u,v)$, reciprocity (Sections~\ref{sec:var-lm}, \ref{ssec:reciprocity}) & Green's second identity, Theorem~\ref{thm:green2}\\
+minimal surface equation (Section~\ref{sec:var-phys}) & Theorem~\ref{thm:ibp}\\
+general elliptic operator, diffusion (Sections~\ref{sec:var-elliptic}, \ref{sec:diff}) & Theorem~\ref{thm:ibp-matrix}\\
+dual problem, $\Lambda^\ast=-\dive$ (Section~\ref{sec:var-dual}) & Theorem~\ref{thm:ibp}\\
+virtual work, Navier equations (Sections~\ref{sec:el-vw}, \ref{sec:el-energy}) & Theorem~\ref{thm:ibp-tensor}\\
+reciprocity gap (Section~\ref{sec:rg-gap}) & Green's second identity in $\OG$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{The classical trio.} The divergence theorem is the
+three-dimensional member of a family that also contains the \emph{gradient
+theorem} (fundamental theorem of line integrals) and \emph{Stokes' theorem}
+(the flux of $\operatorname{curl}\vF$ through a surface equals the
+circulation of $\vF$ along its boundary curve). Together they generalize the
+fundamental theorem of calculus to higher dimensions~\cite{MarsdenTromba2011}.
+Only the divergence theorem is needed here, since every variational problem
+of the book is built from $\nabla$ and its adjoint $-\dive$.
+
+%======================================================================
+\begin{chapterbib}{9}
+\bibitem{Evans2010B} L.~C.~Evans, \emph{Partial Differential Equations}, 2nd ed., AMS, 2010.
+\bibitem{Katz1979} V.~J.~Katz, The history of Stokes' theorem, \emph{Math. Mag.} 52 (1979) 146--156.
+\bibitem{MarsdenTromba2011} J.~E.~Marsden, A.~J.~Tromba, \emph{Vector Calculus}, 6th ed., W.~H.~Freeman, 2011.
+\end{chapterbib}

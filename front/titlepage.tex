@@ -1,0 +1,36 @@
+%======================================================================
+%  Title page.
+%  NOTE: placeholder layout in the RG style -- replace by the title
+%  page of the "Introduction to Cast3M" notes when available.
+%======================================================================
+\begin{titlepage}
+\sffamily\setlength{\parindent}{0pt}
+\null\vspace{3.2cm}
+{\color{gray!70!black}\rule{\textwidth}{0.8pt}}\par\vspace{18pt}
+{\fontsize{30}{36}\selectfont\bfseries Nonlinear Problems\\[4pt] in Mechanics\par}
+\vspace{14pt}
+{\LARGE Lecture notes\par}
+\vspace{18pt}
+{\color{gray!70!black}\rule{\textwidth}{0.8pt}}\par
+\vspace{2.4cm}
+{\Large Andrei Constantinescu\par}
+\vspace{6pt}
+{\normalsize Laboratoire de M\'ecanique des Solides\\
+CNRS \& \'Ecole Polytechnique, Institut Polytechnique de Paris\par}
+\vfill
+\begin{center}
+\begin{tikzpicture}[scale=0.75,>=Stealth]
+  % small emblem: a body with a crack, data on the boundary (cf. Ch. 3)
+  \fill[gray!10] (0,0) rectangle (4,2.6);
+  \draw[line width=1.6pt,cu] (0,0) -- (4,0);
+  \draw[line width=1.6pt,cu] (4,2.6) -- (0,2.6);
+  \draw[line width=1.6pt,cphi] (4,0) -- (4,2.6);
+  \draw[line width=1.6pt,cphi] (0,2.6) -- (0,0);
+  \draw[line width=1.6pt] (1.4,1.15) -- (2.6,1.6);
+  \foreach \x in {0.5,1.2,...,3.6} \draw[->,gray!60!black] (\x,-0.7) -- (\x,-0.15);
+\end{tikzpicture}
+\end{center}
+\vspace{0.8cm}
+{\small Draft -- \today\par}
+\end{titlepage}
+\cleardoublepage

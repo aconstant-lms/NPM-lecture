@@ -1,0 +1,146 @@
+%======================================================================
+%  style.tex -- page layout and typography
+%  Visual language taken from the reciprocity-gap notes (Chapter 3):
+%  sans-serif bold headings, light-gray boxes, exercises with
+%  solutions in small type.
+%======================================================================
+\usepackage[margin=2.4cm,headheight=14pt]{geometry}
+% Latin Modern with T1 when installed (standard TeX Live); plain Computer
+% Modern otherwise, so that the file compiles on minimal installations.
+\IfFileExists{lmodern.sty}{\usepackage{lmodern}\usepackage[T1]{fontenc}}{}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{xcolor,graphicx,enumitem,booktabs,array,multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning,shapes.geometric,
+  decorations.pathreplacing,decorations.markings,decorations.pathmorphing}
+\usepackage[most]{tcolorbox}
+\usepackage[font=small,labelfont={sf,bf}]{caption}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{etoolbox}
+\usepackage{fancyhdr}
+\usepackage[explicit]{titlesec}
+\usepackage{hyperref}
+\hypersetup{colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black,
+  urlcolor=blue!50!black,pdftitle={Nonlinear Problems in Mechanics -- Lecture notes},
+  pdfauthor={Andrei Constantinescu}}
+
+%---- headings: sans-serif bold, as in the RG notes ---------------------
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries}
+  {\large\color{gray!70!black}\MakeUppercase{\chaptertitlename}~\thechapter}
+  {4pt}
+  {\titlerule[0.6pt]\vspace{6pt}\Huge #1}
+  [\vspace{2pt}]
+\titleformat{name=\chapter,numberless}[display]
+  {\sffamily\bfseries}{}{0pt}{\titlerule[0.6pt]\vspace{6pt}\Huge #1}
+\titlespacing*{\chapter}{0pt}{-10pt}{28pt}
+\titleformat{\section}{\sffamily\bfseries\Large}{\thesection}{0.8em}{#1}
+\titleformat{name=\section,numberless}{\sffamily\bfseries\Large}{}{0pt}{#1}
+\titleformat{\subsection}{\sffamily\bfseries\large}{\thesubsection}{0.8em}{#1}
+\titleformat{name=\subsection,numberless}{\sffamily\bfseries\large}{}{0pt}{#1}
+\titleformat{\subsubsection}{\sffamily\bfseries}{\thesubsubsection}{0.8em}{#1}
+\titleformat{name=\subsubsection,numberless}{\sffamily\bfseries}{}{0pt}{#1}
+\titleformat{\paragraph}[runin]{\sffamily\bfseries}{}{0pt}{#1}
+\titlespacing*{\paragraph}{0pt}{1.6ex plus .5ex minus .2ex}{0.6em}
+
+%---- running heads -------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[LE]{\sffamily\small\leftmark}
+\fancyhead[RO]{\sffamily\small\rightmark}
+\fancyfoot[C]{\sffamily\small\thepage}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ \ #1}}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}%
+  \fancyfoot[C]{\sffamily\small\thepage}}
+
+%---- boxes: light gray background, bold sans-serif title -----------------
+\newtcolorbox{gbox}[1]{enhanced,breakable,colback=gray!12,colframe=gray!12,
+  boxrule=0pt,arc=2pt,left=8pt,right=8pt,top=6pt,bottom=6pt,
+  title={#1},fonttitle=\sffamily\bfseries,coltitle=black,colbacktitle=gray!12,
+  toptitle=3pt,bottomtitle=0pt,titlerule=0pt}
+% untitled variant, used for take-home messages and short summaries
+\newtcolorbox{gbox*}{enhanced,breakable,colback=gray!12,colframe=gray!12,
+  boxrule=0pt,arc=2pt,left=8pt,right=8pt,top=6pt,bottom=6pt}
+
+%---- theorem-like statements in the same sans-serif voice ---------------
+\newtheoremstyle{sfthm}{\topsep}{\topsep}{\itshape}{}{\sffamily\bfseries}{.}{0.5em}{}
+\theoremstyle{sfthm}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheoremstyle{sfdef}{\topsep}{\topsep}{\normalfont}{}{\sffamily\bfseries}{.}{0.5em}{}
+\theoremstyle{sfdef}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\renewcommand{\proofname}{\sffamily\bfseries Proof}
+
+%---- exercises: sans-serif heading, solution in small type ---------------
+\newcounter{exo}[chapter]
+\renewcommand{\theexo}{\thechapter.\arabic{exo}}
+\newcommand{\exercise}[1]{\par\medskip\noindent\refstepcounter{exo}%
+  {\sffamily\bfseries Exercise~\theexo\quad#1.}\ }
+\newcommand{\solsize}{\scriptsize}   % change to \tiny for smaller solutions
+\newenvironment{solution}{\par\smallskip\begingroup\solsize\noindent
+  {\sffamily\bfseries Solution.}\ }{\par\endgroup\medskip}
+
+%---- code listings (Python), quiet gray frame in the box colour ----------
+\lstdefinestyle{pystyle}{language=Python,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{blue!60!black},commentstyle=\color{gray},
+  stringstyle=\color{green!45!black},
+  backgroundcolor=\color{gray!6},frame=none,
+  breaklines=true,showstringspaces=false,tabsize=4,
+  xleftmargin=0.6em,aboveskip=4pt,belowskip=4pt}
+\lstset{style=pystyle}
+
+%---- TikZ styles shared by the diagrams ---------------------------------
+\definecolor{cu}{RGB}{31,90,200}     % potential / displacement data S_u
+\definecolor{cphi}{RGB}{20,150,60}   % flux / traction data S_phi, S_t
+\tikzset{
+  box/.style={rectangle,rounded corners=2pt,fill=gray!12,draw=none,
+    minimum width=8.2cm,minimum height=1.0cm,align=center,inner sep=5pt,
+    font=\small},
+  smallbox/.style={rectangle,rounded corners=2pt,fill=gray!12,draw=none,
+    minimum width=4.6cm,minimum height=1.25cm,align=center,inner sep=5pt,
+    font=\small},
+  tinybox/.style={rectangle,rounded corners=2pt,fill=gray!12,draw=none,
+    minimum width=2.7cm,text width=2.4cm,minimum height=1.3cm,align=center,
+    inner sep=4pt,font=\footnotesize},
+  goal/.style={fill=green!12},
+  key/.style={fill=orange!14},
+  arr/.style={-{Latex[length=2.3mm]},thick},
+  spring/.style={decorate,decoration={coil,aspect=0,segment length=4pt,
+    amplitude=3pt,pre length=0.15cm,post length=0.15cm},thick}
+}
+
+%---- per-chapter bibliographies -----------------------------------------
+% Each chapter ends with \begin{chapterbib}{99} ... \end{chapterbib}.
+% Numbering restarts in every chapter; keys must be unique book-wide.
+\makeatletter
+\newenvironment{chapterbib}[1]
+  {\section*{References}%
+   \addcontentsline{toc}{section}{References}%
+   \small
+   \list{\@biblabel{\@arabic\c@enumiv}}%
+     {\settowidth\labelwidth{\@biblabel{#1}}%
+      \leftmargin\labelwidth\advance\leftmargin\labelsep
+      \itemsep 2pt\usecounter{enumiv}%
+      \let\p@enumiv\@empty\renewcommand\theenumiv{\@arabic\c@enumiv}}%
+   \sloppy\clubpenalty4000\widowpenalty4000\sfcode`\.\@m}
+  {\def\@noitemerr{\@latex@warning{Empty `chapterbib' environment}}%
+   \endlist}
+\makeatother
+
+%---- drafting aids (set \drafttrue/\draftfalse in main.tex) --------------
+\newif\ifdraft
+\newcommand{\draftnote}[1]{\ifdraft{\sffamily\footnotesize\color{red!70!black}[#1]}\fi}
+
+\numberwithin{equation}{chapter}
+\numberwithin{figure}{chapter}
+\numberwithin{table}{chapter}
+\setlist{itemsep=1pt}

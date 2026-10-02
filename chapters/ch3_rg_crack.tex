@@ -1,0 +1,566 @@
+%======================================================================
+\chapter{Identification of a planar crack by the reciprocity gap}\label{ch:rg}
+%======================================================================
+% Source: rg_crack_theory.tex (electrostatics), notes C1 Section 4.
+
+This chapter considers the identification of a planar crack in a conducting body from overdetermined boundary data. After stating the direct problem and its well-posedness, we formulate the inverse problem and review what is known about its uniqueness and stability. The reciprocity gap turns the overdetermined data into linear functionals of the crack opening. For a planar crack, these functionals give the crack in three explicit steps, following Andrieux and Ben Abda: the normal, the plane and the extension. We present these steps in three dimensions, with the double sine--sinh form of the extension formula and its stability. Two variants of the extension step follow: polynomial adjoint fields, which give the moments of the opening, and a dipole estimate based on the polarization tensor of a crack (Ammari and Kang). We then explain how several experiments are combined. The two-dimensional versions used in the numerical codes are collected in the last section.
+
+\begin{gbox}{Guiding questions}
+Overspecified boundary data, where the potential \emph{and} the flux are known
+on the boundary from a single physical measurement, let one probe for a hidden
+defect. The chapter answers, in order, the following questions.
+\begin{enumerate}[itemsep=1pt]
+  \item What is a crack, mathematically? Here: an unknown surface $\Gamma$
+  across which no flux passes, an insulating (or traction-free) crack.
+  \item What are the strong and weak formulations for the cracked body
+  $\Omega\setminus\Gamma$? (Section~\ref{sec:rg-direct})
+  \item Which reciprocity equation relates the unknown cracked body and a
+  fictitious uncracked body occupying the same $\Omega$?
+  (Section~\ref{sec:rg-gap})
+  \item What can be deduced about $\Gamma$ from this equation alone, and can
+  particular fictitious fields extract its plane, its position and its size?
+  (Sections~\ref{sec:rg-rec}--\ref{sec:rg-multi})
+\end{enumerate}
+The tools are those of Chapters~\ref{ch:var} and~\ref{ch:elliptic}: the
+weak form and Lax--Milgram for the direct problem, Green's second identity
+(Appendix~\ref{app:ibp}) for reciprocity, and the scalar diffusion problem of
+Section~\ref{sec:diff}, which is also anti-plane elasticity
+(Exercise~\ref{exo:antiplane}).
+\end{gbox}
+
+\section{Introduction}\label{sec:rg-intro}
+The problem studied here is a scalar, stationary diffusion problem: a potential $u$ drives a flux $\vq=-k\nabla u$ that is conserved, $\operatorname{div}\vq=0$, in a body of constant conductivity $k$ (we take $k=1$). A crack is a surface across which no flux passes, $\vq\cdot\vn=0$ on both lips, while the potential may jump. The same mathematical problem arises in several physical settings (Table~\ref{tab:rg-phys}).
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{>{\raggedright}p{2.6cm}>{\raggedright}p{2.3cm}>{\raggedright}p{2.6cm}>{\raggedright}p{2.6cm}>{\raggedright\arraybackslash}p{3.7cm}}
+\toprule
+\sffamily setting & \sffamily potential $u$ & \sffamily flux $\vq$ & \sffamily crack & \sffamily typical measurement\\
+\midrule
+electrostatics, steady currents & electric potential & current density & insulating crack & electrodes; potential drop\\
+heat conduction & temperature & heat flux & adiabatic crack, delamination & thermocouples, infrared camera\\
+porous media (Darcy) & hydraulic head, pressure & Darcy velocity & impermeable fault or barrier & pumping and observation wells\\
+mass diffusion (Fick) & concentration & diffusive flux & impermeable barrier & sampling at the boundary\\
+anti-plane elasticity & out-of-plane displacement & shear stress $\sigma_{3i}$ & traction-free mode~III crack & displacement and traction measurements\\
+\bottomrule
+\end{tabular}
+\caption{Physical interpretations of the model problem $\operatorname{div}(k\nabla u)=0$ with a zero-flux crack.}
+\label{tab:rg-phys}
+\end{table}
+
+\paragraph{Applications.} In each of these settings, crack identification from boundary measurements is a practical question.
+\begin{itemize}[itemsep=1pt]
+\item \emph{Electrical potential drop methods.} A current is driven through a metallic component and the potential is measured near a surface crack to size it. This is a standard technique of non-destructive evaluation; its analysis uses Green's theorem for the Laplace equation, as here~\cite{IYM91}. Electrostatic data were also the original motivation of the mathematical crack problem~\cite{FV89,SV91}.
+\item \emph{Thermal methods.} Active infrared thermography detects delaminations and cracks in composite and metallic parts. The stationary limit of the heat equation is the present problem, and the reciprocity gap extends to transient heat diffusion~\cite{BCM05}.
+\item \emph{Porous media.} In hydrogeology and reservoir engineering, impermeable (sealing) faults are inferred from pressure measurements in wells. The steady Darcy problem with an impermeable fault is the present problem; boundary data are, however, usually available only at a few wells.
+\item \emph{Elasticity.} Anti-plane shear is the simplest elastic case. The reciprocity gap method extends to linear elasticity~\cite{ABB99} and to elastodynamics~\cite{BCM04,BCM05}.
+\end{itemize}
+
+\paragraph{Outline.} Sections~\ref{sec:rg-direct}--\ref{sec:rg-inverse} state the direct and inverse problems, and Section~\ref{sec:rg-lit} reviews uniqueness and stability results. Section~\ref{sec:rg-gap} introduces the reciprocity gap. Section~\ref{sec:rg-rec} gives the reconstruction of a planar crack in three dimensions, its stability, and two variants of the extension step. Section~\ref{sec:rg-multi} explains how several experiments are combined, Section~\ref{sec:rg-num} gathers the two-dimensional formulas used in the numerical codes, and Section~\ref{sec:rg-exo} proposes exercises with solutions.
+
+%======================================================================
+\section{The direct problem}\label{sec:rg-direct}
+Let $\Omega\subset\R^3$ be a bounded, connected Lipschitz domain with outward unit normal $\vnu$. The crack $\Gamma\subset\Omega$ is a closed, bounded planar domain with Lipschitz boundary $\partial\Gamma$ (the crack front), lying in the plane $\Pi=\{\vx:\ \vn\cdot\vx=c\}$. Its two lips are $\Gamma^+$, on the side towards which $\vn$ points, and $\Gamma^-$. We write $\OG=\Omega\setminus\Gamma$; it is connected because $\Gamma$ is compactly contained in $\Omega$. The boundary is split into two complementary parts: the potential is prescribed on $S_u$ (electrodes) and the flux on $S_\varphi$.
+
+\begin{gbox}{Direct problem}
+Given $\Gamma$, a partition $\partial\Omega=\overline{S_u}\cup\overline{S_\varphi}$, $S_u\cap S_\varphi=\emptyset$, and boundary data $\uD$ on $S_u$, $\pD$ on $S_\varphi$, find $u$ such that
+\begin{equation}\label{eq:rg-direct}
+\left\{\begin{aligned}
+\Delta u&=0 &&\text{in }\OG,\\
+\partial_n u^\pm&=0 &&\text{on }\Gamma^\pm,\\
+u&=\uD &&\text{on }S_u,\\
+\partial_\nu u&=\pD &&\text{on }S_\varphi .
+\end{aligned}\right.
+\end{equation}
+\end{gbox}
+
+\paragraph{Well-posedness.} Assume $|S_u|>0$, $\uD\in H^{1/2}(S_u)$ and $\pD\in\tilde H^{-1/2}(S_\varphi)$, the dual of $H^{1/2}_{00}(S_\varphi)$. Then~\eqref{eq:rg-direct} has a unique weak solution $u\in H^1(\OG)$, and
+\begin{equation}\label{eq:rg-stab-direct}
+\|u\|_{H^1(\OG)}\le C\bigl(\|\uD\|_{H^{1/2}(S_u)}+\|\pD\|_{\tilde H^{-1/2}(S_\varphi)}\bigr),
+\end{equation}
+with $C$ depending only on $\Omega$, $\Gamma$ and $S_u$. The problem is therefore well posed in the sense of Hadamard.
+
+To see this, let $V=\{v\in H^1(\OG):\ v=0\text{ on }S_u\}$, and let $U\in H^1(\Omega)$ be a lifting of $\uD$. The weak form is to find $w=u-U\in V$ such that
+\[
+\int_{\OG}\nabla w\cdot\nabla v\,d\vx=\langle\pD,v\rangle_{S_\varphi}-\int_{\OG}\nabla U\cdot\nabla v\,d\vx\qquad\forall v\in V .
+\]
+The zero-flux conditions on the lips and the flux on $S_\varphi$ are natural conditions of this form. $\OG$ is connected and is the union of two Lipschitz subdomains, obtained by cutting $\Omega$ along a surface that extends $\Gamma$ to $\partial\Omega$. The Poincaré--Friedrichs inequality therefore holds on $V$ because $|S_u|>0$, so the bilinear form is coercive. The Lax--Milgram lemma (Section~\ref{sec:var-lm}) gives existence, uniqueness and~\eqref{eq:rg-stab-direct}, exactly as for the diffusion problem of Section~\ref{sec:diff}.
+
+\paragraph{Pure flux data.} If $S_u=\emptyset$, a solution exists if and only if $\int_{\partial\Omega}\pD\,ds=0$, and it is unique up to an additive constant; \eqref{eq:rg-stab-direct} holds in $H^1(\OG)/\R$.
+
+\paragraph{Behaviour at the crack front.} Near $\partial\Gamma$, $u$ behaves like $r^{1/2}\cos(\theta/2)$ in polar coordinates in the plane normal to the front. The opening $\jump u=u^+-u^-$ therefore vanishes like the square root of the distance to the front, and its extension by zero to $\Pi$ belongs to $H^{1/2}(\Pi)$: $\jump u\in\tilde H^{1/2}(\Gamma)$.
+
+%======================================================================
+\section{The inverse problem}\label{sec:rg-inverse}
+In the inverse problem the crack is unknown. The experiment imposes $\uD$ on $S_u$ and $\pD$ on $S_\varphi$, and measures additional quantities: the flux on part of $S_u$ and the potential on part of $S_\varphi$. After the experiment, $u$ is known on a set $\tilde S_u\supseteq S_u$ and $\partial_\nu u$ on a set $\tilde S_\varphi\supseteq S_\varphi$. These two sets are no longer complementary.
+
+\begin{gbox}{Inverse problem}
+Given $\Omega$, one or several experiments $k=1,\dots,K$ with data $(\uD_k,\pD_k)$, and the measured Cauchy data
+\[
+u_k=f_k\ \text{on }\tilde S_u,\qquad \partial_\nu u_k=g_k\ \text{on }\tilde S_\varphi,\qquad
+\Sigma=\tilde S_u\cap\tilde S_\varphi\neq\emptyset ,
+\]
+where $u_k$ solves~\eqref{eq:rg-direct} for the unknown crack, find the crack $\Gamma$.
+\end{gbox}
+
+On $\Sigma$ both the potential and the flux are known: the data are \emph{overdetermined}, and this redundancy carries the information on $\Gamma$. We use mostly \emph{complete} overdetermined data, $\tilde S_u=\tilde S_\varphi=\partial\Omega$. This is the setting of~\cite{AB96}, and the situation of the numerical experiments, where the flux is measured on the electrodes and the potential on the insulated parts. When the data are incomplete, the missing data can first be reconstructed by solving a Cauchy problem for the Laplace equation near the boundary, for instance by the energy-gap method of~\cite{ABB06}; this step is itself ill-posed.
+
+The map from $\Gamma$ to the data is nonlinear, and its inverse is unstable: smooth data perturbations may correspond to large changes of the crack. The inverse problem is ill-posed.
+
+%======================================================================
+\section{Identifiability, uniqueness and stability: literature and ideas}\label{sec:rg-lit}
+\paragraph{Blind experiments.} A single experiment cannot determine an arbitrary crack. Let $u_0$ be the solution of~\eqref{eq:rg-direct} without crack. If $\partial_n u_0=0$ on $\Gamma$, i.e.\ if the crack lies along the flux lines of $u_0$, then $u_0$ also solves the cracked problem. The crack does not change the data and is invisible. For a uniform field $\vE$ this happens when $\vE\cdot\vn=0$.
+
+\paragraph{Uniqueness.} Friedman and Vogelius~\cite{FV89} proved that two suitably chosen measurements determine an insulating crack, and gave stability results. Uniqueness was extended to a finite collection of cracks with two measurements by Kim and Seo~\cite{KS96} and by Alessandrini and Diaz Valenzuela~\cite{ADV96}. For three-dimensional cracks, Eller~\cite{Ell96} obtained identification from many boundary measurements. For a planar crack, the inversion formulae of Andrieux and Ben Abda~\cite{AB96} give a constructive proof: one non-blind experiment with complete data determines the crack (Section~\ref{sec:rg-rec}).
+
+\paragraph{Stability.} The dependence of the crack on the data is in general only logarithmic~\cite{Ale93}. Under a priori restrictions the stability improves: for linear cracks it becomes Lipschitz~\cite{ABV96}. The logarithmic resolution found for the extension step in Section~\ref{ssec:rg-stab} is a concrete instance of this ill-posedness.
+
+\paragraph{Reconstruction methods.} Iterative methods minimise a misfit over crack geometries~\cite{SV91,BV94}. Sampling and factorization methods characterise the crack through the range of a data operator~\cite{BHP01}. Direct methods, such as the reciprocity gap used here~\cite{AB96,ABB99,BCM04,BCM05}, compute geometric quantities in closed form. Asymptotic methods treat the defect as a small inhomogeneity and use its polarization tensor~\cite{AK04}. The review~\cite{BV04} surveys these works.
+
+%======================================================================
+\section{The reciprocity gap}\label{sec:rg-gap}
+Let $u$ solve~\eqref{eq:rg-direct} for the unknown crack, with complete Cauchy data $(u,\varphi)$ on $\partial\Omega$, $\varphi=\partial_\nu u$. An \emph{adjoint field} $v$ is a function harmonic in the whole domain $\Omega$, without crack. It is chosen, so $v$ and $\partial_\nu v$ are known on $\partial\Omega$, usually in closed form (Figure~\ref{fig:rg-rg}).
+
+\begin{gbox}{Reciprocity gap}
+For every $v\in\mathcal H(\Omega)=\{v\in H^1(\Omega):\ \Delta v=0\text{ in }\Omega\}$, smooth near $\Gamma$, the reciprocity gap is
+\begin{equation}\label{eq:rg-rgdef}
+\RG(v)=\int_{\partial\Omega}\bigl(u\,\partial_\nu v-v\,\varphi\bigr)\,ds ,
+\end{equation}
+and it satisfies the identity
+\begin{equation}\label{eq:rg-rg}
+\RG(v)=\int_\Gamma\jump u\,\partial_n v\,ds,\qquad \jump u=u^+-u^- .
+\end{equation}
+The left-hand side uses only boundary data; the right-hand side only the crack and its opening. With in-plane coordinates $\vs=(s_1,s_2)$ on $\Pi$, $\eta=\vn\cdot\vx-c$ and $w(\vs)=\jump u$ extended by zero, the adjoint fields used below give:
+\begin{center}\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{llll}
+\toprule
+\sffamily adjoint field $v$ & \sffamily $\partial_n v$ on $\Pi$ & \sffamily $\RG(v)$ & \sffamily yields\\
+\midrule
+$\vd\cdot\vx$ & $\vd\cdot\vn$ & $m_0\,\vd\cdot\vn$ & normal $\vn$\\
+$(\vn\cdot\vx)^2-\tfrac12\bigl((\vt_1\cdot\vx)^2+(\vt_2\cdot\vx)^2\bigr)$ & $2c$ & $2c\,m_0$ & plane $c$\\
+$e^{|\vxi|\eta}\,e^{-\mathrm i\vxi\cdot\vs}$, $\vxi\in\R^2$ & $|\vxi|\,e^{-\mathrm i\vxi\cdot\vs}$ & $|\vxi|\,\hat w(\vxi)$ & opening $w$\\
+$\eta,\ s_i\eta,\ s_is_j\eta-\tfrac13\delta_{ij}\eta^3$ & $1,\ s_i,\ s_is_j$ & $m_0,\ m_i,\ m_{ij}$ & centre, extent\\
+\bottomrule
+\end{tabular}
+\end{center}
+where $m_0=\int_\Gamma w$, $m_i=\int_\Gamma w\,s_i$ and $m_{ij}=\int_\Gamma w\,s_is_j$ are the moments of the opening.
+\end{gbox}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[scale=1.12,>=Stealth]
+\tikzset{lip/.style={line width=1.6pt,black},
+         su/.style={line width=1.8pt,cu},
+         sp/.style={line width=1.8pt,cphi}}
+% ---------------- (a) direct problem ----------------
+\begin{scope}
+\fill[gray!8] (0,0) rectangle (2.4,3);
+\draw[su] (0,0) -- (2.4,0);
+\draw[su] (2.4,3) -- (0,3);
+\draw[sp] (2.4,0) -- (2.4,3);
+\draw[sp] (0,3) -- (0,0);
+\draw[lip] (0.75,1.55) -- (1.65,2.0);
+\draw[->,thick] (1.2,1.775) -- ++(-0.22,0.45) node[above left,inner sep=1pt]{\small $\vn$};
+\node at (1.55,1.65) {\small $\Gamma$};
+\node at (1.2,0.8) {\small $\Delta u=0$};
+\node[cu,below] at (1.2,0) {\small $u=\uD$ on $S_u$};
+\node[cu,above] at (1.2,3) {\small $u=\uD$ on $S_u$};
+\node[cphi,rotate=90,above] at (0,1.5) {\small $\partial_\nu u=\pD$ on $S_\varphi$};
+\node[cphi,rotate=90,below] at (2.4,1.5) {\small $\partial_\nu u=\pD$ on $S_\varphi$};
+\node at (1.2,-0.85) {\sffamily (a) direct problem};
+\end{scope}
+% ---------------- (b) inverse problem ----------------
+\begin{scope}[xshift=4.2cm]
+\fill[gray!8] (0,0) rectangle (2.4,3);
+\draw[thin,black] (0,0) rectangle (2.4,3);
+\draw[line width=1.4pt,cu] (-0.09,-0.09) rectangle (2.49,3.09);
+\draw[line width=1.4pt,cphi] (-0.2,-0.2) rectangle (2.6,3.2);
+\draw[line width=1.6pt,red!70!black,dashed] (0.75,1.55) -- (1.65,2.0);
+\node[red!70!black] at (1.45,1.45) {\small $\Gamma\,?$};
+\node at (1.2,0.8) {\small $\Delta u=0$};
+\node[cu] at (1.2,3.45) {\small $u=f$ known};
+\node[cphi] at (1.2,-0.45) {\small $\partial_\nu u=g$ known};
+\node at (1.2,-0.85) {\sffamily (b) inverse problem};
+\end{scope}
+% ---------------- (c) adjoint field ----------------
+\begin{scope}[xshift=8.4cm]
+\fill[gray!8] (0,0) rectangle (2.4,3);
+\draw[thin,black] (0,0) rectangle (2.4,3);
+\draw[line width=1.4pt,cu] (-0.09,-0.09) rectangle (2.49,3.09);
+\draw[line width=1.4pt,cphi] (-0.2,-0.2) rectangle (2.6,3.2);
+\node at (1.2,1.7) {\small $\Delta v=0$};
+\node at (1.2,1.2) {\small (no crack)};
+\node[cu] at (1.2,3.45) {\small $v$ known};
+\node[cphi] at (1.2,-0.45) {\small $\partial_\nu v$ known};
+\node at (1.2,-0.85) {\sffamily (c) adjoint field};
+\end{scope}
+\end{tikzpicture}
+\caption{Section through the body. (a) Direct problem: the boundary is split into the complementary parts $S_u$ (blue, potential prescribed) and $S_\varphi$ (green, flux prescribed); the crack is known. (b) Inverse problem with complete overdetermined data: after measurement, the potential (blue) and the flux (green) are known on the whole boundary, and the crack is unknown. (c) Adjoint field $v$, harmonic in the uncracked domain, with $v$ and $\partial_\nu v$ known on the boundary. The reciprocity gap~\eqref{eq:rg-rgdef} pairs the boundary data of (b) and (c).}
+\label{fig:rg-rg}
+\end{figure}
+
+\paragraph{Derivation of~\eqref{eq:rg-rg}.} Apply Green's second identity in $\OG$: $\int_{\OG}(v\Delta u-u\Delta v)=\int_{\partial\OG}(v\,\partial_{\nu'}u-u\,\partial_{\nu'}v)$, where $\nu'$ is the outward normal of $\OG$. The left-hand side vanishes. The boundary $\partial\OG$ consists of $\partial\Omega$ ($\nu'=\vnu$), $\Gamma^+$ ($\nu'=-\vn$) and $\Gamma^-$ ($\nu'=+\vn$). On the lips $\partial_{\nu'}u=0$, while $v$ and $\partial_nv$ are single-valued because $v$ is smooth across $\Gamma$. Hence $0=\int_{\partial\Omega}(v\varphi-u\,\partial_\nu v)\,ds+\int_\Gamma(u^+-u^-)\,\partial_nv\,ds$, which is~\eqref{eq:rg-rg}. If there is no crack, $\RG(v)=0$ for all $v$: this is Betti--Maxwell reciprocity, the continuum form of Proposition~\ref{prop:reciprocity}. The reciprocity gap measures how far the data are from those of an uncracked body.
+
+\paragraph{Properties.}
+\begin{enumerate}[label=(\roman*),itemsep=1pt]
+\item The identity~\eqref{eq:rg-rg} holds for a curved crack as well, with $\vn$ the local normal.
+\item $\RG$ is linear in $v$, and linear in the data $(u,\varphi)$. Linearity in the data is the basis of Section~\ref{sec:rg-multi}.
+\item $|\RG(v)|\le\|u\|_{H^{1/2}(\partial\Omega)}\|\partial_\nu v\|_{H^{-1/2}(\partial\Omega)}+\|\varphi\|_{H^{-1/2}(\partial\Omega)}\|v\|_{H^{1/2}(\partial\Omega)}$. Data errors are amplified by the size of $v$ on $\partial\Omega$, which matters for the extension step.
+\item As a distribution, $v\mapsto\RG(v)$ is the double layer of density $\jump u$ on $\Gamma$, tested on harmonic functions. Identifying the crack means identifying the support of this double layer.
+\item Some implementations, such as the Cast3M files, compute $\int_{\partial\Omega}(\varphi v-u\,\partial_\nu v)=-\RG(v)$; the sign cancels in all the ratios below.
+\end{enumerate}
+
+%======================================================================
+\section{Reconstruction of a planar crack}\label{sec:rg-rec}
+From now on $\Gamma$ lies in the plane $\Pi=\{\vx:\ \vn\cdot\vx=c\}$, with in-plane unit vectors $\vt_1,\vt_2$ such that $(\vt_1,\vt_2,\vn)$ is a direct orthonormal basis. Following~\cite{AB96}, the crack is obtained in three steps, each with a family of adjoint fields in~\eqref{eq:rg-rg}. We write
+\[
+m_0=\int_\Gamma\jump u\,ds
+\]
+and assume $m_0\ne0$. This holds for every non-blind experiment in a uniform field (Section~\ref{ssec:rg-ak}).
+
+%-------------------------------------------------
+\subsection{Step 1: the normal}
+For every $\vd\in\R^3$, the field $v=\vd\cdot\vx$ is harmonic with $\partial_nv=\vd\cdot\vn$ constant on $\Gamma$, so $\RG(\vd\cdot\vx)=m_0\,\vd\cdot\vn$. Hence
+\begin{equation}\label{eq:rg-step1}
+\bigl(\RG(x_1),\RG(x_2),\RG(x_3)\bigr)=m_0\,\vn,\qquad
+\vn=\pm\frac{(\RG(x_i))_i}{|(\RG(x_i))_i|} .
+\end{equation}
+Exchanging the lips changes the sign of $\jump u$, so the sign of $\vn$ is not determined. We fix it by requiring $m_0>0$. The vector $m_0\vn$ is the dipole moment of the crack (Section~\ref{ssec:rg-ak}).
+
+%-------------------------------------------------
+\subsection{Step 2: the plane}
+The field $v_2=(\vn\cdot\vx)^2-\tfrac12\bigl((\vt_1\cdot\vx)^2+(\vt_2\cdot\vx)^2\bigr)$ is harmonic ($\Delta v_2=2-\tfrac12(2+2)=0$), and $\partial_nv_2=2\,\vn\cdot\vx=2c$ on $\Pi$. By~\eqref{eq:rg-rg}, $\RG(v_2)=2c\,m_0$ and $\RG(\vn\cdot\vx)=m_0$, so
+\begin{equation}\label{eq:rg-step2}
+c=\frac{\RG(v_2)}{2\,\RG(\vn\cdot\vx)} .
+\end{equation}
+In computations the coordinates are centred, $\vx\mapsto\vx-\vx_0$ with $\vx_0$ in the middle of $\Omega$, to keep the adjoint fields small on $\partial\Omega$.
+
+%-------------------------------------------------
+\subsection{Step 3: the extension}\label{ssec:rg-step3}
+The plane being known, we use coordinates along and across it. With $\vx_*\in\Pi$,
+\[
+s_i=\vt_i\cdot(\vx-\vx_*),\qquad \eta=\vn\cdot(\vx-\vx_*),
+\]
+so that $\Pi=\{\eta=0\}$ and $\partial_n=\partial_\eta$. Let $w(\vs)$ be the opening at $\vx_*+s_1\vt_1+s_2\vt_2$, extended by zero outside $\Gamma$.
+
+\paragraph{Fourier transform~\cite{AB96}.} Extend $\RG$ to complex-valued adjoint fields by linearity, and take
+\[
+V_{\vxi}(\vx)=e^{|\vxi|\eta}\,e^{-\mathrm i\vxi\cdot\vs},\qquad\vxi\in\R^2 .
+\]
+$V_{\vxi}$ is harmonic, since $\Delta V_{\vxi}=(|\vxi|^2-|\vxi|^2)V_{\vxi}=0$, and $\partial_\eta V_{\vxi}=|\vxi|e^{-\mathrm i\vxi\cdot\vs}$ on $\Pi$. By~\eqref{eq:rg-rg},
+\begin{equation}\label{eq:rg-fourier}
+\RG(V_{\vxi})=|\vxi|\int_{\R^2}w(\vs)\,e^{-\mathrm i\vxi\cdot\vs}\,d\vs=|\vxi|\,\hat w(\vxi).
+\end{equation}
+Since $w$ has compact support, $\hat w$ is entire (Paley--Wiener--Schwartz). It is therefore known for all $\vxi$, including $\hat w(\mathbf 0)=m_0$, and Fourier inversion gives $w$, hence $\Gamma=\overline{\{w\ne0\}}$.
+
+\paragraph{Discrete version: double sine--sinh adjoint fields.} The procedure~\cite{AC09} uses the discrete form of~\eqref{eq:rg-fourier}. Choose $\vx_*$ and $L_1,L_2$ such that the section of the body by the plane lies in the rectangle
+\begin{equation}\label{eq:rg-L}
+\Pi\cap\overline\Omega\subset\{\vx_*+s_1\vt_1+s_2\vt_2:\ 0\le s_1\le L_1,\ 0\le s_2\le L_2\}.
+\end{equation}
+With $\lambda_p=p\pi/L_1$, $\mu_q=q\pi/L_2$ and $\kappa_{pq}=(\lambda_p^2+\mu_q^2)^{1/2}$, let
+\begin{equation}\label{eq:rg-vpq}
+v_{pq}=\frac{1}{\kappa_{pq}}\sin(\lambda_ps_1)\,\sin(\mu_qs_2)\,\sinh(\kappa_{pq}\eta),\qquad p,q\ge1 .
+\end{equation}
+$v_{pq}$ is harmonic, since $\Delta v_{pq}=(-\lambda_p^2-\mu_q^2+\kappa_{pq}^2)v_{pq}=0$, and $\partial_\eta v_{pq}=\sin(\lambda_ps_1)\sin(\mu_qs_2)$ on $\Pi$. By~\eqref{eq:rg-L} the support of $w$ lies in the rectangle, so $\RG(v_{pq})$ is a double sine coefficient of $w$. Since $\{(4/L_1L_2)^{1/2}\sin(\lambda_ps_1)\sin(\mu_qs_2)\}$ is an orthonormal basis of $L^2$ of the rectangle,
+\begin{equation}\label{eq:rg-series}
+w(\vs)=\sum_{p,q\ge1}\frac{4}{L_1L_2}\,\RG(v_{pq})\,\sin(\lambda_ps_1)\sin(\mu_qs_2),\qquad
+\|w\|_{L^2}^2=\frac{4}{L_1L_2}\sum_{p,q}\RG(v_{pq})^2 .
+\end{equation}
+The sine--sinh fields are combinations of the exponential fields $V_{\vxi}$ at the discrete frequencies $(\pm\lambda_p,\pm\mu_q)$. Restricting~\eqref{eq:rg-fourier} to these frequencies replaces the Fourier transform by a sine series, which is legitimate because $w$ vanishes outside the rectangle. Because $w\in\tilde H^{1/2}(\Gamma)$, the coefficients are square-summable with the weight $\kappa_{pq}$, and the square-root behaviour at the front gives an $L^2$ truncation error of order $N^{-1}$ for $N$ terms per direction~\cite{LM72}.
+
+\paragraph{The support of the opening is the crack.} Let $u_0$ be the solution without crack. If $\partial_nu_0\not\equiv0$ on $\Gamma$, then $\jump u$ is real-analytic in the interior of $\Gamma$ and does not vanish identically, so its zero set has empty interior and $\overline{\{w\ne0\}}=\Gamma$. If $\partial_nu_0\equiv0$ on $\Gamma$ (blind experiment), $\jump u\equiv0$.
+
+Indeed, near an interior point of $\Gamma$, $u^+$ is harmonic on one side with $\partial_\eta u^+=0$ on $\Pi$; its even reflection is harmonic across $\Pi$ (Schwarz reflection for the Neumann condition), so $u^+$ is real-analytic up to $\Gamma$, and likewise $u^-$. If $\jump u$ vanished on an open subset of $\Gamma$, it would vanish on all of $\Gamma$. Then $u\in H^1(\Omega)$ would be harmonic in $\Omega$ with the data of~\eqref{eq:rg-direct}, so $u=u_0$ by uniqueness, and $\partial_nu_0=\partial_nu=0$ on $\Gamma$. Conversely, if $\partial_nu_0\equiv0$ on $\Gamma$, $u_0$ solves the cracked problem, and $u=u_0$.
+
+%-------------------------------------------------
+\subsection{Stability of the extension step}\label{ssec:rg-stab}
+Let the data carry relative errors of size $\delta$, and let $H=\max_{\partial\Omega}|\eta|$ be the largest distance from $\partial\Omega$ to the plane. On $\partial\Omega$, $|v_{pq}|\le\sinh(\kappa_{pq}H)/\kappa_{pq}$ and $|\nabla v_{pq}|\le2\cosh(\kappa_{pq}H)$, so
+\begin{equation}\label{eq:rg-stab}
+|\delta\RG(v_{pq})|\le C_0\,\delta\,e^{\kappa_{pq}H},
+\end{equation}
+while the exact coefficients decay algebraically. Only the frequencies with $\delta e^{\kappa H}\lesssim1$ carry information, $\kappa\le\kappa_{\max}=\ln(1/\delta)/H$. The smallest resolved detail is therefore
+\begin{equation}\label{eq:rg-res}
+\text{resolution}\approx\frac{\pi}{\kappa_{\max}}=\frac{\pi H}{\ln(1/\delta)} ,
+\end{equation}
+which improves only logarithmically with the noise level. Two further errors grow with the frequency. In a discretised problem, \eqref{eq:rg-rg} holds exactly only for discretely harmonic adjoint fields, and oscillating exponentials are not represented on a coarse mesh. An error $\epsilon$ on the plane multiplies the coefficients by $\cosh(\kappa\epsilon)$. These three effects explain why Steps 1--2 are accurate while the extension obtained from the series~\eqref{eq:rg-series} is poor (Section~\ref{sec:rg-num}).
+
+%-------------------------------------------------
+\subsection{Variant of Step 3: polynomial adjoint fields and moments}\label{ssec:rg-poly}
+Instead of oscillating functions of $\vs$, one can use polynomials. For a polynomial $P(\vs)$, the harmonic function with $v=0$ and $\partial_\eta v=P$ on $\Pi$ is the finite sum
+\begin{equation}\label{eq:rg-ck}
+v_P=\sum_{k\ge0}\frac{(-1)^k\,\eta^{2k+1}}{(2k+1)!}\,\Delta_s^kP(\vs),
+\end{equation}
+where $\Delta_s$ is the Laplacian in the plane. The sum is finite because $P$ is a polynomial, and $\Delta v_P=0$ because the terms cancel in pairs. Then $\RG(v_P)=\int_\Gamma wP$. For $P=1,\ s_i,\ s_is_j$ this gives the fields of the box in Section~\ref{sec:rg-gap}, and the moments
+\[
+m_0=\int_\Gamma w,\qquad \vm_1=\Bigl(\int_\Gamma w\,s_i\Bigr)_i,\qquad
+\tmu=\frac1{m_0}\int_\Gamma w\,(\vs-\vs_0)\otimes(\vs-\vs_0).
+\]
+These fields grow only polynomially on $\partial\Omega$. Those of degree $\le2$ belong to the quadratic finite element space, so the discrete identity is exact on any mesh.
+
+\paragraph{Centre.} $\vs_0=\vm_1/m_0$ is the centre of the opening, i.e.\ of the crack for a symmetric opening.
+
+\paragraph{Extent.} For an elliptical crack with semi-axes $a\ge b$, the opening in a uniform field has the form $w=A\sqrt{1-\rho^2}$, with $\rho^2=s_1'^2/a^2+s_2'^2/b^2$ in principal axes (Section~\ref{ssec:rg-ak}). A direct computation gives
+\[
+m_0=\tfrac23\pi abA,\qquad \tmu=\tfrac15\,\mathrm{diag}(a^2,b^2).
+\]
+The eigenvectors of $\tmu$ give the axes of the crack, and its eigenvalues $\mu_1\ge\mu_2$ give the semi-axes
+\begin{equation}\label{eq:rg-amom}
+a=\sqrt{5\mu_1},\qquad b=\sqrt{5\mu_2}.
+\end{equation}
+This estimate needs no assumption on the amplitude $A$. However, $\tmu\,m_0$ scales like the fourth power of the size, and the adjoint fields contain $\eta^3$, so it is sensitive to noise.
+
+\paragraph{Orthogonal polynomials.} Any basis of polynomials can be used in~\eqref{eq:rg-ck}. Products of Legendre polynomials $P_k(s_1/L_1)P_l(s_2/L_2)$ are orthogonal on the rectangle~\eqref{eq:rg-L} and improve the conditioning. The opening is then computed from many moments by a regularised least-squares fit. These polynomials still grow geometrically away from the plane, so the expansion must be truncated, as in Section~\ref{ssec:rg-stab}.
+
+%-------------------------------------------------
+\subsection{Variant of Step 3: the dipole estimate (after Ammari and Kang)}\label{ssec:rg-ak}
+This variant passes from the crack to an equivalent point dipole, uses the fact that the reciprocity gap measures this dipole exactly, and returns from the dipole to the size of the crack through its polarization tensor. Figure~\ref{fig:rg-dipole} summarises the argument.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[scale=0.92,>=Stealth]
+% ---------- (a) crack in a field ----------
+\begin{scope}
+\foreach \x in {-1.2,-0.8,...,1.25} {\draw[gray!70,->] (\x,-1.55) -- (\x,-1.1);}
+\node[gray!80!black] at (1.6,-1.32) {\small $\vE$};
+\draw[thick,cu,domain=-0.8:0.8,samples=60] plot (\x,{0.55*sqrt(0.64-\x*\x)/0.8});
+\draw[thick,cu,domain=-0.8:0.8,samples=60] plot (\x,{-0.55*sqrt(0.64-\x*\x)/0.8});
+\draw[line width=1.6pt] (-0.8,0) -- (0.8,0);
+\node[cu] at (0,0.8) {\small $u^+$};
+\node[cu] at (0,-0.8) {\small $u^-$};
+\draw[->,thick] (1.05,-0.2) -- (1.05,0.35) node[above]{\small $\vn$};
+\node at (-1.1,0) {\small $\Gamma$};
+\node at (0,-2.05) {\sffamily (a) crack, opening $\jump u$};
+\end{scope}
+% ---------- (b) double layer ----------
+\begin{scope}[xshift=5cm]
+\draw[line width=1.6pt] (-0.8,0) -- (0.8,0);
+\foreach \x/\h in {-0.65/0.18,-0.4/0.28,-0.15/0.33,0.15/0.33,0.4/0.28,0.65/0.18}
+  {\draw[->,red!70!black,thick] (\x,-\h) -- (\x,\h);}
+\node[red!70!black] at (0,0.7) {\small density $\jump u\,\vn$};
+\node at (0,-1.3) {\footnotesize $\displaystyle u-u_0=\int_\Gamma\jump u\,\partial_{n_y}G\,ds_y$};
+\node at (0,-2.05) {\sffamily (b) double layer};
+\end{scope}
+% ---------- (c) point dipole ----------
+\begin{scope}[xshift=10cm]
+\begin{scope}
+\clip (-1.25,-0.95) rectangle (1.25,0.95);
+\foreach \r in {0.3,0.55,0.8} {\draw[gray!70] (\r,0) circle (\r); \draw[gray!70] (-\r,0) circle (\r);}
+\end{scope}
+\draw[->,line width=2pt,red!70!black] (0,-0.32) -- (0,0.45);
+\fill (0,0) circle (1.5pt);
+\node[red!70!black] at (0,1.2) {\small $\vp=m_0\vn$};
+\node at (0,-1.3) {\footnotesize $u-u_0\approx\vp\cdot\nabla_yG(\vx,\vy_c)$};
+\node at (0,-2.05) {\sffamily (c) point dipole};
+\end{scope}
+% ---------- arrows ----------
+\draw[->,thick] (1.55,0.1) -- node[above]{\scriptsize Green formula} (3.6,0.1);
+\draw[->,thick] (6.4,0.1) -- node[above]{\scriptsize $|\vx-\vy_c|\gg a$} (8.55,0.1);
+\draw[->,thick,dashed] (10,-2.4) -- (10,-2.65) -- (0,-2.65) -- (0,-2.4);
+\node at (5,-2.95) {\scriptsize back:\ $m_0=\RG(\vn\cdot\vx)$ (exact),\quad $m_0=|\tM|\,E_n\ \Rightarrow$ size of the crack};
+\end{tikzpicture}
+\caption{From the crack to a dipole and back. (a) In a background field $\vE$ the crack opens: the potential jumps from $u^-$ to $u^+$. (b) The perturbation of the potential is a double layer of density $\jump u$ on $\Gamma$. (c) Seen from far away, the double layer is a point dipole of moment $\vp=m_0\vn$ at the crack centre $\vy_c$. Way back: Step~1 measures $\vp$ exactly, and the polarization tensor $\tM$ relates $|\vp|$ to the size of the crack.}
+\label{fig:rg-dipole}
+\end{figure}
+
+\paragraph{From the crack to a double layer.} Let $G$ be the Green function of $-\Delta$ (in free space, $G(\vx,\vy)=1/(4\pi|\vx-\vy|)$; in $\Omega$, the Green function of the boundary conditions of~\eqref{eq:rg-direct}). Green's representation formula in $\OG$, with the zero flux on the lips, gives
+\begin{equation}\label{eq:rg-dl}
+u(\vx)=u_0(\vx)+\int_\Gamma\jump u(\vy)\,\partial_{n_y}G(\vx,\vy)\,ds_y .
+\end{equation}
+The crack perturbs the field of the uncracked body by a double layer of density $\jump u$ (Figure~\ref{fig:rg-dipole}b).
+
+\paragraph{From the double layer to a dipole (multipole expansion).} Let $\vy_c$ be the centre of the crack and $a$ its size. For $|\vx-\vy_c|\gg a$, Taylor's formula in $\vy$ around $\vy_c$ gives
+\begin{equation}\label{eq:rg-multipole}
+u(\vx)-u_0(\vx)=\underbrace{m_0\,\vn\cdot\nabla_yG(\vx,\vy_c)}_{\text{dipole}}
++\underbrace{\textstyle\sum_i m_i\,\partial_{y_i}\bigl(\vn\cdot\nabla_yG\bigr)(\vx,\vy_c)}_{\text{quadrupole}}+\cdots
+\end{equation}
+with $m_i=\int_\Gamma\jump u\,(\vy-\vy_c)\cdot\vt_i$. The leading term is a point dipole of moment $\vp=m_0\vn$; the next terms are multipoles whose coefficients are the higher moments of the opening. The moments $m_0,\ \vm_1,\ \tmu$ of Section~\ref{ssec:rg-poly} are therefore exactly the multipole coefficients of the crack. The reciprocity gap reads them without approximation, since~\eqref{eq:rg-rg} is exact.
+
+\paragraph{The dipole and the polarization tensor.} For a small inhomogeneity in a smooth background field $\nabla u_0$, the dipole moment is linear in the field at the inhomogeneity: $\vp=-\tM\nabla u_0(\vy_c)$, where $\tM$ is the polarization tensor (Pólya--Szegő), which depends only on the shape and conductivity of the inhomogeneity~\cite{AK04}. For a crack, only the normal component of the field opens the crack, so $\tM$ has rank one:
+\[
+\tM=-|\tM|\,\vn\otimes\vn,\qquad \vp=|\tM|\,E_n\,\vn,\qquad E_n=\vn\cdot\nabla u_0(\vy_c).
+\]
+The value of $|\tM|$ follows from the exact solution for a crack in a uniform field in free space. For an elliptical crack with semi-axes $a\ge b$, the problem for the perturbation is the scalar analogue of the Green--Sneddon problem for an elliptical crack in elasticity~\cite{GS50}. Its opening is
+\begin{equation}\label{eq:rg-ellopen}
+\jump u=\frac{2E_n\,b}{\mathbf E(k)}\sqrt{1-\frac{s_1'^2}{a^2}-\frac{s_2'^2}{b^2}},\qquad k^2=1-\frac{b^2}{a^2},
+\end{equation}
+where $\mathbf E(k)$ is the complete elliptic integral of the second kind. Integrating,
+\begin{equation}\label{eq:rg-M}
+|\tM|=\frac{m_0}{E_n}=\frac{4\pi ab^2}{3\,\mathbf E(k)} .
+\end{equation}
+Two limits check the formula. For a penny-shaped crack ($a=b$, $\mathbf E(0)=\pi/2$), $\jump u=\tfrac4\pi E_n\sqrt{a^2-r^2}$ and $|\tM|=\tfrac83a^3$, the classical value for a disc. For an infinitely long strip ($a\to\infty$, $\mathbf E(1)=1$), $\jump u=2E_n\sqrt{b^2-s_2^2}$, the two-dimensional solution of Section~\ref{sec:rg-num}.
+
+\paragraph{Back: from the measured dipole to the size of the crack.} Step~1 gives the dipole exactly, $m_0=\RG(\vn\cdot\vx)$. The background field at the crack, $E_n=\vn\cdot\nabla u_0(\vy_c)$, is computed from the uncracked problem with the same boundary data; for electrodes producing a uniform field it is known in closed form. Inverting~\eqref{eq:rg-M}:
+\begin{equation}\label{eq:rg-dip}
+\text{penny-shaped crack:}\quad a=\Bigl(\frac{3\,m_0}{8\,E_n}\Bigr)^{1/3};\qquad
+\text{elliptical crack:}\quad \frac{ab^2}{\mathbf E(k)}=\frac{3\,m_0}{4\pi E_n},
+\end{equation}
+where for an elliptical crack the aspect ratio $b/a$ and the axes come from the moment tensor $\tmu$, and~\eqref{eq:rg-dip} fixes the scale. The tips (front) are then placed around the centre $\vs_0$ of Section~\ref{ssec:rg-poly}.
+
+\paragraph{Assumptions and accuracy.} Compared with~\eqref{eq:rg-amom}, the amplitude of the opening is fixed by the model rather than measured through $\tmu$. Only the most robust quantity, $m_0$, is used for the size. Two approximations are made, both small for a small crack far from the boundary:
+\begin{itemize}[itemsep=1pt]
+\item the background field is replaced by its value at the centre, with a relative error of order $a\,|\nabla^2u_0|/|\nabla u_0|$, which vanishes for a uniform field;
+\item the interaction of the crack with $\partial\Omega$ is neglected, which adds a relative correction of order $(a/d)^3$ in 3D and $(a/d)^2$ in 2D, with $d$ the distance from the crack to $\partial\Omega$.
+\end{itemize}
+With exact data, \eqref{eq:rg-amom} and~\eqref{eq:rg-dip} must agree, which checks these assumptions.
+
+%======================================================================
+\section{From one to several experiments}\label{sec:rg-multi}
+Consider $K$ experiments on the same body, with Cauchy data $(u_k,\varphi_k)$, $k=1,\dots,K$, and openings $\jump{u_k}$ on the same crack.
+
+\paragraph{Linearity.} The direct problem~\eqref{eq:rg-direct} is linear in its data, and the crack is the same in all experiments. For any weights $w_k$, the combination $\sum_kw_k(u_k,\varphi_k)$ is therefore the Cauchy data of the solution with boundary data $\sum_kw_k(\uD_k,\pD_k)$. Its opening is $\sum_kw_k\jump{u_k}$, and
+\[
+\RG\Bigl(\sum_kw_k(u_k,\varphi_k);v\Bigr)=\sum_kw_k\,\RG(u_k,\varphi_k;v).
+\]
+Any combination of measured experiments is an admissible experiment, and it can be formed after the measurements. This uses the insulating (or traction-free) crack. For cracks with unilateral contact the problem is nonlinear, and the combination is no longer admissible.
+
+\paragraph{Step 1 with several experiments.} By~\eqref{eq:rg-step1}, the $K\times3$ matrix $R_{ki}=\RG(u_k,\varphi_k;x_i)$ satisfies
+\[
+R=\vm\,\vn^{\!\top},\qquad \vm=(m_0^{(1)},\dots,m_0^{(K)})^{\!\top} .
+\]
+It has rank one: every experiment gives the \emph{same} normal. With noisy data, the normal is estimated by least squares over all experiments as the leading right singular vector of $R$, and the signals are $\vm=R\vn$.
+
+\paragraph{Removing blind experiments.} Experiment $k$ is blind when $m_0^{(k)}=0$. For uniform background fields $\vE_k$, \eqref{eq:rg-M} gives $m_0^{(k)}=|\tM|\,\vE_k\cdot\vn$. If $\vE_1,\vE_2,\vE_3$ are linearly independent, the $\vE_k\cdot\vn$ cannot all vanish. Three independent experiments in 3D (two in 2D) therefore always contain a non-blind combination, whatever the orientation of the crack. This is the constructive counterpart, for planar cracks, of the multiple-measurement uniqueness results of Section~\ref{sec:rg-lit}.
+
+\paragraph{Steps 2 and 3.} These steps need one non-blind experiment, real or combined. All formulas of Section~\ref{sec:rg-rec} apply to any combination $\sum_kw_k(u_k,\varphi_k)$ with $\sum_kw_km_0^{(k)}\ne0$; in the dipole estimate the background field is $\sum_kw_k\vE_k$. How the weights are chosen in practice, with noisy data, is discussed with the numerical experiments.
+
+%======================================================================
+\section{Numerical experiments}\label{sec:rg-num}
+\emph{This section is to be organised.} Planned content: the FEniCS example in the disk, the Cast3M example in the rectangle on a coarse mesh, and the study of the orientation of the boundary conditions. The codes work in two dimensions; the corresponding forms of the formulas are collected first.
+
+\paragraph{Two-dimensional formulas.} In 2D the crack is a segment of half-length $a$ on the line $\vn\cdot\vx=c$, with one tangent $\vt$ and abscissa $s=\vt\cdot(\vx-\vx_*)$. Then:
+\begin{itemize}[itemsep=2pt]
+\item Step 2 uses $v_2=(\vn\cdot\vx)^2-(\vt\cdot\vx)^2$.
+\item Step 3 uses the single sine--sinh fields $v_n=\lambda_n^{-1}\sin(\lambda_ns)\sinh(\lambda_n\eta)$, $\lambda_n=n\pi/L$, with $w=\sum_n(2/L)\RG(v_n)\sin(\lambda_ns)$. In a rectangle $\ell\times h$, $L=\sqrt2\max(\ell,h)$ satisfies~\eqref{eq:rg-L}.
+\item The moment fields are $v=\eta,\ s\eta,\ s'^2\eta-\tfrac13\eta^3$, and the half-length is $a=2\sqrt{\mu_2}$ for a semi-elliptic opening.
+\item The exact opening in a uniform field is $\jump u=2E_n\sqrt{a^2-s^2}$, from the complex potential $f(z)=-\mathrm iE_n\sqrt{z^2-a^2}+E_tz$. Hence $|\tM|=\pi a^2$, which is also the limit $b\to0$ of the polarization tensor of an insulating ellipse~\cite{AK04}, and $a=\sqrt{m_0/(\pi E_n)}$.
+\item The stability estimate~\eqref{eq:rg-res} reads $N_{\max}\approx L\ln(1/\delta)/(\pi H)$. For the Cast3M rectangle $1.5\times2$ with the crack $(0.5,1.2)$--$(0.8,1.35)$, $H=1.52$ and $L=2.83$. At $\delta=10^{-3}$ only about four terms are usable, a resolution of about $0.7$, twice the crack length $0.335$.
+\end{itemize}
+
+\paragraph{Virtual experiment.} With noisy data, the weights of Section~\ref{sec:rg-multi} are chosen to maximise the signal relative to the noise. If the experiments have comparable noise levels and the weights are normalised, $\|w\|=1$, the signal $\sum_kw_km_0^{(k)}$ is maximal, by the Cauchy--Schwarz inequality, for
+\[
+w=\frac{\vm}{\|\vm\|},\qquad\text{with signal }\|\vm\| .
+\]
+The signals $\vm=R\vn$ are available after Step 1. For orthogonal uniform loads, this virtual experiment is exactly the load normal to the crack. Steps 2--3 are then applied to $\sum_kw_k(u_k,\varphi_k)$, and the dipole estimate uses $E_n=\sum_kw_k\vE_k\cdot\vn$.
+
+
+%======================================================================
+\section{Exercises}\label{sec:rg-exo}
+The following exercises review the main steps. Most can be done by hand; the last one uses the codes. Solutions are given in small type after each exercise.
+
+\exercise{Harmonic adjoint fields}
+(a) Check that $v_2=(\vn\cdot\vx)^2-\tfrac12\bigl((\vt_1\cdot\vx)^2+(\vt_2\cdot\vx)^2\bigr)$ is harmonic and that $\partial_nv_2=2c$ on $\Pi$.
+(b) Show that the homogeneous harmonic polynomials of degree 2 in $\R^3$ form a space of dimension 5, and give a basis.
+(c) Why can $v=(\vn\cdot\vx)^2$ not be used as an adjoint field?
+\begin{solution}
+(a) $\Delta(\vn\cdot\vx)^2=2|\vn|^2=2$ and $\Delta(\vt_i\cdot\vx)^2=2$, so $\Delta v_2=2-\tfrac12(2+2)=0$. Since $\vt_i\cdot\vn=0$, $\partial_nv_2=\vn\cdot\nabla v_2=2\,\vn\cdot\vx=2c$ on $\Pi$.
+(b) A quadratic form $\vx\cdot A\vx$ ($A$ symmetric, 6 parameters) has Laplacian $2\operatorname{tr}A$; harmonicity is one linear condition, hence dimension $5$. Basis: $x_1x_2,\ x_1x_3,\ x_2x_3,\ x_1^2-x_2^2,\ x_2^2-x_3^2$.
+(c) $\Delta v=2\neq0$. Green's identity then gives $\RG(v)=\int_\Gamma\jump u\,\partial_nv+2\int_{\OG}u\,d\vx$: the volume term depends on the unknown field inside the body.
+\end{solution}
+
+\exercise{Invariances of the reciprocity gap}\label{exo:rg-invariances}
+(a) Show that $\RG(1)=0$. (b) Show that $\RG$ does not change if $u$ is replaced by $u+C$. (c) Show that $\RG(v)=0$ for every adjoint field when there is no crack.
+\begin{solution}
+(a) $\RG(1)=-\int_{\partial\Omega}\varphi\,ds$. Integrating $\Delta u=0$ over $\OG$ with zero flux on the lips gives $\int_{\partial\Omega}\partial_\nu u=0$.
+(b) The change is $C\int_{\partial\Omega}\partial_\nu v\,ds=C\int_\Omega\Delta v\,d\vx=0$.
+(c) Without crack, $u$ and $v$ are harmonic in $\Omega$, and Green's second identity gives $\int_{\partial\Omega}(u\,\partial_\nu v-v\,\partial_\nu u)=0$.
+\end{solution}
+
+\exercise{Steps 1 and 2 by hand (2D)}
+For a two-dimensional body one measures $\RG(x_1)=-0.3$ and $\RG(x_2)=0.4$. With the resulting normal, $\RG\bigl((\vn\cdot\vx)^2-(\vt\cdot\vx)^2\bigr)=0.36$. Find $m_0>0$, $\vn$, $\vt$ and the line of the crack.
+\begin{solution}
+$m_0=\sqrt{0.3^2+0.4^2}=0.5$ and $\vn=(-0.6,\,0.8)$; with $(\vt,\vn)$ direct, $\vt=(-n_2,n_1)=(-0.8,\,-0.6)$. Then $c=0.36/(2\times0.5)=0.36$: the crack lies on the line $-0.6\,x_1+0.8\,x_2=0.36$.
+\end{solution}
+
+\exercise{Moments of a semi-elliptic opening (2D)}
+Let $w(s)=A\sqrt{a^2-(s-s_0)^2}$ on $[s_0-a,s_0+a]$. Compute $m_0=\int w$, $m_1=\int ws$ and the central moment $\mu_2=\frac1{m_0}\int w(s-s_0)^2$. How are $s_0$ and $a$ recovered from the moments?
+\begin{solution}
+With $s=s_0+a\sin\theta$: $m_0=Aa^2\int_{-\pi/2}^{\pi/2}\cos^2\theta\,d\theta=\pi Aa^2/2$; by symmetry $m_1=s_0m_0$; $\int w(s-s_0)^2=Aa^4\int\sin^2\theta\cos^2\theta\,d\theta=\pi Aa^4/8$, so $\mu_2=a^2/4$. Hence $s_0=m_1/m_0$ and $a=2\sqrt{\mu_2}$.
+\end{solution}
+
+\exercise{A crack in a uniform field (2D)}
+The crack is $\{|x_1|\le a,\ x_2=0\}$ in the plane, in a uniform field $\vE=(E_t,E_n)$ at infinity. Let $u=\operatorname{Re}f(z)$, $f(z)=E_tz-\mathrm iE_n\sqrt{z^2-a^2}$, with the branch $\sqrt{z^2-a^2}\sim z$ at infinity.
+(a) Show that $\partial_{x_2}u=0$ on both lips. (b) Compute $\jump u$ and $m_0$. (c) Show that far away $u-\vE\cdot\vx\approx E_na^2x_2/(2r^2)$, and that this is the field of the dipole $m_0\vn$ with $G=-\frac1{2\pi}\ln|\vx-\vy|$. (d) What happens when $E_n=0$?
+\begin{solution}
+(a) On the lips $z=x_1$ and $\sqrt{z^2-a^2}=\pm\mathrm i\sqrt{a^2-x_1^2}$, so $f'(z)=E_t\mp E_nx_1/\sqrt{a^2-x_1^2}$ is real, and $\partial_{x_2}u=-\operatorname{Im}f'=0$.
+(b) $u^\pm=E_tx_1\pm E_n\sqrt{a^2-x_1^2}$, so $\jump u=2E_n\sqrt{a^2-x_1^2}$ and $m_0=\pi a^2E_n$.
+(c) $\sqrt{z^2-a^2}=z-a^2/(2z)+O(z^{-3})$, so $u=\vE\cdot\vx+E_n\operatorname{Re}\bigl(\mathrm ia^2/(2z)\bigr)=\vE\cdot\vx+E_na^2x_2/(2r^2)$. The dipole gives $m_0\,\partial_{y_2}G(\vx,\mathbf0)=\pi a^2E_n\,x_2/(2\pi r^2)$, the same.
+(d) $u=E_tx_1$: the field is not perturbed, the crack is invisible (blind experiment).
+\end{solution}
+
+\exercise{Dipole estimate on the Cast3M example}
+In experiment E1 the background field is $\vE=(0,1)$. The identification gives $\vn=(-0.447,\,0.894)$ and $m_0=0.0767$. (a) Compute $E_n$, the half-length $a=\sqrt{m_0/(\pi E_n)}$ and the crack length; the true length is $0.335$. (b) Predict $|m_0|$ for experiment E2, $\vE=(1,0)$.
+\begin{solution}
+(a) $E_n=0.894$, $a=\sqrt{0.0767/(\pi\times0.894)}=0.165$, length $0.330$, i.e.\ $1.4\%$ below the true value (mesh error). (b) $|E_n|=0.447$, so $|m_0|\approx\pi a^2\times0.447=0.038$, which is the value found by the code for E2.
+\end{solution}
+
+\exercise{Blind loads and two experiments}
+A crack of half-length $a$ lies on the $x_1$-axis ($\vn=\mathbf e_2$). A uniform field $\vE_\beta=(\cos\beta,\sin\beta)$ is applied (2D).
+(a) Give $m_0(\beta)$; for which $\beta$ is the experiment blind?
+(b) A second experiment uses $\beta+90^\circ$. Give the signals $\vm$, the optimal weights $w=\vm/\|\vm\|$ and the resulting signal.
+(c) Which background field does the virtual experiment correspond to?
+\begin{solution}
+(a) $m_0=\pi a^2\sin\beta$; blind for $\beta=0^\circ$ and $180^\circ$ (field parallel to the crack).
+(b) $\vm=\pi a^2(\sin\beta,\cos\beta)$, $w=(\sin\beta,\cos\beta)$, signal $\|\vm\|=\pi a^2$ for every $\beta$.
+(c) $\sin\beta\,(\cos\beta,\sin\beta)+\cos\beta\,(-\sin\beta,\cos\beta)=(0,1)=\vn$: the field normal to the crack.
+\end{solution}
+
+\exercise{Resolution of the sine--sinh series}
+The line of the crack lies at most at distance $H=1$ from the boundary, $L=\pi$, and the data have relative noise $\delta=10^{-4}$. (a) Compute $\rho=e^{\pi H/L}$, $N_{\max}$ and the resolution $L/N_{\max}$. (b) Can a crack of length $0.2$ be resolved? (c) Which noise level halves the resolution?
+\begin{solution}
+(a) $\rho=e$, $N_{\max}=\ln(10^4)\approx9.2$, resolution $\approx\pi/9.2=0.34$. (b) No: $0.2<0.34$. (c) The resolution is $\pi H/\ln(1/\delta)$; halving it requires doubling $\ln(1/\delta)$, i.e.\ $\delta=10^{-8}$. This is the logarithmic stability of Section~\ref{ssec:rg-stab}.
+\end{solution}
+
+\exercise{Polynomial adjoint fields in 3D}
+Use~\eqref{eq:rg-ck} to construct the adjoint field for $P(\vs)=s_1^2s_2$. Check that it is harmonic. Which quantity of the opening does it measure?
+\begin{solution}
+$\Delta_sP=2s_2$ and $\Delta_s^2P=0$, so $v_P=s_1^2s_2\,\eta-\tfrac13\eta^3s_2$. Then $\Delta v_P=2s_2\eta-2s_2\eta=0$, and $\partial_\eta v_P=s_1^2s_2$ on $\Pi$. $\RG(v_P)=\int_\Gamma w\,s_1^2s_2$ is a third-order moment, which measures the asymmetry of the opening.
+\end{solution}
+
+\exercise{Penny-shaped crack}
+In a uniform field, a penny-shaped crack of radius $a$ has the opening $\jump u=\frac4\pi E_n\sqrt{a^2-r^2}$.
+(a) Compute $m_0$. (b) The identification gives $m_0=0.012$ with $E_n=1$: find $a$. (c) A relative error of $10\%$ on $m_0$ gives which relative error on $a$? Compare with 2D.
+\begin{solution}
+(a) $\int_{r<a}\sqrt{a^2-r^2}\,dA=2\pi\int_0^ar\sqrt{a^2-r^2}\,dr=\tfrac23\pi a^3$, so $m_0=\tfrac83a^3E_n$.
+(b) $a=(3\times0.012/8)^{1/3}=0.165$.
+(c) $a\propto m_0^{1/3}$, so $\delta a/a=\tfrac13\,\delta m_0/m_0\approx3.3\%$. In 2D, $a\propto m_0^{1/2}$ gives $5\%$. The dipole estimate damps the errors on $m_0$.
+\end{solution}
+
+\exercise{Pure flux data}
+Take $S_u=\emptyset$ in the direct problem. (a) Show that a solution exists only if $\int_{\partial\Omega}\pD=0$. (b) Show that it is unique only up to a constant. Which hypothesis of the Lax--Milgram argument fails, and how is it restored? (c) Does the constant matter for the reciprocity gap?
+\begin{solution}
+(a) Integrate $\Delta u=0$ over $\OG$; the lips carry no flux, so $\int_{\partial\Omega}\pD=0$.
+(b) Constants solve the homogeneous problem. The bilinear form $\int\nabla u\cdot\nabla v$ is not coercive on $H^1(\OG)$ (it vanishes on constants). Coercivity is restored on $H^1(\OG)/\R$, or on $\{v:\int_{\OG}v=0\}$, by the Poincaré--Wirtinger inequality.
+(c) No (Exercise~\ref{exo:rg-invariances}(b)).
+\end{solution}
+
+\exercise{With the codes}
+Run \texttt{crack\_rg\_extension.dgibi} (or the FEniCS script) with \texttt{eps = 0.} and then with \texttt{eps = 0.01}, several times. Compare the lengths given by the second moment and by the dipole estimate, and explain the difference.
+\begin{solution}
+Without noise both give about $0.330$ (true $0.335$; the difference is the mesh error at the tips). At $1\%$ noise the dipole length stays within a few percent of $0.33$, while the second-moment length scatters widely and fails ($\mu_2\le0$) in a large fraction of the runs. The reason: $\mu_2m_0$ scales like $a^4$ and its adjoint field contains $\eta^3$, which is large on the boundary, whereas the dipole estimate uses only $m_0$, measured with the linear field $\vn\cdot\vx$.
+\end{solution}
+
+%======================================================================
+\begin{chapterbib}{99}
+\bibitem{ABV96} G.~Alessandrini, E.~Beretta, S.~Vessella, Determining linear cracks by boundary measurements: Lipschitz stability, \emph{SIAM J. Math. Anal.} 27 (1996) 361--375.
+\bibitem{Ale93} G.~Alessandrini, Stable determination of a crack from boundary measurements, \emph{Proc. Roy. Soc. Edinburgh Sect.~A} 123 (1993) 497--516.
+\bibitem{ADV96} G.~Alessandrini, A.~Diaz Valenzuela, Unique determination of multiple cracks by two measurements, \emph{SIAM J. Control Optim.} 34 (1996) 913--921.
+\bibitem{AK04} H.~Ammari, H.~Kang, \emph{Reconstruction of Small Inhomogeneities from Boundary Measurements}, Lecture Notes in Mathematics 1846, Springer, 2004.
+\bibitem{ABB06} S.~Andrieux, T.~N.~Baranger, A.~Ben Abda, Solving Cauchy problems by minimizing an energy-like functional, \emph{Inverse Problems} 22 (2006) 115--133.
+\bibitem{AB96} S.~Andrieux, A.~Ben Abda, Identification of planar cracks by complete overdetermined data: inversion formulae, \emph{Inverse Problems} 12 (1996) 553--563.
+\bibitem{ABB99} S.~Andrieux, A.~Ben Abda, H.~D.~Bui, Reciprocity principle and crack identification, \emph{Inverse Problems} 15 (1999) 59--65.
+\bibitem{BHP01} A.~Br\"uhl, M.~Hanke, M.~Pidcock, Crack detection using electrostatic measurements, \emph{ESAIM: M2AN} 35 (2001) 595--605.
+\bibitem{BV94} K.~Bryan, M.~Vogelius, A computational algorithm to determine crack locations from electrostatic boundary measurements. The case of multiple cracks, \emph{Int. J. Eng. Sci.} 32 (1994) 579--603.
+\bibitem{BV04} K.~Bryan, M.~S.~Vogelius, A review of selected works on crack identification, in \emph{Geometric Methods in Inverse Problems and PDE Control}, IMA Vol. Math. Appl. 137, Springer, 2004, 25--46.
+\bibitem{BCM04} H.~D.~Bui, A.~Constantinescu, H.~Maigre, Numerical identification of linear cracks in 2D elastodynamics using the instantaneous reciprocity gap, \emph{Inverse Problems} 20 (2004) 993--1001.
+\bibitem{BCM05} H.~D.~Bui, A.~Constantinescu, H.~Maigre, The reciprocity gap functional for identifying defects and cracks, in Z.~Mr\'oz, G.~E.~Stavroulakis (eds), \emph{Parameter Identification of Materials and Structures}, CISM Courses and Lectures 469, Springer, 2005, 17--54.
+\bibitem{AC09} A.~Constantinescu, \texttt{crack\_reciprocity\_plan.dgibi}, Cast3M procedure, CNRS -- \'Ecole Polytechnique, 2009.
+\bibitem{Ell96} M.~Eller, Identification of cracks in three-dimensional bodies by many boundary measurements, \emph{Inverse Problems} 12 (1996) 395--408.
+\bibitem{FV89} A.~Friedman, M.~Vogelius, Determining cracks by boundary measurements, \emph{Indiana Univ. Math. J.} 38 (1989) 527--556.
+\bibitem{GS50} A.~E.~Green, I.~N.~Sneddon, The distribution of stress in the neighbourhood of a flat elliptical crack in an elastic solid, \emph{Proc. Cambridge Philos. Soc.} 46 (1950) 159--163.
+\bibitem{IYM91} K.~Ikeda, M.~Yoshimi, C.~Miki, Electrical potential drop method for evaluating crack depth, \emph{Int. J. Fract.} 47 (1991) 25--38.
+\bibitem{KS96} H.~Kim, J.~K.~Seo, Unique determination of a collection of a finite number of cracks from two boundary measurements, \emph{SIAM J. Math. Anal.} 27 (1996) 1336--1340.
+\bibitem{LM72} J.-L.~Lions, E.~Magenes, \emph{Non-Homogeneous Boundary Value Problems and Applications I}, Springer, 1972.
+\bibitem{SV91} F.~Santosa, M.~Vogelius, A computational algorithm to determine cracks from electrostatic boundary measurements, \emph{Int. J. Eng. Sci.} 29 (1991) 917--937.
+\end{chapterbib}

@@ -1,0 +1,34 @@
+%======================================================================
+%  Nonlinear Problems in Mechanics -- Lecture notes
+%  A. Constantinescu, LMS, CNRS & Ecole Polytechnique
+%
+%  Build:  pdflatex main  (three passes; no BibTeX needed --
+%          each chapter carries its own bibliography)
+%  Work on one chapter: uncomment the \includeonly line.
+%======================================================================
+\documentclass[11pt,a4paper,twoside,openright]{book}
+
+\input{preamble/style}
+\input{preamble/notation}
+
+\drafttrue        % \draftfalse hides the red [notes to the author]
+
+%\includeonly{chapters/ch1_variational}
+
+\begin{document}
+
+\frontmatter
+\input{front/titlepage}
+\input{front/overview}
+{\hypersetup{linkcolor=black}\tableofcontents}
+
+\mainmatter
+\include{chapters/ch1_variational}
+\include{chapters/ch2_elliptic}
+\include{chapters/ch3_rg_crack}
+
+\appendix
+\include{appendices/appA_variational_derivatives}
+\include{appendices/appB_integration_by_parts}
+
+\end{document}

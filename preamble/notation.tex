@@ -1,0 +1,84 @@
+%======================================================================
+%  notation.tex -- one place for the notation of the whole book
+%
+%  scalars ............ italic                 u, \theta, \lambda
+%  vectors ............ bold italic            \vect{u}, \vu, \vn
+%  2nd-order tensors .. bold italic            \tens{\sigma}, \sig, \eps
+%  4th-order tensors .. blackboard bold        \tensf{C}, \bbC, \bbS, \bbI
+%  matrices (discrete)  bold upright           \mat{K}, \mat{B}
+%  column of unknowns . bold upright           \mat{u}  (= [u] in the slides)
+%======================================================================
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\tens}[1]{\bm{#1}}
+\newcommand{\tensf}[1]{\mathbb{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+
+% sets and spaces
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Vsp}{\mathcal{V}}          % functional space of the variational problem
+\newcommand{\Kad}{\mathcal{K}}          % kinematically admissible fields
+\newcommand{\Sad}{\mathcal{S}}          % statically admissible fields
+
+% vectors
+\newcommand{\vu}{\vect{u}}
+\newcommand{\vv}{\vect{v}}
+\newcommand{\vw}{\vect{w}}
+\newcommand{\vx}{\vect{x}}
+\newcommand{\vy}{\vect{y}}
+\newcommand{\vn}{\vect{n}}
+\newcommand{\vt}{\vect{t}}
+\newcommand{\vf}{\vect{f}}
+\newcommand{\vb}{\vect{b}}
+\newcommand{\ve}{\vect{e}}
+\newcommand{\vd}{\vect{d}}
+\newcommand{\vs}{\vect{s}}
+\newcommand{\vq}{\vect{q}}
+\newcommand{\vp}{\vect{p}}
+\newcommand{\vF}{\vect{F}}
+\newcommand{\vE}{\vect{E}}
+\newcommand{\vm}{\vect{m}}
+\newcommand{\vxi}{\vect{\xi}}
+\newcommand{\vnu}{\vect{\nu}}
+\newcommand{\vlambda}{\vect{\lambda}}
+\newcommand{\vzero}{\vect{0}}
+
+% second-order tensors
+\newcommand{\sig}{\tens{\sigma}}
+\newcommand{\eps}{\tens{\varepsilon}}
+\newcommand{\tI}{\tens{I}}               % identity
+\newcommand{\tk}{\tens{k}}               % conductivity
+\newcommand{\tA}{\tens{A}}               % coefficient field A(x)
+\newcommand{\tM}{\tens{M}}               % polarization tensor (Ch. 3)
+\newcommand{\tmu}{\tens{\mu}}            % moment tensor of the opening (Ch. 3)
+\newcommand{\talpha}{\tens{\alpha}}      % thermal expansion
+
+% fourth-order tensors
+\newcommand{\bbC}{\tensf{C}}             % elastic moduli (Hooke)
+\newcommand{\bbS}{\tensf{S}}             % compliances, S = C^{-1}
+\newcommand{\bbI}{\tensf{I}}             % symmetric identity
+
+% operators
+\DeclareMathOperator{\dive}{div}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\dev}{dev}
+\DeclareMathOperator{\sym}{sym}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\T}{^{\!\top}}                % transpose
+\newcommand{\dd}{\,\mathrm{d}}            % integration measure
+\newcommand{\jump}[1]{[\![#1]\!]}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\scal}[2]{\langle #1,#2\rangle}
+\newcommand{\dpr}{\!:\!}                   % double contraction (compact)
+
+% boundary data (superscript D = "datum")
+\newcommand{\uD}{u^{D}}
+\newcommand{\pD}{\varphi^{D}}
+\newcommand{\vuD}{\vu^{D}}
+\newcommand{\vtD}{\vt^{D}}
+\newcommand{\vfD}{\vf^{D}}
+
+% Chapter 3 (reciprocity gap)
+\newcommand{\RG}{\mathcal{R}}
+\newcommand{\OG}{\Omega_\Gamma}
