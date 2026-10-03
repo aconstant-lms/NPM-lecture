@@ -27,6 +27,8 @@
                    incremental and whole-history solvers (direct cyclic method),
                    LATIN with relaxation, period map (Picard, Krasnoselskii-Mann,
                    Anderson) and Zarka's estimate
+    examples/appE/ exercise of the appendix on iterative methods (Picard,
+                   averaging, Anderson, Newton on two test problems)
 
 The exercise files are printed in the solutions with `\lstinputlisting`,
 so editing a file here changes the printed solution. Each file runs on its own:

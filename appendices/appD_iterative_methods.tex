@@ -1,0 +1,288 @@
+%======================================================================
+\chapter{Iterative methods for nonlinear equations}\label{app:iter}
+%======================================================================
+% Written for Chapters 5 and 6 (Newton for the global problem, initial-strain
+% and whole-history iterations, period map, Anderson acceleration).
+
+\framepart{Outline}
+Every computation of Chapters~\ref{ch:pl-num} and~\ref{ch:pl-cyc} ends in an
+iteration: Newton's method for the equilibrium of a step, the initial-strain
+iteration, the cycle-by-cycle computation of a periodic state, the direct
+cyclic and LATIN methods. This appendix collects the few results behind them,
+in a finite-dimensional space $\R^n$ with a norm $\norm{\cdot}$ (a Hilbert norm
+when convexity is used). Two forms of the same problem are used:
+\begin{equation}\label{eq:it-forms}
+  \text{fixed point: } x=g(x),\qquad\text{root: } F(x)=0,\qquad F(x)=x-g(x).
+\end{equation}
+Section~\ref{sec:it-contr} treats contractions and the order of convergence,
+Section~\ref{sec:it-nonexp} non-expansive maps and averaging,
+Section~\ref{sec:it-newton} Newton's method and its variants,
+Section~\ref{sec:it-accel} acceleration (Aitken, Anderson), and
+Section~\ref{sec:it-stop} stopping criteria. Standard references
+are~\cite{OrtegaRheinboldt1970,Kelley1995,DennisSchnabel1983}, and for
+non-expansive maps~\cite{BauschkeCombettes2017b}.
+
+%======================================================================
+\section{Contractions and the order of convergence}\label{sec:it-contr}
+\index{fixed point}\index{contraction}\index{Picard iteration}%
+\begin{theorem}[Banach~\cite{Banach1922}]\label{thm:it-banach}
+Let $g$ map a closed set $D\subset\R^n$ into itself, with
+$\norm{g(x)-g(y)}\le\kappa\norm{x-y}$ for all $x,y\in D$ and some $\kappa<1$. Then
+$g$ has a unique fixed point $x^\ast$ in $D$, the Picard iterates
+$x_{k+1}=g(x_k)$ converge to it from any $x_0\in D$, and
+\begin{equation}\label{eq:it-banach}
+  \norm{x_k-x^\ast}\le\kappa^k\norm{x_0-x^\ast},\qquad
+  \norm{x_{k+1}-x^\ast}\le\frac{\kappa}{1-\kappa}\norm{x_{k+1}-x_k}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+$\norm{x_{k+1}-x_k}\le\kappa^k\norm{x_1-x_0}$, so that $(x_k)$ is a Cauchy
+sequence; its limit is a fixed point by continuity of $g$, and two fixed points
+$x^\ast$, $y^\ast$ satisfy $\norm{x^\ast-y^\ast}\le\kappa\norm{x^\ast-y^\ast}$, hence
+coincide. The bounds follow from $\norm{x_{k+1}-x^\ast}\le\kappa\norm{x_k-x^\ast}$
+and the triangle inequality.
+\end{proof}
+If $g$ is differentiable at $x^\ast$, the iteration converges near $x^\ast$
+when the spectral radius of the Jacobian $g'(x^\ast)$ is smaller than one, and
+the error is then multiplied asymptotically by that spectral radius at each
+iteration~\cite[Ch.~10]{OrtegaRheinboldt1970}. The initial-strain iteration
+of a fibre (Proposition~\ref{prop:cy-factor}) is such an iteration, with
+$\kappa=E/(E+H)$.
+
+\begin{definition}[Order of convergence]\label{def:it-order}
+\index{convergence!order}%
+A sequence $x_k\to x^\ast$ converges \emph{linearly} if
+$\norm{x_{k+1}-x^\ast}\le\kappa\norm{x_k-x^\ast}$ with $\kappa<1$,
+\emph{superlinearly} if the ratio tends to zero, and \emph{quadratically} if
+$\norm{x_{k+1}-x^\ast}\le C\norm{x_k-x^\ast}^2$.
+\end{definition}
+A linear rate $\kappa$ gains $-\log_{10}\kappa$ digits per iteration: about
+$0.17$ for $\kappa=0.67$, so that twelve digits take seventy iterations. A
+quadratic rate doubles the number of correct digits at each iteration near the
+solution: five or six iterations suffice from a good start.
+
+%======================================================================
+\section{Non-expansive maps and averaging}\label{sec:it-nonexp}
+\index{non-expansive map}\index{averaging (fixed-point iteration)}%
+In plasticity the natural maps are not contractions. The return map
+(Theorem~\ref{thm:pn-contract}) and the period map of cyclic loads
+(Proposition~\ref{prop:cy-nonexp}) only satisfy $\kappa=1$.
+\begin{definition}\label{def:it-nonexp}
+In a Hilbert space, a map $g$ is \emph{non-expansive} if
+$\norm{g(x)-g(y)}\le\norm{x-y}$, and \emph{firmly non-expansive} if
+$\norm{g(x)-g(y)}^2\le\scal{g(x)-g(y)}{x-y}$. The projection onto a closed convex
+set is firmly non-expansive.
+\end{definition}
+A non-expansive map may have no fixed point (a translation), a whole set of
+fixed points (the identity), or a unique fixed point that Picard iterates never
+reach: the rotation by a right angle in the plane fixes only the origin, and
+its iterates turn around it forever. Averaging the map repairs the last case.
+
+\begin{theorem}[Krasnosel'ski\u{\i}--Mann~\cite{Krasnoselskii1955,Mann1953}]\label{thm:it-km}
+Let $g$ be non-expansive on $\R^n$ with at least one fixed point, and
+$\theta\in(0,1)$. The averaged iterates
+\begin{equation}\label{eq:it-km}
+  x_{k+1}=(1-\theta)\,x_k+\theta\,g(x_k)
+\end{equation}
+converge to a fixed point of $g$, and $\norm{x_k-g(x_k)}\to0$.
+\end{theorem}
+The averaged map $(1-\theta)I+\theta g$ is \emph{averaged} in the sense
+of~\cite[Ch.~4--5]{BauschkeCombettes2017b}: it is again non-expansive, but it
+can no longer rotate without shrinking. Which fixed point is reached depends
+on $x_0$. The Halpern iteration $x_{k+1}=a_kx_0+(1-a_k)g(x_k)$, with $a_k\to0$
+and $\sum a_k=\infty$, converges to the fixed point nearest to
+$x_0$~\cite{Halpern1967,BauschkeCombettes2017b}: it selects one. When $g$ has
+no fixed point, the iterates do not stay bounded; in a Hilbert space a
+non-expansive map has a fixed point if and only if one of its orbits is
+bounded, and $g^k(x)/k$ then tends to minus the element of least norm of the
+closure of the range of $I-g$~\cite{Pazy1971b}, the \emph{drift} per
+iteration. The relaxation $\mu$ of the LATIN method
+(Theorem~\ref{thm:cy-latin}) plays the role of the averaging; the drift is
+the ratchet of Section~\ref{sec:cy-period}.
+
+%======================================================================
+\section{Newton's method and its variants}\label{sec:it-newton}
+\index{Newton's method!convergence}%
+For $F:\R^n\to\R^n$ differentiable with Jacobian $J=F'$, Newton's method
+linearizes $F$ at the current iterate:
+\begin{equation}\label{eq:it-newton}
+  J(x_k)\,\delta x=-F(x_k),\qquad x_{k+1}=x_k+\delta x .
+\end{equation}
+\begin{theorem}[Local quadratic convergence~{\cite[Ch.~5]{DennisSchnabel1983}}]\label{thm:it-newton}
+If $F(x^\ast)=0$, $J(x^\ast)$ is invertible and $J$ is Lipschitz near $x^\ast$,
+there is a neighbourhood of $x^\ast$ from which the Newton iterates are defined
+and converge quadratically to $x^\ast$.
+\end{theorem}
+The theorem is local: far from the solution Newton's method may diverge or
+cycle. A \emph{line search} restores global convergence when $F$ is the
+gradient of a convex potential $\Pi$, which is the case of the incremental
+elastoplastic problem (Section~\ref{sec:pn-var}): the step
+$x_{k+1}=x_k+\alpha\,\delta x$ is accepted when $\alpha$ decreases $\Pi$
+enough (Armijo's rule)~\cite[Ch.~6]{DennisSchnabel1983}.
+
+\paragraph{Variants.}
+\index{modified Newton method}\index{quasi-Newton method}\index{semismooth Newton method}%
+\begin{itemize}
+  \item \emph{Modified Newton}: the Jacobian is frozen, $J(x_0)\delta x=-F(x_k)$,
+  and factorized once. The iteration is a fixed point of
+  $g(x)=x-J(x_0)^{-1}F(x)$, linear with the factor of the spectral radius of
+  $I-J(x_0)^{-1}J(x^\ast)$. With the elastic stiffness in place of $J(x_0)$
+  this is the initial-strain method (Box~6.1).
+  \item \emph{Quasi-Newton} methods (Broyden, BFGS) update an approximation of
+  $J$ by the secant condition $B_{k+1}(x_{k+1}-x_k)=F(x_{k+1})-F(x_k)$ and
+  converge superlinearly~\cite{DennisSchnabel1983}.
+  \item \emph{Semismooth Newton.} The return map of a rate-independent model is
+  not differentiable where a point is on the yield surface without flowing.
+  Newton's method with the consistent tangent, an element of a generalized
+  Jacobian, still converges locally superlinearly~\cite{QiSun1993,SauterWieners2011b}.
+\end{itemize}
+
+%======================================================================
+\section{Acceleration}\label{sec:it-accel}
+\index{acceleration of iterations}\index{Aitken extrapolation}\index{Anderson acceleration}%
+\paragraph{Aitken.} For a scalar sequence with linear convergence,
+$x_k-x^\ast\approx C\kappa^k$, three iterates determine $C$, $\kappa$ and $x^\ast$:
+\begin{equation}\label{eq:it-aitken}
+  x^\ast\approx x_{k+2}-\frac{(x_{k+2}-x_{k+1})^2}{x_{k+2}-2x_{k+1}+x_k}
+\end{equation}
+(Aitken's $\Delta^2$ process~\cite{Aitken1926}). In several dimensions the
+error is no longer a single geometric sequence, and one extrapolates from
+several previous iterates.
+
+\paragraph{Anderson.} Anderson's method~\cite{Anderson1965} keeps the last $m+1$
+values $g_i=g(x_i)$ and residuals $f_i=g_i-x_i$, and replaces the Picard step
+by the combination of the previous steps whose residual is smallest:
+\begin{equation}\label{eq:it-anderson}
+  \gamma=\arg\min_\gamma\Bigl\Vert f_k-\sum_{i}\gamma_i\,(f_{i+1}-f_i)\Bigr\Vert_2,
+  \qquad
+  x_{k+1}=g_k-\sum_i\gamma_i\,(g_{i+1}-g_i),
+\end{equation}
+the sums running over the last $m$ differences (Algorithm~\ref{alg:cy-anderson}).
+With $m=0$ it is the Picard iteration. Each iteration costs one evaluation of
+$g$ and a least-squares problem with $m$ unknowns. For a linear map
+$g(x)=Mx+b$, Anderson's method is closely related to GMRES applied to
+$(I-M)x=b$~\cite{WalkerNi2011}; in general it is a multisecant quasi-Newton
+method, and it converges locally at least as fast as the Picard iteration
+when $g$ is a contraction~\cite{TothKelley2015}. For a map that is only
+non-expansive no general theorem is available, and safeguarded versions
+fall back on averaging; in practice it is very effective on the period map
+and on the direct cyclic method (Figure~\ref{fig:cy-bree-convergence}).
+
+%======================================================================
+\section{Stopping criteria}\label{sec:it-stop}
+\index{stopping criterion}%
+An iteration is stopped on a computable quantity: the residual $\norm{F(x_k)}$
+or the increment $\norm{x_{k+1}-x_k}$. By~\eqref{eq:it-banach}, for a linear
+rate $\kappa$ the error is at most $\kappa/(1-\kappa)$ times the increment: when
+$\kappa$ is close to one, a small increment does not mean a small error, and
+the slow iterations of plasticity without hardening need the residual as well.
+Tolerances are relative to a reference, the external forces for equilibrium
+(Box~5.3), the yield strain for the plastic strains. In the methods on whole
+histories two gaps are checked: the distance between the admissible and the
+constitutive iterates (the error indicator of LATIN and of Box~6.2), and, for
+a periodic closure, $\norm{\vz(t_N)-\vz(t_0)}$.
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\sffamily method & \sffamily cost per iteration & \sffamily convergence & \sffamily use in this book\\
+\midrule
+Picard & one evaluation of $g$ & linear, if contraction & initial strain, cycle by cycle\\
+averaging (KM) & one evaluation & non-expansive maps & LATIN relaxation\\
+Newton & Jacobian + factorization & quadratic, local & Box~5.3\\
+modified Newton & one solve, one factorization & linear & Box~6.1, direct cyclic\\
+Anderson($m$) & one evaluation + least squares & superlinear in practice & period map, direct cyclic\\
+\bottomrule
+\end{tabular}
+\caption{Iterations for nonlinear equations.}
+\label{tab:it-methods}
+\end{table}
+
+%======================================================================
+\framepart{Summary}
+\begin{gbox*}
+\begin{itemize}
+  \item \textbf{Contraction} (Banach): unique fixed point, linear convergence
+  of the Picard iterates with the factor $\kappa$; error at most
+  $\kappa/(1-\kappa)$ times the increment.
+  \item \textbf{Non-expansive maps} ($\kappa=1$): Picard may fail; the averaged
+  (Krasnosel'ski\u{\i}--Mann) iteration converges to a fixed point when there
+  is one; without fixed point the orbit drifts.
+  \item \textbf{Newton}: quadratic near the solution; global with a line search
+  on a convex potential; modified Newton freezes the matrix (linear rate);
+  semismooth Newton handles the kinks of plasticity.
+  \item \textbf{Acceleration}: Aitken for a scalar linear sequence, Anderson
+  for vectors: a least-squares combination of the last $m$ steps, one
+  evaluation per iteration.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+\framesub{Short questions}
+
+\exercise{Rates on $x=\cos x$}\label{exo:it-cos}
+\index{Picard iteration!exercise}%
+The fixed point of $g(x)=\cos x$ is $x^\ast=0.7391$. (a) Give the linear rate of
+the Picard iteration and estimate the number of iterations for twelve digits.
+(b) Show that the averaged iteration with $\theta=\tfrac12$ has the rate
+$|1-\theta-\theta\sin x^\ast|$ and compare. (c) How many Newton iterations do
+you expect on $F(x)=x-\cos x$ from $x_0=1$?
+\begin{solution}
+(a) $|g'(x^\ast)|=\sin x^\ast=0.674$: about $0.17$ digits per iteration, some
+70 iterations (the script needs 69). (b) The averaged map has the derivative
+$1-\theta+\theta g'(x^\ast)=0.5-0.5\times0.674=0.163$: about $0.79$ digits per
+iteration, 16 iterations. Averaging helps here because $g'$ is negative: the
+Picard iterates oscillate around $x^\ast$, and the average cancels part of
+the oscillation. (c) Quadratic convergence from an error of $0.26$: five
+iterations (the script needs 5; modified Newton needs 12).
+\end{solution}
+
+\exercise{Rotation}\label{exo:it-rot}
+\index{non-expansive map!exercise}%
+Let $g$ be the rotation by $\pi/2$ in $\R^2$. (a) Show that $g$ is non-expansive
+with the unique fixed point $0$, and that the Picard iterates do not converge.
+(b) Show that the averaged map with $\theta=\tfrac12$ is a contraction of factor
+$\sqrt2/2$. (c) Why does Anderson's method with $m=2$ converge in a few
+iterations?
+\begin{solution}
+(a) $\norm{gx}=\norm{x}$; $gx=x$ only for $x=0$; $g^4=I$, the iterates cycle
+with period four. (b) In complex notation $g$ is the multiplication by $i$,
+and the averaged map by $(1+i)/2$, of modulus $\sqrt2/2$: 79 iterations for
+twelve digits. (c) $g$ is linear: with two differences, the least-squares
+problem finds the exact combination, as GMRES solves a $2\times2$ system in two
+steps; the script converges in 4 iterations.
+\end{solution}
+
+\framesub{Problems}
+
+\exercise{Five iterations on two test problems}\label{exo:it-five}
+\index{Anderson acceleration!exercise}%
+Program the Picard, averaged and Anderson iterations and Newton's method,
+plain and modified, and apply them to $x=\cos x$ and to the rotation of
+Exercise~\ref{exo:it-rot}, with the tolerance $10^{-12}$ on the increment.
+\begin{solution}
+On $x=\cos x$ from $x_0=1$: Picard 69 iterations, averaging 16, Anderson with
+$m=1$ 7, Newton 5, modified Newton 12. On the rotation from $(1,0)$: Picard
+cycles and never converges, averaging 79 iterations, Anderson with $m=2$ 4.
+\lstinputlisting[firstline=4]{python/examples/appE/exo_iterations.py}
+\end{solution}
+
+\begin{chapterbib}{99}
+\bibitem{Aitken1926} A.~C.~Aitken, On Bernoulli's numerical solution of algebraic equations, \emph{Proc. Roy. Soc. Edinburgh} 46 (1926) 289--305.
+\bibitem{Anderson1965} D.~G.~Anderson, Iterative procedures for nonlinear integral equations, \emph{J. ACM} 12 (1965) 547--560.
+\bibitem{Banach1922} S.~Banach, Sur les op\'erations dans les ensembles abstraits et leur application aux \'equations int\'egrales, \emph{Fund. Math.} 3 (1922) 133--181.
+\bibitem{BauschkeCombettes2017b} H.~H.~Bauschke, P.~L.~Combettes, \emph{Convex Analysis and Monotone Operator Theory in Hilbert Spaces}, 2nd ed., Springer, 2017.
+\bibitem{DennisSchnabel1983} J.~E.~Dennis, R.~B.~Schnabel, \emph{Numerical Methods for Unconstrained Optimization and Nonlinear Equations}, Prentice-Hall, 1983 (reprinted by SIAM, 1996).
+\bibitem{Halpern1967} B.~Halpern, Fixed points of nonexpanding maps, \emph{Bull. Amer. Math. Soc.} 73 (1967) 957--961.
+\bibitem{Kelley1995} C.~T.~Kelley, \emph{Iterative Methods for Linear and Nonlinear Equations}, SIAM, 1995.
+\bibitem{Krasnoselskii1955} M.~A.~Krasnosel'ski\u{\i}, Two remarks on the method of successive approximations, \emph{Uspekhi Mat. Nauk} 10 (1955) 123--127.
+\bibitem{Mann1953} W.~R.~Mann, Mean value methods in iteration, \emph{Proc. Amer. Math. Soc.} 4 (1953) 506--510.
+\bibitem{OrtegaRheinboldt1970} J.~M.~Ortega, W.~C.~Rheinboldt, \emph{Iterative Solution of Nonlinear Equations in Several Variables}, Academic Press, 1970.
+\bibitem{Pazy1971b} A.~Pazy, Asymptotic behavior of contractions in Hilbert space, \emph{Israel J. Math.} 9 (1971) 235--240.
+\bibitem{QiSun1993} L.~Qi, J.~Sun, A nonsmooth version of Newton's method, \emph{Math. Program.} 58 (1993) 353--367.
+\bibitem{SauterWieners2011b} M.~Sauter, C.~Wieners, On the superlinear convergence in computational elasto-plasticity, \emph{Comput. Methods Appl. Mech. Engrg.} 200 (2011) 3646--3658.
+\bibitem{TothKelley2015} A.~Toth, C.~T.~Kelley, Convergence analysis for Anderson acceleration, \emph{SIAM J. Numer. Anal.} 53 (2015) 805--819.
+\bibitem{WalkerNi2011} H.~F.~Walker, P.~Ni, Anderson acceleration for fixed-point iterations, \emph{SIAM J. Numer. Anal.} 49 (2011) 1715--1735.
+\end{chapterbib}

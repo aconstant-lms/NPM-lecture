@@ -18,6 +18,8 @@ import numpy as np
 #   incremental        step by step, Newton (consistent tangent) or initial strain
 #   global_local       iteration on the whole history (direct cyclic method when
 #                      closure = "periodic", G = E, h = 0)
+#   dcm_sweep_map      one direct cyclic iteration as a map on histories
+#   latin              LATIN with conjugate directions on the rates, relaxation mu
 #   cycle, period_map  one cycle computed incrementally, the map z(0) -> z(T)
 #   fixed_point        Picard, Krasnoselskii--Mann or Anderson on the period map
 #   zarka              Zarka's estimate of the elastic shakedown state
@@ -262,6 +264,21 @@ def global_local(S, times, ep_init=None, G=None, h=0.0, closure="initial", ep0=N
             break
     return dict(eps=eps_ad, sig=sig_h, ep=ep_h, err=np.array(errs), iters=k + 1,
                 rec_ep=rec_ep, rec_sig=rec_sig)
+
+
+def dcm_sweep_map(S, times):
+    """One iteration of the direct cyclic method as a map on the plastic strain
+    history (flattened, shape (N+1)*nf): global stage at all instants, then local
+    sweep started from the last instant (periodic closure). Its fixed points are
+    the periodic solutions; it can be accelerated with fixed_point."""
+    N = len(times) - 1
+
+    def M(flat):
+        ep = flat.reshape(N + 1, S.nf)
+        _, sig, _ = global_stage(times, np.zeros_like(ep), ep, 0.0, S)
+        _, ep_h = local_stage(sig, ep, ep[-1], S.E, S)
+        return ep_h.ravel()
+    return M
 
 
 # ------------------------------------------- LATIN (directions on the rates)
