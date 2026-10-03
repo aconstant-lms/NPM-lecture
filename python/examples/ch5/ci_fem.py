@@ -4,12 +4,20 @@ cd python/examples/ch5 && python3 ci_fem.py"""
 import numpy as np
 from ci_core import radial_return, C_elastic, C_algorithmic, C_continuum, Linear
 
-# 2-node linear elements in r, one Gauss point, unknown: radial displacement.
-# Strain [e_rr, e_tt, e_zz, 0, 0, 0] = [du/dr, u/r, 0, 0, 0, 0]; the factor
-# 2 pi of the volume element cancels and is dropped.
+# Finite element driver of Box 5.3 for the thick-walled cylinder a <= r <= b
+# under an internal pressure p (plane strain, axisymmetry).
+#   B_matrix   strain-displacement matrix of a 2-node element (one Gauss point)
+#   solve      load steps, global Newton iterations, call of radial_return at
+#              every Gauss point from the converged variables z_n, assembly of
+#              F_int and of the tangent stiffness (consistent or continuum)
+#   p_of_c     closed-form pressure for a plastic front at r = c
+# Unknown: the radial displacement u at the nodes. Strain
+# [e_rr, e_tt, e_zz, 0, 0, 0] = [du/dr, u/r, 0, 0, 0, 0]; the factor 2 pi of
+# the volume element cancels and is dropped.
 
 
 def B_matrix(r1, r2):
+    """B (6x2), Gauss-point radius rg and length L of the element [r1, r2]."""
     L, rg = r2 - r1, 0.5 * (r1 + r2)
     B = np.zeros((6, 2))
     B[0, :] = [-1.0 / L, 1.0 / L]                 # e_rr = du/dr
