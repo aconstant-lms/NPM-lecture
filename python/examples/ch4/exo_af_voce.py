@@ -1,0 +1,18 @@
+"""Exercise "Nonlinear hardening: Armstrong-Frederick and Voce" (ch4) of the lecture notes.
+Run: python3 python/examples/ch4/exo_af_voce.py
+"""
+import numpy as np
+from scipy.integrate import solve_ivp
+H, zeta, sY = 20e3, 100.0, 250.0         # MPa, -, MPa
+# monotone tension: dq/dep = H - zeta q, closed form q = H/zeta (1 - exp(-zeta ep))
+sol = solve_ivp(lambda ep, q: H - zeta * q, [0, 0.05], [0.0], rtol=1e-12, atol=1e-12)
+print("q(0.05) numeric %.6f  closed form %.6f  saturation %.1f"
+      % (sol.y[0, -1], H / zeta * (1 - np.exp(-zeta * 0.05)), H / zeta))
+# Voce: invert sigma(eps) in tension and check against the forward law
+E, s0, sinf, d = 200e3, 250.0, 600.0, 20.0
+sig = np.array([300.0, 400.0, 500.0])
+eps = sig / E - np.log((sinf - sig) / (sinf - s0)) / d
+alpha = eps - sig / E
+print("Voce check:", np.round(sinf - (sinf - s0) * np.exp(-d * alpha) - sig, 12))
+# q(0.05) numeric 198.652411  closed form 198.652411  saturation 200.0
+# Voce check: [0. 0. 0.]

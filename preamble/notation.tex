@@ -79,6 +79,27 @@
 \newcommand{\vtD}{\vt^{D}}
 \newcommand{\vfD}{\vf^{D}}
 
+% Chapters 4-6 (plasticity), notation of Simo and Hughes
+\DeclareMathOperator{\sign}{sign}
+\newcommand{\Sym}{\R^{3\times3}_{\mathrm{sym}}} % symmetric second-order tensors
+\newcommand{\epsp}{\eps^{p}}             % plastic strain
+\newcommand{\epse}{\eps^{e}}             % elastic strain
+\newcommand{\valpha}{\vect{\alpha}}      % strain-like internal (hardening) variables
+\newcommand{\tbeta}{\tens{\beta}}        % back stress (kinematic hardening)
+\newcommand{\teta}{\tens{\eta}}          % relative stress, dev(sigma) - beta
+\newcommand{\tn}{\tens{n}}               % unit normal to the von Mises surface
+\newcommand{\vz}{\vect{z}}               % all internal variables (eps^p, alpha)
+\newcommand{\vSig}{\vect{\Sigma}}        % generalized stresses (sigma, q)
+\newcommand{\bbD}{\tensf{D}}             % hardening (generalized plastic) moduli
+\newcommand{\bbCep}{\bbC^{ep}}           % continuum elastoplastic tangent
+\newcommand{\bbIdev}{\bbI^{\mathrm{dev}}} % deviatoric projector, I - (1/3) I x I
+\newcommand{\Esig}{\mathbb{E}_{\sigma}}  % elastic domain (a set, not a tensor)
+\newcommand{\mac}[1]{\langle #1\rangle}  % ramp (Macaulay) bracket, (x+|x|)/2
+\newcommand{\trial}{\mathrm{trial}}      % trial (elastic predictor) state
+\newcommand{\np}{{n+1}}                  % index of the current time step
+\newcommand{\dg}{\Delta\gamma}           % increment of the plastic multiplier
+\newcommand{\sY}{\sigma_{Y}}             % initial yield stress
+
 % Chapter 3 (reciprocity gap)
 \newcommand{\RG}{\mathcal{R}}
 \newcommand{\OG}{\Omega_\Gamma}

@@ -4,6 +4,9 @@
     figures/appB/  script producing the Gateaux/Frechet figure of Appendix B
     examples/ch1/  computational exercises of Chapter 1 and the constrained spring chain
     examples/ch2/  computational exercises of Chapter 2
+    figures/ch4/   figures of Chapter 4 (filament cycles, yield loci, hardening surfaces)
+    examples/ch4/  computational exercises of Chapter 4 (1D cycles, viscoplasticity,
+                   nonlinear hardening, plane-strain sheet)
 
 The exercise files are printed in the solutions with `\lstinputlisting`,
 so editing a file here changes the printed solution. Each file runs on its own:
