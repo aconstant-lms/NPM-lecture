@@ -7,7 +7,6 @@
 % "Exercises in computational inelasticity" (Parts 1 and 5),
 % exercise "Stretching of an elastoplastic sheet" (MEC563, 2025),
 % MEALOR II Ch. 2 (Kondo and Maitournam, 2023).
-% Chapter 6 is referred to by number until it exists (then use \ref).
 
 \framepart{Outline}
 Metals loaded beyond a threshold keep a permanent deformation after unloading and dissipate energy. This chapter builds the classical theory of rate-independent plasticity in small strains. We follow the route of Simo and Hughes~\cite{SimoHughes1998}: the model is first written for a filament, where every ingredient can be computed by hand, and then for a three-dimensional body. The same model is then rewritten in the language of generalized standard materials of Halphen and Nguyen~\cite{HalphenNguyen1975}: a free energy and a convex dissipation potential. This rewriting shows that the flow rule is the optimality condition of a maximization, the principle of maximum plastic dissipation. Its convexity gives the main properties of the elastoplastic boundary-value problem: uniqueness of the stresses, a minimum principle for the rates, and bounds on the limit load. The integration of the model in time is the subject of Chapter~\ref{ch:pl-num}.
@@ -124,7 +123,59 @@ most metals it is well described by the von Mises or the Tresca criterion
 expands (\emph{isotropic hardening}) and translates in the direction of the
 loading (\emph{kinematic hardening}), and the plastic strain rate is normal to
 it (\emph{normality}) \cite{Lubliner1990,Salencon2002}.
-\draftnote{Experimental figures of the slides (tension--torsion yield loci of P.~Suquet's course, after H.~D.~Bui) are not reproduced; ask for permission or redraw from data.}
+
+\paragraph{The movement of the elastic domain.}
+\index{elastic domain!evolution}\index{yield surface!evolution}%
+The evolution of the yield surface can be followed on a single thin tube in
+tension--torsion. The tube is loaded plastically along a path, then the
+current surface is probed: from an elastic state, short loadings in several
+directions of the $(\sigma,\tau)$ plane are stopped as soon as a very small
+plastic strain (an \emph{offset}) is detected. The probe points trace the
+current surface without changing it much. Bui~\cite{Bui1970} made such
+measurements along loading paths, and Suquet's lecture
+notes~\cite{SuquetRP} use them to introduce the hardening rules. The
+idea of these experiments is summarized in Figure~\ref{fig:pl-domain}.
+\begin{itemize}
+  \item \emph{Classical models} (panels a--c). Along the path O$\to$A
+  (tension) and A$\to$B (torsion at constant tension), isotropic hardening
+  expands the surface, kinematic hardening translates it with the loading
+  point, and combined hardening does both. At each instant the loading point
+  is on the current surface, and the plastic strain increment is normal to
+  it.
+  \item \emph{What is observed} (panel d, schematic). The measured surface
+  follows the loading point, but does not keep its shape. It develops a
+  region of high curvature at the loading point, close to a corner, with
+  flattened flanks on both sides. The part of the surface opposite to the
+  loading point hardly moves. On the smooth parts the measured plastic strain
+  increments are close to the normal; at the loading point they lie between
+  the normals of the two flanks.
+\end{itemize}
+The translation explains the Bauschinger effect and motivates kinematic
+hardening. The distortion and the corner are not captured by the isotropic
+and kinematic models of this chapter: they need distortional hardening, or
+a description of the crystals of the polycrystal, as in Bui's
+work~\cite{Bui1970}. The normality of the increments, also at the corner, is
+what the principle of maximum dissipation predicts
+(Section~\ref{sec:pl-maxdiss}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/ch4/domain_evolution.pdf}
+\caption{Movement of the elastic domain of a von Mises material along the
+tension--torsion path O$\to$A$\to$B (orange), in the plane
+$(\sigma,\sqrt3\,\tau)$ where the von Mises surface is a circle; dashed:
+initial surface. (a)--(c) Surfaces at A (dotted) and at B (solid), computed
+with linear isotropic, kinematic and combined (half and half) hardening; the
+cross marks the centre. The black arrows are the plastic strain increments,
+normal to the current surface at the loading point (associative flow,
+conjugate components $\mathrm{d}\varepsilon^p_{11}$ and
+$\mathrm{d}\gamma^p/\sqrt3$). (d) Schematic of the distortion observed after a
+tensile prestrain, after the experiments of Bui~\cite{Bui1970} as presented
+by Suquet~\cite{SuquetRP} (not measured data): a corner at the loading point
+A, where the increment lies in the cone of normals, flat flanks, and a rear
+side that hardly moves.}
+\label{fig:pl-domain}
+\end{figure}
 
 \begin{gbox}{Ingredients of a plasticity model}
 \index{plasticity!ingredients of a model}%
@@ -355,8 +406,61 @@ loading, and stays centred on $\sigma=0$.}
 \index{hardening!kinematic}\index{back stress}%
 Isotropic hardening enlarges the elastic range symmetrically and cannot
 produce the Bauschinger effect. Kinematic hardening translates it: the centre
-of $\Esig$ is the \emph{back stress} $q$. The model of Simo and
-Hughes~\cite[Sec.~1.3]{SimoHughes1998} combines both.
+of $\Esig$ is the \emph{back stress} $q$. Linear kinematic hardening has a
+rheological model: a spring $H$ is placed in parallel with the friction
+element (Figure~\ref{fig:pl-rheo-kin}). The stress is shared between the two
+branches, $\sigma=\sigma_f+H\varepsilon^p$, and the friction element slides
+when $|\sigma_f|=|\sigma-H\varepsilon^p|$ reaches $\sY$: the elastic range is
+$[q-\sY,q+\sY]$, centred on the back stress $q=H\varepsilon^p$. The model of
+Simo and Hughes~\cite[Sec.~1.3]{SimoHughes1998} combines both kinds of
+hardening.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=1.0,>=Latex]
+  % wall
+  \fill[pattern=north east lines] (-0.25,-0.9) rectangle (0,0.9);
+  \draw[thick] (0,-0.9) -- (0,0.9);
+  % spring E
+  \draw[spring] (0,0) -- (2.0,0);
+  \node[above] at (1.0,0.25) {$E$};
+  % left bar of the parallel block
+  \draw[thick] (2.0,0) -- (2.3,0);
+  \draw[thick] (2.3,-0.75) -- (2.3,0.75);
+  % upper branch: friction element
+  \draw[thick] (2.3,0.75) -- (2.9,0.75);
+  \draw[thick,fill=gray!20] (2.9,0.5) rectangle (3.8,1.0);
+  \node at (3.35,0.75) {$\sY$};
+  \draw[very thick] (2.8,0.47) -- (4.8,0.47);
+  % lower branch: hardening spring H
+  \draw[spring] (2.3,-0.75) -- (4.8,-0.75);
+  \node[below] at (3.55,-0.95) {$H$};
+  % right bar and load
+  \draw[thick] (4.8,-0.75) -- (4.8,0.75);
+  \draw[thick] (4.8,0) -- (5.4,0);
+  \draw[->,very thick] (5.4,0) -- (6.2,0) node[right] {$\sigma$};
+  \draw[|<->|] (0,-1.5) -- (2.3,-1.5) node[midway,below] {$\varepsilon^e$};
+  \draw[|<->|] (2.3,-1.5) -- (4.8,-1.5) node[midway,below] {$\varepsilon^p$};
+  % stress-strain response
+  \begin{scope}[xshift=9.4cm,scale=0.85]
+    \draw[->] (-2.4,0) -- (2.8,0) node[right] {$\varepsilon$};
+    \draw[->] (0,-1.9) -- (0,2.1) node[above] {$\sigma$};
+    \draw[very thick,cu] (0,0) -- (0.5,1) -- (2.0,1.6) -- (1.0,-0.4)
+      -- (-1.5,-1.4);
+    \draw[dashed,gray] (0,1) node[left,black] {$\sY$} -- (0.5,1);
+    \draw[dashed,gray] (0,1.6) node[left,black] {$\sigma^*$} -- (2.0,1.6);
+    \draw[dashed,gray] (0,-0.4) -- (1.0,-0.4);
+    \node[right,font=\small] at (1.05,-0.45) {$\sigma^*-2\sY$};
+    \node[font=\small,cu,anchor=west] at (1.95,0.95) {slope $\frac{EH}{E+H}$};
+  \end{scope}
+\end{tikzpicture}
+\caption{Rheological model of linear kinematic hardening: a spring $E$ in
+series with a friction element of threshold $\sY$ in parallel with a spring
+$H$ (left). The spring $H$ stores the back stress $q=H\varepsilon^p$. On
+reversal (right), reverse yielding starts at $\sigma^*-2\sY$: the elastic
+range keeps the length $2\sY$ (Bauschinger effect).}
+\label{fig:pl-rheo-kin}
+\end{figure}
 \begin{gbox}{Filament with combined isotropic and kinematic hardening}
 \index{hardening!combined}%
 \begin{align}
@@ -452,13 +556,60 @@ $\dot\varepsilon^p=\gamma\sign\sigma$ with $\gamma\ge0$.
 In viscoplasticity the stress may leave the elastic domain, and the plastic
 strain rate depends on the distance to it, the \emph{overstress}. In the model
 of Perzyna~\cite{Perzyna1966}, a dashpot of viscosity $\eta$ is placed in
-parallel with the friction element, and the multiplier is given explicitly
-instead of by the Kuhn--Tucker conditions:
+parallel with the friction element (Figure~\ref{fig:pl-rheo-vp}), and the
+multiplier is given explicitly instead of by the Kuhn--Tucker conditions:
 \begin{equation}\label{eq:pl-perzyna1d}
   \sigma=E(\varepsilon-\varepsilon^{vp}),\qquad
   \dot\varepsilon^{vp}=\gamma\,\sign(\sigma),\qquad
   \gamma=\frac{\mac{f(\sigma)}}{\eta}=\frac{\mac{|\sigma|-\sY}}{\eta}.
 \end{equation}
+The friction element carries at most $\sY$; when $|\sigma|>\sY$ the dashpot
+carries the overstress, $\eta\,\dot\varepsilon^{vp}=\sigma-\sY\sign(\sigma)$,
+which is~\eqref{eq:pl-perzyna1d}.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=1.0,>=Latex]
+  \fill[pattern=north east lines] (-0.25,-0.9) rectangle (0,0.9);
+  \draw[thick] (0,-0.9) -- (0,0.9);
+  \draw[spring] (0,0) -- (2.0,0);
+  \node[above] at (1.0,0.25) {$E$};
+  \draw[thick] (2.0,0) -- (2.3,0);
+  \draw[thick] (2.3,-0.75) -- (2.3,0.75);
+  % upper branch: friction element
+  \draw[thick] (2.3,0.75) -- (2.9,0.75);
+  \draw[thick,fill=gray!20] (2.9,0.5) rectangle (3.8,1.0);
+  \node at (3.35,0.75) {$\sY$};
+  \draw[very thick] (2.8,0.47) -- (4.8,0.47);
+  % lower branch: dashpot eta
+  \draw[thick] (2.3,-0.75) -- (3.45,-0.75);
+  \draw[thick] (3.45,-1.0) -- (3.45,-0.5);
+  \draw[thick] (3.15,-1.12) -- (4.05,-1.12) -- (4.05,-0.38) -- (3.15,-0.38);
+  \draw[thick] (4.05,-0.75) -- (4.8,-0.75);
+  \node[below] at (3.6,-1.15) {$\eta$};
+  \draw[thick] (4.8,-0.75) -- (4.8,0.75);
+  \draw[thick] (4.8,0) -- (5.4,0);
+  \draw[->,very thick] (5.4,0) -- (6.2,0) node[right] {$\sigma$};
+  \draw[|<->|] (0,-1.75) -- (2.3,-1.75) node[midway,below] {$\varepsilon^e$};
+  \draw[|<->|] (2.3,-1.75) -- (4.8,-1.75) node[midway,below] {$\varepsilon^{vp}$};
+  % relaxation response
+  \begin{scope}[xshift=8.6cm,yshift=-0.9cm,scale=0.85]
+    \draw[->] (0,0) -- (4.4,0) node[right] {$t$};
+    \draw[->] (0,0) -- (0,2.6) node[above] {$\sigma$};
+    \draw[dashed,gray] (0,1.0) node[left,black] {$\sY$} -- (4.2,1.0);
+    \draw[very thick,cu,domain=0:4.1,samples=40] plot (\x,{1.0+1.2*exp(-1.2*\x)});
+    \node[left] at (0,2.2) {$E\varepsilon_0$};
+    \node[font=\small,cu,anchor=west] at (1.2,1.85) {$\sY+(E\varepsilon_0-\sY)e^{-t/\tau}$};
+  \end{scope}
+\end{tikzpicture}
+\caption{Rheological model of the Perzyna filament: a spring $E$ in series
+with a friction element of threshold $\sY$ in parallel with a dashpot of
+viscosity $\eta$ (left). Right: in a relaxation test the stress relaxes to
+the yield stress with the time constant $\tau=\eta/E$,
+see~\eqref{eq:pl-relax}.}
+\label{fig:pl-rheo-vp}
+\end{figure}
+
 With the relaxation time $\tau=\eta/E$, and in a stress state outside the
 elastic domain ($\sigma>\sY$, say), the evolution reads
 \begin{equation}\label{eq:pl-perzyna-ode}
@@ -517,7 +668,7 @@ hardening variables $\vq$ describe the position and the size of the domain;
 we first consider fixed $\vq$ and write $f(\sig)$.
 
 \paragraph{Isotropy and invariants.}
-\index{stress!invariants}\index{stress!deviator}\index{Haigh--Westergaard space}\index{deviatoric plane}\index{Lode angle}%
+\index{stress!invariants}\index{stress!deviator}\index{Haigh--Westergaard space}\index{deviatoric plane}\index{Lode angle}\index{Lode parameter}%
 For an isotropic material, $f(\sig)$ depends only on the principal stresses
 $\sigma_1,\sigma_2,\sigma_3$, symmetrically. It is convenient to split the
 stress into its mean (hydrostatic) part and its deviator,
@@ -531,7 +682,17 @@ $\sigma_1=\sigma_2=\sigma_3$ carries $p$, and the plane orthogonal to it
 through the origin (the \emph{deviatoric} or $\pi$-plane) carries $\tens{s}$.
 In the $\pi$-plane, the deviator has polar coordinates $(\norm{\tens{s}},\theta)$,
 where $\norm{\tens{s}}=\sqrt{\tens{s}:\tens{s}}=\sqrt{2J_2}$ and the Lode
-angle $\theta$ is a function of $J_3/J_2^{3/2}$.
+angle $\theta$ is a function of $J_3/J_2^{3/2}$. We measure $\theta$ from the
+direction of pure shear (Figure~\ref{fig:pl-loci}):
+\begin{equation}\label{eq:pl-lode}
+  \sin3\theta=-\frac{3\sqrt3}{2}\,\frac{J_3}{J_2^{3/2}},\qquad
+  -\frac\pi6\le\theta\le\frac\pi6,\qquad
+  \mu=\frac{2\sigma_2-\sigma_1-\sigma_3}{\sigma_1-\sigma_3}=\sqrt3\tan\theta ,
+\end{equation}
+with $\sigma_1\ge\sigma_2\ge\sigma_3$. The \emph{Lode parameter} $\mu$ locates
+the intermediate principal stress between the two others: $\mu=-1$
+($\theta=-\pi/6$) in uniaxial tension, $\mu=0$ ($\theta=0$) in pure shear,
+$\mu=1$ ($\theta=\pi/6$) in uniaxial compression.
 
 \paragraph{Metals are insensitive to pressure.}
 \index{incompressibility!plastic}%
@@ -570,18 +731,60 @@ $\sig=\sigma(\ve_1\otimes\ve_1)+\tau(\ve_1\otimes\ve_2+\ve_2\otimes\ve_1)$, they
   \text{Tresca: }\ \sigma^2+4\tau^2\le\sY^2 ,
 \end{equation}
 so that the shear yield stress is $\sY/\sqrt3\approx0.577\,\sY$ for von Mises
-and $\sY/2$ for Tresca. Tension--torsion experiments on most metals fall
-between the two curves, closer to von Mises~\cite{Lubliner1990}.
+and $\sY/2$ for Tresca. In terms of the Lode parameter, the two criteria
+read
+\begin{equation}\label{eq:pl-lode-criteria}
+  \text{von Mises: }\ \sigma_1-\sigma_3=\frac{2\sY}{\sqrt{3+\mu^2}},\qquad
+  \text{Tresca: }\ \sigma_1-\sigma_3=\sY ,
+\end{equation}
+and differ by at most $2/\sqrt3-1\approx15\%$, in pure shear.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{figures/ch4/yield_loci.pdf}
-\caption{Left: sections of the von Mises cylinder (circle) and of the Tresca
-prism (hexagon) by the $\pi$-plane; the projections of the principal axes are
-drawn at $120^\circ$. Right: the same criteria in the tension--torsion plane
-$(\sigma,\tau)$, ellipses~\eqref{eq:pl-tt}; the two coincide in pure tension
-and differ most in pure shear.}
+\includegraphics[width=0.9\textwidth]{figures/ch4/yield_loci.pdf}
+\caption{(a) The von Mises cylinder around the hydrostatic axis. (b) Sections
+of the von Mises cylinder (circle) and of the Tresca prism (hexagon) by the
+$\pi$-plane; the projections of the principal axes are drawn at $120^\circ$.
+In the shaded sector $\sigma_1\ge\sigma_2\ge\sigma_3$, the Lode angle $\theta$
+of the deviator $\tens s$ is measured from the pure-shear direction S;
+$\theta=-30^\circ$ at the tension vertex T and $+30^\circ$ at the compression
+vertex C, see~\eqref{eq:pl-lode}.}
 \label{fig:pl-loci}
+\end{figure}
+
+\paragraph{The classical experiments.}
+\index{yield criterion!experiments}\index{Lode parameter!experiments}\index{tension--torsion test}%
+Two experiments on thin-walled tubes decided between the two criteria.
+Lode~\cite{Lode1926} loaded tubes of iron, copper and nickel by an axial
+force and an internal pressure, which varies the intermediate principal
+stress, hence $\mu$. Taylor and Quinney~\cite{TaylorQuinney1931} loaded tubes
+of copper, aluminium and mild steel in combined tension and torsion. In both
+cases the yield points lie between the Tresca and the von Mises curves, and
+close to von Mises (Figure~\ref{fig:pl-classical},
+see~\cite[Ch.~II]{Hill1950} and~\cite{Lubliner1990} for the measured
+points). Both also measured the plastic strain increments. Lode compared his
+parameter of the increments,
+\[
+  \nu=\frac{2\,\dd\varepsilon^p_2-\dd\varepsilon^p_1-\dd\varepsilon^p_3}{\dd\varepsilon^p_1-\dd\varepsilon^p_3},
+\]
+with $\mu$. The flow rule associated with von Mises (the L\'evy--Mises rule
+$\dd\eps^p\propto\dev\sig$) predicts $\nu=\mu$, and the measured points are
+close to this line, with small systematic deviations, discussed
+in~\cite[Ch.~II]{Hill1950}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch4/classical_tests.pdf}
+\caption{The von Mises and Tresca criteria in the coordinates of the classical
+experiments (theoretical curves only; the measured points
+of~\cite{Lode1926,TaylorQuinney1931} lie close to the von Mises curves, see
+the text). (a) Tension--torsion plane, ellipses~\eqref{eq:pl-tt}: the two
+criteria coincide in tension and differ most in shear. (b) Lode's diagram:
+$(\sigma_1-\sigma_3)/\sY$ against the Lode parameter $\mu$. (c) Lode parameter
+$\nu$ of the plastic strain increments against $\mu$: $\nu=\mu$ for the
+L\'evy--Mises rule; $\nu=0$ on the faces of the Tresca prism, and any
+$\nu$ of the cone of normals at its corners $\mu=\pm1$.}
+\label{fig:pl-classical}
 \end{figure}
 
 \paragraph{Pressure-sensitive materials.}
@@ -592,8 +795,28 @@ $f(\sig)=\sigma_{eq}+\alpha_{DP}\tr\sig-\sigma_0\le0$ is a cone around the
 hydrostatic axis, and the \emph{Mohr--Coulomb} criterion
 $f(\sig)=(\sigma_1-\sigma_3)+(\sigma_1+\sigma_3)\sin\phi-2c\cos\phi\le0$
 ($\sigma_1\ge\sigma_2\ge\sigma_3$, friction angle $\phi$, cohesion $c$) a
-hexagonal pyramid~\cite{Salencon2002}. All the criteria above define convex
+hexagonal pyramid~\cite{Salencon2002} (Figure~\ref{fig:pl-dpmc}). Both have
+their apex on the hydrostatic axis, on the side of tension, at
+$\tr\sig=\sigma_0/\alpha_{DP}$ and at $\tfrac13\tr\sig=c\cot\phi$. The section of
+the pyramid by the $\pi$-plane is an irregular hexagon: the material is
+stronger in compression ($\mu=1$) than in tension ($\mu=-1$). For $\phi=0$
+the Mohr--Coulomb pyramid becomes the Tresca prism with $\sY=2c$, and for
+$\alpha_{DP}=0$ the Drucker--Prager cone becomes the von Mises cylinder.
+All the criteria above define convex
 sets; Section~\ref{sec:pl-maxdiss} explains why convexity is not an accident.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch4/dp_mc.pdf}
+\caption{Pressure-sensitive criteria in the space of principal stresses
+(tension positive), drawn with the hydrostatic axis vertical, for a friction
+angle $\phi=30^\circ$. (a) The Drucker--Prager cone, here circumscribed to
+the Mohr--Coulomb pyramid (same apex, through its compression vertices).
+(b) The Mohr--Coulomb pyramid. (c) Their sections by the $\pi$-plane: a
+circle and an irregular hexagon, with vertices closer to the axis in tension
+than in compression.}
+\label{fig:pl-dpmc}
+\end{figure}
 
 \subsection{Flow rule, hardening rule and loading conditions}\label{ssec:pl-flow}
 \index{flow rule}\index{hardening rule}\index{flow rule!associative}\index{plasticity!rate-independent}%
@@ -804,7 +1027,7 @@ gives the state laws, and a dissipation potential, which gives the evolution
 laws. This structure, the one of \emph{generalized standard materials}
 (GSM), guarantees the second principle of thermodynamics and is the source of
 the variational principles and of the convergence properties used in this
-chapter and the next two~\cite{GermainNguyenSuquet1983,LemaitreChaboche1990,Nguyen2000}.
+chapter and in Chapter~\ref{ch:pl-num}~\cite{GermainNguyenSuquet1983,LemaitreChaboche1990,Nguyen2000}.
 We follow the presentation of Kondo and Maitournam~\cite{KondoMaitournam2023},
 in the isothermal setting and in the notation of Simo and Hughes. The recipe
 has three steps: choose the state variables; choose a free energy, which gives
@@ -949,6 +1172,31 @@ process. For $J_2$ plasticity with isotropic hardening,
 $\pi_{\Esig}(\dot\eps^p,\dot\alpha)=\sY\dot\alpha$ on the admissible rates
 (Example~\ref{ex:pl-mises-pi}), in agreement
 with~\eqref{eq:pl-j2-diss}.
+
+For the perfectly plastic filament (Figure~\ref{fig:pl-diss1d}), the
+dissipation potential is $\varphi(\dot\varepsilon^p)=\sY|\dot\varepsilon^p|$,
+the support function of $\Esig=[-\sY,\sY]$, and its conjugate is the
+indicator $I_{[-\sY,\sY]}$. The kink of $\varphi$ at $\dot\varepsilon^p=0$
+carries the whole elastic domain: $\partial\varphi(0)=[-\sY,\sY]$, so that any
+stress of the domain is compatible with a zero plastic rate. Conversely, the
+vertical walls of $\varphi^\ast$ at $\pm\sY$ carry the plastic rates:
+$\partial I_{[-\sY,\sY]}(\pm\sY)$ is the half-line of the rates of the sign
+of $\sigma$. The two forms of~\eqref{eq:pl-normality} are the flow
+rule~\eqref{eq:pl-1d-flow}--\eqref{eq:pl-1d-kt}, read from the rate or from
+the stress, and Proposition~\ref{prop:pl-1d-maxdiss} is their equivalence.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/ch4/dissipation_1d.pdf}
+\caption{The perfectly plastic filament as a generalized standard material.
+(a) The dissipation potential $\varphi(\dot\varepsilon^p)=\sY|\dot\varepsilon^p|$,
+positively homogeneous of degree one; at the origin its supporting lines have
+all the slopes $\sigma\in[-\sY,\sY]$. (b) Its Legendre--Fenchel conjugate, the
+indicator function of the elastic domain $\Esig=[-\sY,\sY]$ (zero on
+$\Esig$, $+\infty$ outside); its subdifferential at $\pm\sY$ is the normal
+cone, the half-line of the admissible plastic rates.}
+\label{fig:pl-diss1d}
+\end{figure}
 
 \paragraph{Viscoplasticity.}
 \index{viscoplasticity!dual potential}\index{Norton--Hoff law}\index{viscoplasticity!Duvaut--Lions}%
@@ -1134,9 +1382,8 @@ $\vSig_2\cdot\dot\vz_2\ge\vSig_1\cdot\dot\vz_2$. Add the two inequalities.
 \end{proof}
 The flow rule is a \emph{monotone} relation between forces and fluxes, the
 nonlinear analogue of a positive definite matrix. Monotonicity is the
-property behind the uniqueness of the stresses (Section~\ref{sec:pl-bvp}),
-the stability of the integration algorithms (Chapter~\ref{ch:pl-num}) and the
-convergence of the global--local methods (Chapter~6).
+property behind the uniqueness of the stresses (Section~\ref{sec:pl-bvp})
+and the stability of the integration algorithms (Chapter~\ref{ch:pl-num}).
 
 \paragraph{The dissipation function of von Mises.}
 \begin{example}\label{ex:pl-mises-pi}
@@ -1205,8 +1452,8 @@ The equations split into two groups of different nature
 internal variables, they form a linear elasticity problem with initial strain
 $\epsp$. The flow rule is \emph{nonlinear} and \emph{local}: it is an
 evolution law at each material point, coupled to the others only through the
-stress. Every algorithm of Chapters~\ref{ch:pl-num} and~6
-exploits this split.
+stress. The integration algorithms of Chapter~\ref{ch:pl-num} exploit this
+split.
 
 \begin{figure}[h]
 \centering
@@ -1372,7 +1619,9 @@ forces $N^{\mathrm{res}}=N-N^{\mathrm{el}}(P_L)$ are
 $N_1^{\mathrm{res}}=N_2^{\mathrm{res}}=\sY A\,(2a-L)/L$: a uniform compression,
 self-equilibrated ($N_1^{\mathrm{res}}-N_2^{\mathrm{res}}=0$) and below the
 yield force. A second loading up to $P_L$ is purely elastic: the structure
-has \emph{shaken down}, a notion developed in Chapter~6.
+has \emph{shaken down}. Shakedown under variable loads is characterized by
+the static theorem of Melan~\cite{Melan1938} and the kinematic theorem of
+Koiter~\cite{Koiter1960}; see the book of K\"onig~\cite{Konig1987}.
 \end{example}
 
 \begin{figure}[h]
@@ -1440,11 +1689,126 @@ at $P_L$, elastic unloading with a permanent displacement.}
 \end{gbox*}
 
 \framepart{Exercises}\label{sec:pl-exo}
-The first exercises work on the filament by hand; the next ones on the
+The short questions come first: they are of the kind asked in a written
+exam, without documents or computer, and need only a few lines of
+computation. The next exercises work on the filament by hand; then on the
 three-dimensional model and on generalized standard materials; the last ones
 are classical boundary-value problems with closed-form solutions, which serve
 as benchmarks for the numerical methods of Chapter~\ref{ch:pl-num}. Solutions
 are given in small type after each exercise.
+
+\framesub{Short questions}
+
+\exercise{Tangent modulus}\label{exo:pl-sq-tangent}
+\index{tangent modulus!short question}%
+A filament with $E=200$\,GPa, $\sY=250$\,MPa and linear isotropic hardening
+$K=20$\,GPa is pulled monotonically to $\varepsilon=0.01$. Give the tangent
+modulus in plastic loading, the stress reached and the plastic strain left
+after unloading.
+\begin{solution}
+$E^{ep}=EK/(E+K)=18.18$\,GPa. With $\varepsilon_Y=\sY/E=1.25\times10^{-3}$,
+$\sigma=\sY+E^{ep}(\varepsilon-\varepsilon_Y)=250+159.1=409.1$\,MPa. The
+plastic strain is $\varepsilon^p=\varepsilon-\sigma/E=7.95\times10^{-3}$, also
+equal to $(\sigma-\sY)/K$.
+\end{solution}
+
+\exercise{Von Mises or Tresca?}\label{exo:pl-sq-criteria}
+\index{von Mises criterion!short question}%
+The principal stresses at a point are $(200,100,0)$\,MPa and $\sY=180$\,MPa.
+Does the point yield according to von Mises? According to Tresca? Compute the
+Lode parameter $\mu$ and explain why the two criteria disagree here.
+\begin{solution}
+Von Mises: $\sigma_{eq}^2=\sigma_1^2+\sigma_2^2-\sigma_1\sigma_2=30\,000$, so
+$\sigma_{eq}=173.2$\,MPa $<\sY$: elastic. Tresca: $\sigma_1-\sigma_3=200$\,MPa
+$>\sY$: the point has yielded. $\mu=(200-200-0)/200=0$: the state is a pure
+shear plus a hydrostatic stress $100$\,MPa, where the two criteria differ most,
+by the factor $2/\sqrt3$.
+\end{solution}
+
+\exercise{Twisting a thin tube}\label{exo:pl-sq-tube}
+\index{torsion!short question}%
+A thin tube of mean radius $r=20$\,mm and thickness $t=1$\,mm, with
+$\sY=300$\,MPa, is twisted. The shear stress is uniform,
+$\displaystyle \tau=\frac{T}{2\pi r^2t}$. Give the torque at first yield for von Mises and
+for Tresca.
+\begin{solution}
+The shear yield stress is $\sY/\sqrt3=173.2$\,MPa (von Mises) and
+$\sY/2=150$\,MPa (Tresca). With $2\pi r^2t=2513$\,mm$^3$: $T_Y=435$\,N\,m
+(von Mises) and $377$\,N\,m (Tresca).
+\end{solution}
+
+\exercise{Bauschinger effect by hand}\label{exo:pl-sq-bauschinger}
+\index{Bauschinger effect!short question}%
+A filament with $E=200$\,GPa, $\sY=250$\,MPa and linear hardening
+$K+H=20$\,GPa is pulled to $\sigma^*=300$\,MPa and unloaded. Give the plastic
+strain, and the stress at which reverse yielding starts for (i) isotropic
+hardening ($H=0$), (ii) kinematic hardening ($K=0$).
+\begin{solution}
+$\varepsilon^p=(\sigma^*-\sY)/(K+H)=2.5\times10^{-3}$ in both cases. (i) The
+elastic range is $[-300,300]$\,MPa: reverse yielding at $-300$\,MPa. (ii)
+The range keeps the length $2\sY=500$\,MPa and is centred on
+$q=H\varepsilon^p=50$\,MPa: reverse yielding at $\sigma^*-2\sY=-200$\,MPa.
+\end{solution}
+
+\exercise{Normality in tension--torsion}\label{exo:pl-sq-normality}
+\index{normality rule!short question}%
+A von Mises material is loaded in tension--torsion to
+$(\sigma,\tau)=(\sY/2,\sY/2)$. Check that the point is on the yield surface,
+and give the ratios $\dot\gamma^p/\dot\varepsilon^p_{11}$ (with
+$\dot\gamma^p=2\dot\varepsilon^p_{12}$) and
+$\dot\varepsilon^p_{22}/\dot\varepsilon^p_{11}$ of the plastic strain rate.
+\begin{solution}
+$\sigma^2+3\tau^2=\tfrac14\sY^2+\tfrac34\sY^2=\sY^2$. The flow is along
+$\dev\sig$: $\dot\varepsilon^p_{11}\propto\tfrac23\sigma$,
+$\dot\varepsilon^p_{22}\propto-\tfrac13\sigma$, $\dot\varepsilon^p_{12}\propto\tau$.
+Hence $\dot\gamma^p/\dot\varepsilon^p_{11}=3\tau/\sigma=3$ and
+$\dot\varepsilon^p_{22}/\dot\varepsilon^p_{11}=-\tfrac12$ (isochoric flow).
+\end{solution}
+
+\exercise{Lode parameters}\label{exo:pl-sq-lode}
+\index{Lode parameter!short question}%
+Compute the Lode parameter $\mu$ and the ratio $(\sigma_1-\sigma_3)/\sY$ at
+yield for von Mises in uniaxial tension, pure shear and equibiaxial tension
+$(\sigma,\sigma,0)$. What is the Lode parameter $\nu$ of the plastic strain
+rate predicted by the L\'evy--Mises rule?
+\begin{solution}
+Tension $(\sigma,0,0)$: $\mu=-1$. Shear $(\tau,0,-\tau)$: $\mu=0$. Equibiaxial
+$(\sigma,\sigma,0)$: $\mu=1$; it is a uniaxial compression plus a hydrostatic
+stress. By~\eqref{eq:pl-lode-criteria} the ratio is $1$,
+$2/\sqrt3\approx1.155$ and $1$. The L\'evy--Mises rule
+$\dot\eps^p\propto\dev\sig$ gives $\nu=\mu$ (Figure~\ref{fig:pl-classical}).
+\end{solution}
+
+\exercise{Energy dissipated in a cycle}\label{exo:pl-sq-cycle}
+\index{dissipation!short question}%
+An elastic--perfectly plastic filament ($E=200$\,GPa, $\sY=250$\,MPa) is
+cycled in strain between $\pm\varepsilon_a$, $\varepsilon_a=3\times10^{-3}$.
+Draw the stabilized cycle and compute the energy dissipated per cycle and per
+unit volume.
+\begin{solution}
+The cycle is a parallelogram of height $2\sY$ and of width
+$2(\varepsilon_a-\varepsilon_Y)$ along the strain axis, with
+$\varepsilon_Y=1.25\times10^{-3}$. Its area is
+$\mathcal D_{\mathrm{cycle}}=4\sY(\varepsilon_a-\varepsilon_Y)=1.75$\,MJ/m$^3$.
+It is also $\displaystyle \int\sY|\dot\varepsilon^p|\dd t$ by~\eqref{eq:pl-1d-diss}: the
+plastic strain varies by $2(\varepsilon_a-\varepsilon_Y)$ twice per cycle.
+\end{solution}
+
+\exercise{Two bars in parallel}\label{exo:pl-sq-bars}
+\index{limit load!short question}\index{residual stress!short question}%
+Two bars of the same section $A$ and the same elastic--perfectly plastic
+material ($E$, $\sY$), of lengths $L$ and $2L$, connect a fixed wall to a
+rigid plate, which is pulled by a force $P$ and translates. Give the force
+$P_Y$ at first yield, the limit load $P_L$, and the residual normal forces
+after unloading from $P_L$.
+\begin{solution}
+Both bars have the elongation $u$: $N_1=EAu/L$, $N_2=EAu/(2L)$, so the short
+bar carries $\tfrac23P$. It yields at $P_Y=\tfrac32\sY A$; the limit load is
+$P_L=2\sY A$ (both bars yield). Unloading by $2\sY A$ is elastic:
+$\Delta N_1=-\tfrac43\sY A$, $\Delta N_2=-\tfrac23\sY A$. The residual forces
+are $N_1=-\tfrac13\sY A$ and $N_2=+\tfrac13\sY A$: self-equilibrated and below
+the yield force, as in Example~\ref{ex:pl-bar}.
+\end{solution}
 
 \framesub{The filament}
 
@@ -1820,6 +2184,9 @@ plane strain, $k=2\sY/\sqrt3$). Show that
   p=k\ln\frac ca+\frac k2\Bigl(1-\frac{c^2}{b^2}\Bigr),\qquad
   p_L=k\ln\frac ba .
 \]
+For $b=2a$, compute the residual stresses after unloading from the pressure
+at which the plastic front is at $c=1.5a$, and check that unloading is
+elastic for every $p\le p_L$.
 \begin{solution}
 Equilibrium: $\displaystyle \frac{\dd\sigma_r}{\dd r}+\frac{\sigma_r-\sigma_\theta}{r}=0$.
 Plastic zone: $\dd\sigma_r/\dd r=k/r$ and $\sigma_r(a)=-p$, so
@@ -1831,6 +2198,15 @@ $p_L=0.693\,k$; with $\sY=250$\,MPa and $k=2\sY/\sqrt3$: $p_Y=108.25$\,MPa and
 $p_L=200.09$\,MPa. The limit pressure is also obtained directly by the static
 approach of Theorem~\ref{thm:pl-limit}: the field of the plastic zone,
 extended to the whole tube, is statically and plastically admissible.
+Unloading by $-p$ adds the Lam\'e field
+$\displaystyle \Delta\sigma_{r,\theta}=-\frac{pa^2}{b^2-a^2}\Bigl(1\mp\frac{b^2}{r^2}\Bigr)$,
+so that $\displaystyle \Delta(\sigma_\theta-\sigma_r)=-\frac{2pa^2b^2}{(b^2-a^2)r^2}$, largest at
+$r=a$. There, the residual value is $\displaystyle k-\frac{8p}{3}$ for $b=2a$: it
+stays above $-k$ (no reverse yielding) as long as $p\le\tfrac34k$, which holds
+up to $p_L=0.693\,k$. For $c=1.5a$, $p=0.624\,k$, and the residual hoop
+stress is $-0.665\,k$ at the bore and $+0.146\,k$ at the outer surface
+(Figure~\ref{fig:pl-bvp}a): the bore is put in compression, which is the
+principle of autofrettage of gun barrels and pressure vessels.
 \end{solution}
 
 \exercise{Elastic--plastic torsion of a shaft}\label{exo:pl-torsion}
@@ -1849,7 +2225,9 @@ $T_L=2\pi kR^3/3$. (b) Unloading is elastic:
 $\tau^{\mathrm{res}}=\tau-T_Lr/J$ with $J=\pi R^4/2$, i.e.\
 $\displaystyle \tau^{\mathrm{res}}=k\bigl(1-\frac{4r}{3R}\bigr)$: $-k/3$ at the surface and
 $+k$ near the axis. It is self-equilibrated,
-$\displaystyle \int_0^R\tau^{\mathrm{res}}r^2\dd r=0$. Torsion is a pure-shear,
+$\displaystyle \int_0^R\tau^{\mathrm{res}}r^2\dd r=0$. From a partially plastic state
+with $c=R/2$, $T=\tfrac{31}{24}T_Y$ and the residual stress at the surface is
+$-\tfrac{7}{24}k$ (Figure~\ref{fig:pl-bvp}b). Torsion is a pure-shear,
 isochoric test with a closed-form solution: a natural first test of a return
 map.
 \end{solution}
@@ -1868,13 +2246,32 @@ at the surface.
 $M_p=\sY bh^2/4$ ($c\to0$), shape factor $M_p/M_Y=3/2$ (against $4/3$ in
 torsion). (b) Elastic unloading: $\Delta\kappa=M_p/(EI)$, $I=bh^3/12$, so
 $\Delta\kappa=3\sY/(Eh)=\tfrac32\kappa_Y$ with $\kappa_Y=2\sY/(Eh)$; the
-springback never exceeds $1.5\,\kappa_Y$. The residual
-stress at the surface is $\displaystyle \sY-M_p\,\frac h2/I=-\frac12\sY$.
+springback never exceeds $1.5\,\kappa_Y$. Unloading adds
+$\Delta\sigma=M_py/I$. At the fibre stretched during loading
+($y=-h/2$, $\sigma=\sY$) the residual stress is
+$\displaystyle \sY-M_p\,\frac h2/I=-\frac12\sY$, and $+\tfrac12\sY$ at the opposite
+fibre; near the neutral axis it jumps from $+\sY$ to $-\sY$
+(Figure~\ref{fig:pl-bvp}c).
 \end{solution}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch4/bvp_profiles.pdf}
+\caption{Stress profiles of Exercises~\ref{exo:pl-cyl}--\ref{exo:pl-bending}
+under load (solid) and residual stresses after elastic unloading (dashed),
+elastic--perfectly plastic material. (a) Thick cylinder, $b=2a$, plastic front
+at $c=1.5a$ ($p=0.624\,k$): hoop and radial stresses; the shaded zone is
+plastic. (b) Torsion: elastic core $c=R/2$ (blue) and limit state (orange).
+(c) Bending with $\varepsilon=-\kappa y$: elastic core $c=h/4$ (blue) and
+plastic moment $M_p$ (orange). All residual fields are self-equilibrated and
+stay within the yield limits.}
+\label{fig:pl-bvp}
+\end{figure}
 
 %======================================================================
 \begin{chapterbib}{99}
 \bibitem{ArmstrongFrederick1966} P.~J.~Armstrong, C.~O.~Frederick, A mathematical representation of the multiaxial Bauschinger effect, CEGB Report RD/B/N731, Central Electricity Generating Board, 1966.
+\bibitem{Bui1970} H.~D.~Bui, \'Evolution de la fronti\`ere du domaine \'elastique des m\'etaux avec l'\'ecrouissage plastique et comportement \'elasto-plastique d'un agr\'egat de cristaux cubiques, \emph{M\'emorial de l'Artillerie Fran\c{c}aise}, 1970. See also his doctoral thesis, \'Etude de l'\'evolution de la fronti\`ere du domaine \'elastique avec l'\'ecrouissage et relations de comportement \'elasto-plastique des m\'etaux cubiques, Paris.
 \bibitem{Drucker1951} D.~C.~Drucker, A more fundamental approach to plastic stress--strain relations, in \emph{Proc. 1st U.S. National Congress of Applied Mechanics}, ASME, 1951, 487--491.
 \bibitem{DuvautLions1972} G.~Duvaut, J.-L.~Lions, \emph{Les in\'equations en m\'ecanique et en physique}, Dunod, 1972.
 \bibitem{GermainNguyenSuquet1983} P.~Germain, Q.~S.~Nguyen, P.~Suquet, Continuum thermodynamics, \emph{J. Appl. Mech.} 50 (1983) 1010--1020.
@@ -1883,14 +2280,20 @@ stress at the surface is $\displaystyle \sY-M_p\,\frac h2/I=-\frac12\sY$.
 \bibitem{Hill1950} R.~Hill, \emph{The Mathematical Theory of Plasticity}, Clarendon Press, Oxford, 1950.
 \bibitem{Hill1958} R.~Hill, A general theory of uniqueness and stability in elastic-plastic solids, \emph{J. Mech. Phys. Solids} 6 (1958) 236--249.
 \bibitem{Koiter1953} W.~T.~Koiter, Stress--strain relations, uniqueness and variational theorems for elastic-plastic materials with a singular yield surface, \emph{Quart. Appl. Math.} 11 (1953) 350--354.
+\bibitem{Koiter1960} W.~T.~Koiter, General theorems for elastic-plastic solids, in I.~N.~Sneddon, R.~Hill (eds), \emph{Progress in Solid Mechanics}, vol.~1, North-Holland, Amsterdam, 1960, 165--221.
 \bibitem{KondoMaitournam2023} D.~Kondo, H.~Maitournam, Thermodynamics of irreversible processes: formulation of constitutive models, Chapter~2 in J.~Besson et al., \emph{MEALOR II: Damage Mechanics and Local Approach to Fracture}, 2023, 5--38, doi:10.5281/zenodo.10125170.
+\bibitem{Konig1987} J.~A.~K\"onig, \emph{Shakedown of Elastic-Plastic Structures}, Elsevier and PWN, Amsterdam and Warsaw, 1987.
 \bibitem{LemaitreChaboche1990} J.~Lemaitre, J.-L.~Chaboche, \emph{Mechanics of Solid Materials}, Cambridge University Press, 1990.
+\bibitem{Lode1926} W.~Lode, Versuche \"uber den Einflu{\ss} der mittleren Hauptspannung auf das Flie{\ss}en der Metalle Eisen, Kupfer und Nickel, \emph{Z. Physik} 36 (1926) 913--939, doi:10.1007/BF01400222.
 \bibitem{Lubliner1990} J.~Lubliner, \emph{Plasticity Theory}, Macmillan, 1990.
 \bibitem{Maitournam2012} H.~Maitournam, \emph{Mat\'eriaux et structures an\'elastiques}, Presses de l'\'Ecole polytechnique, 2012.
+\bibitem{Melan1938} E.~Melan, Zur Plastizit\"at des r\"aumlichen Kontinuums, \emph{Ingenieur-Archiv} 9 (1938) 116--126.
 \bibitem{Nguyen2000} Q.~S.~Nguyen, \emph{Stability and Nonlinear Solid Mechanics}, Wiley, 2000.
 \bibitem{Perzyna1966} P.~Perzyna, Fundamental problems in viscoplasticity, \emph{Adv. Appl. Mech.} 9 (1966) 243--377.
 \bibitem{RockafellarConvex} R.~T.~Rockafellar, \emph{Convex Analysis}, Princeton University Press, 1970.
 \bibitem{Salencon2002} J.~Salen\c{c}on, \emph{De l'\'elasto-plasticit\'e au calcul \`a la rupture}, \'Editions de l'\'Ecole polytechnique, 2002.
 \bibitem{SimoHughes1998} J.~C.~Simo, T.~J.~R.~Hughes, \emph{Computational Inelasticity}, Springer, 1998.
+\bibitem{SuquetRP} P.~Suquet, \emph{Rupture et plasticit\'e}, lecture notes of the \'Ecole polytechnique (Programme d'approfondissement de m\'ecanique), \'Editions de l'\'Ecole polytechnique, Palaiseau.
+\bibitem{TaylorQuinney1931} G.~I.~Taylor, H.~Quinney, The plastic distortion of metals, \emph{Phil. Trans. R. Soc. Lond. A} 230 (1932) 323--362 (read 1931), doi:10.1098/rsta.1932.0009.
 \bibitem{Temam1983} R.~Temam, \emph{Probl\`emes math\'ematiques en plasticit\'e}, Gauthier-Villars, 1983.
 \end{chapterbib}
