@@ -3,6 +3,19 @@ Imported by the exercise and figure scripts of Chapter 5.
 """
 import numpy as np
 
+# Contents (one function per box of the chapter; stresses in MPa):
+#   Linear, Voce            isotropic hardening laws R(alpha) and R'(alpha)
+#   return_map_1d           filament, combined linear hardening (Box 5.1)
+#   forward_euler_1d        filament, explicit update with the continuum tangent
+#   radial_return           J2, isotropic + linear kinematic hardening (Box 5.2),
+#                           Perzyna viscoplasticity when eta_dt = eta/dt > 0
+#   C_elastic, C_algorithmic, C_continuum
+#                           elastic, consistent (5.14) and continuum tangents
+#   plane_stress_return     projected return in plane stress (Box 5.5)
+#   tresca_return           Tresca with faces and corners (Box 5.4)
+# Every return map is a function of the strain at t_{n+1} and of the internal
+# variables at t_n only; it returns the stress and the updated variables.
+#
 # Voigt convention (6 components), TENSOR shear strains:
 #     a = [a11, a22, a33, a12, a13, a23],
 # so that ||a||^2 = a11^2 + a22^2 + a33^2 + 2 (a12^2 + a13^2 + a23^2).
@@ -13,17 +26,20 @@ W = np.array([1.0, 1.0, 1.0, 2.0, 2.0, 2.0])     # weights of the scalar product
 
 
 def dev(a):
+    """Deviatoric part of a Voigt vector."""
     d = np.asarray(a, dtype=float).copy()
     d[:3] -= (d[0] + d[1] + d[2]) / 3.0
     return d
 
 
 def norm(a):
+    """Tensor norm sqrt(a:a) of a Voigt vector (shear terms counted twice)."""
     a = np.asarray(a, dtype=float)
     return np.sqrt(np.sum(W * a * a))
 
 
 def IDEV():
+    """Deviatoric projector I_dev as a 6x6 matrix."""
     P = np.eye(6)
     P[:3, :3] -= 1.0 / 3.0
     return P
@@ -84,7 +100,7 @@ def forward_euler_1d(eps_n, deps, ep_n, al_n, q_n, E, sY, K, H):
 def radial_return(eps, ep_n, al_n, beta_n, mu, kappa, hard, H=0.0,
                   eta_dt=0.0, tol=1e-12, maxit=50):
     """Radial return (Box 5.2), linear kinematic hardening H, isotropic law
-    `hard`; eta_dt = eta/dt > 0 gives the Perzyna update (Section 5.7).
+    `hard`; eta_dt = eta/dt > 0 gives the Perzyna update (Section 5.8).
     Returns sigma, ep, alpha, beta, dgamma, n, ||xi_trial||, local iterations."""
     s_tr = 2.0 * mu * dev(eps - ep_n)             # trial deviator
     xi_tr = s_tr - beta_n
@@ -109,11 +125,13 @@ def radial_return(eps, ep_n, al_n, beta_n, mu, kappa, hard, H=0.0,
 
 
 def C_elastic(mu, kappa):
+    """Isotropic elasticity kappa I x I + 2 mu I_dev."""
     return kappa * np.outer(ONE, ONE) + 2.0 * mu * IDEV()
 
 
 def C_algorithmic(dg, nx, n, mu, kappa, Kh, H=0.0, eta_dt=0.0):
-    """Consistent tangent of Simo and Taylor (1985)."""
+    """Consistent tangent (5.14) of Simo and Taylor (1985), from the output
+    (dg, ||xi_trial||, n) of radial_return; Kh = R'(alpha_{n+1})."""
     theta = 1.0 - 2.0 * mu * dg / nx
     theta_bar = 1.0 / (1.0 + (Kh + H + 1.5 * eta_dt) / (3.0 * mu)) - (1.0 - theta)
     return (kappa * np.outer(ONE, ONE) + 2.0 * mu * theta * IDEV()

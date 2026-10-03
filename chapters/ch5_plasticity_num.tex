@@ -8,7 +8,6 @@
 % mapping", "variational constitutive updates"), "Exercises in
 % computational inelasticity" (Exercises 2, 2b, 6-12, 30, 31, code
 % ci_core.py and ci_fem.py), MEALOR II Ch. 2 Sec. 2.8.
-% Chapter 6 is referred to by number until it exists (then use \ref).
 
 \framepart{Outline}
 Chapter~\ref{ch:pl} wrote plasticity as an evolution problem: a linear
@@ -146,8 +145,8 @@ the return map at every Gauss point.
 \end{gbox}
 The local problem is a time integration: it carries the history. The global
 problem is a static equilibrium: it carries the geometry. The same split
-underlies the global--local methods of Chapter~6, which change the time
-window of the local stage from one step to a whole cycle. In the rest of this
+underlies the global--local (large time increment) methods, which change the
+time window of the local stage from one step to a whole loading cycle. In the rest of this
 chapter, except Section~\ref{sec:pn-newton}, the strain history at a point is
 given, and the question is how to integrate the flow rule over a finite
 increment $\Delta\eps=\eps_\np-\eps_n$.
@@ -722,6 +721,43 @@ quadratically near the solution only with this matrix~\cite{SimoTaylor1985}.
   set $\mat{u}^{(k+1)}=\mat{u}^{(k)}+\delta\mat{u}$, and return to stage~2.
 \end{enumerate}
 \end{gbox}
+\noindent Figure~\ref{fig:pn-loop} draws the two nested loops of Box~5.3: the
+outer loop on the load steps, and the inner Newton loop, which calls the local
+stage at every iteration.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[>=Latex,node distance=5mm,
+  fbox/.style={rectangle,rounded corners=2pt,fill=gray!12,align=flush center,
+    inner sep=4pt,font=\small,text width=#1},fbox/.default=7.6cm,
+  test/.style={diamond,aspect=2.6,fill=orange!14,align=flush center,inner sep=1pt,
+    font=\small}]
+  \node[fbox] (step) {\textbf{1. Step} $n\to n+1$: loads of $t_\np$;\\
+    start from $\mat{u}^{(0)}=\mat{u}_n$, $k=0$};
+  \node[fbox,kin,below=of step] (loc) {\textbf{2. Local stage}, at each Gauss point:\\
+    $(\sig^{(k)},\vz^{(k)},\bbCalg)=\mathcal R\bigl(\mat{B}\mat{u}^{(k)};\,\vz_n\bigr)$};
+  \node[fbox,stat,below=of loc] (asm) {\textbf{3. Assembly}:
+    $\mat{F}^{\mathrm{int}}$, $\mat{R}^{(k)}=\mat{F}^{\mathrm{ext}}_\np-\mat{F}^{\mathrm{int}}$, $\mat{K}^{(k)}$};
+  \node[test,below=of asm] (cv) {\textbf{4.} $\norm{\mat{R}^{(k)}}\le\mathrm{tol}\,\norm{\mat{F}^{\mathrm{ext}}_\np}$\,?};
+  \node[fbox=3.7cm,right=8mm of cv] (nw) {\textbf{5. Newton update}\\
+    $\mat{K}^{(k)}\delta\mat{u}=\mat{R}^{(k)}$\\ $\mat{u}^{(k+1)}=\mat{u}^{(k)}+\delta\mat{u}$};
+  \node[fbox=3.5cm,left=8mm of cv] (acc) {\textbf{Accept}\\
+    $\mat{u}_\np=\mat{u}^{(k)}$, $\vz_\np=\vz^{(k)}$\\ at every Gauss point};
+  \draw[arr] (step) -- (loc);
+  \draw[arr] (loc) -- (asm);
+  \draw[arr] (asm) -- (cv);
+  \draw[arr] (cv) -- node[above,font=\small] {no} (nw);
+  \draw[arr] (cv) -- node[above,font=\small] {yes} (acc);
+  \draw[arr] (nw.north) |- node[pos=0.3,right,font=\small,align=left] {$k\gets k+1$\\[-1pt]{\footnotesize\sffamily\color{gray}Newton}} (loc.east);
+  \draw[arr] (acc.north) |- node[pos=0.3,left,font=\small,align=right] {$n\gets n+1$\\[-1pt]{\footnotesize\sffamily\color{gray}next step}} (step.west);
+\end{tikzpicture}
+\caption{The global/local loop of Box~5.3. The local stage (blue) integrates
+the flow rule at each Gauss point, always from the converged internal
+variables $\vz_n$; the assembly (green) restores equilibrium. The Newton loop
+on the right repeats stages 2--5 at fixed $t_\np$; the loop on the left
+advances the load step once the residual is small.}
+\label{fig:pn-loop}
+\end{figure}
 
 \paragraph{Path independence within a step.}
 \index{return map!from the converged state}%
@@ -860,6 +896,12 @@ $(1,1,0)/\sqrt2$, $(-1,1,0)/\sqrt2$ and $(0,0,1)$, with eigenvalues
 $E/(1-\nu)$, $2\mu$, $\mu$ for $\mat{C}$ and $\tfrac13$, $1$, $2$ for
 $\mat{P}$. In this basis the inverse is diagonal, and the whole return
 reduces to one scalar equation (Exercise~\ref{exo:pn-ps}).
+Figure~\ref{fig:pn-ps} shows the return in the plane of the principal
+stresses. The yield locus is the ellipse
+$\sigma_{11}^2-\sigma_{11}\sigma_{22}+\sigma_{22}^2=\sY^2$. A uniaxial trial
+stress does not return to the uniaxial point: the corrector follows
+$\mat{C}\mat{P}\vect{\sigma}_\np$, which is the normal in the energy norm but
+neither the radius nor the Euclidean normal $\mat{P}\vect{\sigma}_\np$.
 
 \begin{gbox}{Box 5.5\quad Projected return for plane stress}
 \index{plane stress!Box 5.5}%
@@ -883,6 +925,20 @@ reduces to one scalar equation (Exercise~\ref{exo:pn-ps}).
 \noindent The plane-stress condition is satisfied exactly, without nested
 iterations, which makes Box~5.5 the standard algorithm of shell elements. Its
 consistent tangent is given in~\cite[Box~3.4]{SimoHughesCI}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch5/plane_stress_return.pdf}
+\caption{Projected return in plane stress (Box~5.5), perfect plasticity,
+$\nu=0.3$, principal stresses ($\sigma_{12}=0$). (a) The trial stress
+$\sigma^\trial=2.6\,\sY$ is uniaxial. The solution is sought on the curve
+$\dg\mapsto(\mat{I}+\dg\,\mat{C}\mat{P})^{-1}\vect{\sigma}^\trial$ (dotted), which
+crosses the ellipse at $\vect{\sigma}_\np=(1.067,\,0.150)\,\sY$; the radial
+point $(1,0)\,\sY$ is not the solution. (b) Zoom: the straight return
+$\vect{\sigma}^\trial-\vect{\sigma}_\np=\dg\,\mat{C}\mat{P}\vect{\sigma}_\np$
+is not along the Euclidean normal $\mat{P}\vect{\sigma}_\np$ (green).}
+\label{fig:pn-ps}
+\end{figure}
 
 %======================================================================
 \section{Viscoplasticity}\label{sec:pn-vp}
@@ -938,8 +994,45 @@ $\scal{T\vSig-T\vSig'}{\vSig-\vSig'}_E\ge\norm{\vSig-\vSig'}_E^2$ and $T$ is
 injective.
 \end{proof}
 The viscoplastic state lies on the segment between the trial state ($r\to0$,
-a very viscous or a very short step) and the projection ($r\to\infty$). A
+a very viscous or a very short step) and the projection ($r\to\infty$)
+(Figure~\ref{fig:pn-dl}). Its distance to $\Esig$, the overstress, is the fraction
+$\displaystyle \frac{1}{1+r}$ of the distance of the trial state. A
 viscoplastic code is obtained from a plastic one with two extra lines.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=1.1,>=Latex]
+  \fill[cu!10] (0,0) ellipse (2.0 and 1.3);
+  \draw[thick,cu] (0,0) ellipse (2.0 and 1.3);
+  \node[cu] at (-0.6,-0.1) {$\Esig$};
+  % P on the boundary (parameter 15 deg), unit normal n, perpendicular m
+  \coordinate (P) at (1.932,0.336);
+  \def\nx{0.925}\def\ny{0.381}
+  \coordinate (T) at ($(P)+4.2*(\nx,\ny)$);
+  \coordinate (S) at ($(P)!0.4!(T)$);
+  \draw[dashed,gray] ($(P)+0.9*(-\ny,\nx)$) -- ($(P)-0.6*(-\ny,\nx)$);
+  \draw[very thick,orange!80!black] (P) -- (T);
+  \fill[orange!80!black] (T) circle (1.8pt) node[right=3pt,orange!80!black,align=left]
+    {$\vSig^\trial_\np$\\ ($r\to0$)};
+  \fill[cu] (P) circle (1.8pt) node[below right=6pt and 4pt,cu,align=left]
+    {$\bar\vSig_\np=P^E_{\Esig}\vSig^\trial_\np$\\ ($r\to\infty$, plasticity)};
+  \fill (S) circle (2.1pt) node[below right=2pt and 0pt] {$\vSig_\np$};
+  \draw[decorate,decoration={brace,amplitude=5pt},thick,gray]
+    ($(P)+0.15*(-\ny,\nx)$) -- ($(S)+0.15*(-\ny,\nx)$);
+  \draw[decorate,decoration={brace,amplitude=5pt},thick,gray]
+    ($(S)+0.15*(-\ny,\nx)$) -- ($(T)+0.15*(-\ny,\nx)$);
+  \node[font=\small] at ($(P)!0.5!(S)+0.88*(-\ny,\nx)$) {$\dfrac{1}{1+r}$};
+  \node[font=\small] at ($(S)!0.5!(T)+0.88*(-\ny,\nx)$) {$\dfrac{r}{1+r}$};
+\end{tikzpicture}
+\caption{Duvaut--Lions update~\eqref{eq:pn-dl}, drawn in coordinates where the
+energy norm is Euclidean. The viscoplastic state is a point of the segment
+joining the trial state to its projection $\bar\vSig_\np$ on the elastic
+domain, with $r=\Delta t/\tau$; the brace labels are the fractions of the
+length of the segment. Every point of the segment projects onto
+$\bar\vSig_\np$, which is why the update needs only the rate-independent
+return.}
+\label{fig:pn-dl}
+\end{figure}
 
 %======================================================================
 \section{Accuracy and stability}\label{sec:pn-stab}
@@ -1173,11 +1266,174 @@ is the incremental variational homogenization of Miehe~\cite{Miehe2002}.
 \end{gbox*}
 
 \framepart{Exercises}\label{sec:pn-exo}
-The exercises follow the chapter: the filament by hand, then $J_2$
-plasticity, corners and plane stress, stability and the variational form, and
-a finite element code. The computations use a small Python library of return
-maps (Boxes~5.1--5.5); the scripts are printed after the results, which are
-stated in words first. Solutions are given in small type after each exercise.
+The exercises follow the chapter. Short questions without computer come
+first, in the format of a written exam. Then come the filament by hand,
+$J_2$ plasticity, corners and plane stress, stability and the variational
+form, and a finite element code. The computational exercises use two
+auxiliary Python modules, presented on page~\pageref{sec:pn-aux}:
+\texttt{ci\_core}, which contains the return maps of Boxes~5.1--5.5 and their
+tangents, and \texttt{ci\_fem}, a small finite element driver for the global
+Newton method of Box~5.3. Each exercise says which of them it uses. The
+results are stated in words first, and the scripts are printed after them.
+Solutions are given in small type after each exercise.
+
+\framesub{Short questions}
+The questions below need no documents and no computer: a few lines of
+algebra and a pocket calculation each.
+
+\exercise{One step of the filament}\label{exo:pn-q-filament}
+\index{return map!filament (exercise)}%
+A virgin filament has $E=200$\,GPa, $\sY=200$\,MPa and linear isotropic
+hardening $K=20$\,GPa ($H=0$). (a) Compute, in one step of Box~5.1, the
+stress, the plastic strain and $\alpha$ at $\varepsilon=0.003$. (b) The
+strain is then decreased by $0.001$ in one step. Is the step elastic?
+\begin{solution}
+(a) $\sigma^\trial=600$\,MPa, $f^\trial=400$\,MPa,
+$\dg=400/220\,000=1.818\times10^{-3}$, so
+$\varepsilon^p=\alpha=1.818\times10^{-3}$ and
+$\sigma=600-200\,000\times1.818\times10^{-3}=236.4$\,MPa, which is
+$\sY+K\alpha$. (b) $\sigma^\trial=236.4-200=36.4$\,MPa and
+$f^\trial=36.4-236.4<0$: the step is elastic, and $\sigma=36.4$\,MPa.
+\end{solution}
+
+\exercise{Radial return by hand}\label{exo:pn-q-radial}
+\index{radial return!exercise}%
+Perfect $J_2$ plasticity, $\mu=80$\,GPa, $\sY=240$\,MPa. A trial deviator
+has the norm $\norm{\tens s^\trial}=1.5\sqrt{2/3}\,\sY$. (a) Compute $\dg$,
+the norm of the plastic strain increment, and the fraction of the trial
+deviator removed by the corrector. (b) Compute the eigenvalue of $\bbCalg$ on
+the deviators orthogonal to $\tn$, and compare with $\bbCep$.
+\begin{solution}
+(a) $\sqrt{2/3}\,\sY=195.96$\,MPa, $\norm{\tens s^\trial}=293.94$\,MPa,
+$f^\trial=97.98$\,MPa and $\dg=f^\trial/(2\mu)=6.12\times10^{-4}$. This is
+also $\norm{\Delta\epsp}$, since $\tn$ is a unit tensor. The corrector removes
+the fraction $2\mu\dg/\norm{\tens s^\trial}=1/3$ of the trial deviator.
+(b) $\theta=2/3$, and the eigenvalue is $2\mu\theta=106.7$\,GPa, instead of
+$2\mu=160$\,GPa for $\bbCep$: the consistent tangent is softer in the
+directions that rotate the normal.
+\end{solution}
+
+\exercise{Reading a convergence history}\label{exo:pn-q-newton}
+\index{consistent tangent!exercise}%
+Two computations of the same load step give the relative residuals
+(A) $10^{-1}$, $10^{-2}$, $10^{-4}$, $10^{-8}$ and (B) $10^{-1}$,
+$5\times10^{-3}$, $2.5\times10^{-4}$, $1.25\times10^{-5}$. Which one uses the
+consistent tangent? How many more iterations does (B) need to reach
+$10^{-10}$? Do the two converged solutions differ?
+\begin{solution}
+(A): the exponent doubles at each iteration. This is quadratic convergence,
+obtained with the consistent tangent. (B) decreases by the constant factor
+$0.05$: linear convergence, continuum tangent. It needs four more iterations
+($6.3\times10^{-7}$, $3.1\times10^{-8}$, $1.6\times10^{-9}$,
+$7.8\times10^{-11}$). The converged solutions are the same: the tangent
+changes the path, the residual fixes the solution.
+\end{solution}
+
+\exercise{A Tresca corner}\label{exo:pn-q-tresca}
+\index{Tresca criterion!corner (exercise)}%
+Perfect Tresca plasticity, $\mu=80$\,GPa, $\sY=200$\,MPa. The ordered
+principal trial stresses are $(300,\,260,\,0)$\,MPa. Show that the face
+return fails, and compute the corner return of Box~5.4.
+\begin{solution}
+$f_a=100$\,MPa, and the face return gives $\dg=f_a/(4\mu)=3.125\times10^{-4}$
+and $\sigma_1=250<\sigma_2=260$\,MPa: the ordering is violated. Corner
+$\sigma_1=\sigma_2$: $f_b=s_2-s_3-\sY=60$\,MPa, $2f_b>f_a$,
+$\dg^a=140/(6\mu)=2.92\times10^{-4}$, $\dg^b=20/(6\mu)=4.17\times10^{-5}$, and
+$\sigma_1=\sigma_2=253.3$\,MPa, $\sigma_3=53.3$\,MPa. Check:
+$\sigma_1-\sigma_3=\sY$.
+\end{solution}
+
+\exercise{Perzyna and Duvaut--Lions in one step}\label{exo:pn-q-visco}
+\index{viscoplasticity!exercise}%
+A virgin filament, $E=200$\,GPa, $\sY=250$\,MPa, without hardening, receives
+the strain increment $\Delta\varepsilon=2.25\times10^{-3}$ in a time step
+with $\eta/\Delta t=E$. Compute the Perzyna update, then the Duvaut--Lions
+update with $\tau=\eta/E$.
+\begin{solution}
+$\sigma^\trial=450$\,MPa. Perzyna:
+$\sigma^\trial-E\dg-\sY=(\eta/\Delta t)\dg$, so $\dg=200/400\,000=5\times10^{-4}$
+and $\sigma=350$\,MPa. Duvaut--Lions: $r=\Delta t/\tau=1$ and
+$\sigma=(450+250)/2=350$\,MPa, the midpoint of the segment of
+Figure~\ref{fig:pn-dl}. The two updates coincide in one dimension, and the
+overstress is halved.
+\end{solution}
+
+\exercise{Contractivity in two lines}\label{exo:pn-q-contract}
+\index{B-stability!exercise}%
+Perfectly plastic filament, $\sY=250$\,MPa. Two states $\sigma=\sY$ and
+$\sigma'=\sY-20$\,MPa receive the same increment, with
+$E\Delta\varepsilon=50$\,MPa. Compute their distance after the step, with
+backward and with forward Euler.
+\begin{solution}
+Backward Euler: the trial stresses $300$ and $280$\,MPa both project onto
+$\sY$; the distance falls from $20$ to $0$\,MPa. Forward Euler: $\sigma$ stays
+at $\sY$ (it flows), and $\sigma'$ moves elastically to $280$\,MPa, outside
+the elastic domain; the distance grows to $30$\,MPa.
+\end{solution}
+
+\exercise{Incremental potential of the filament}\label{exo:pn-q-potential}
+\index{incremental potential!exercise}%
+With the data of Exercise~\ref{exo:pn-q-filament}, write the incremental
+potential $W_0(\varepsilon)$ of the virgin filament, and compute $W_0'$ and
+$W_0''$ at $\varepsilon=0.003$.
+\begin{solution}
+By Example~\ref{ex:pn-WJ2},
+$W_0=\tfrac12E\varepsilon^2-\mac{E|\varepsilon|-\sY}^2/(2(E+K))$. Then
+$W_0'=600-200\,000\times400/220\,000=236.4$\,MPa, the stress of
+Exercise~\ref{exo:pn-q-filament}, and $W_0''=E-E^2/(E+K)=EK/(E+K)=18.2$\,GPa,
+the algorithmic tangent.
+\end{solution}
+
+\exercise{Balanced biaxial plane stress}\label{exo:pn-q-biaxial}
+\index{plane stress!exercise}%
+In Box~5.5, take the trial stress $\vect{\sigma}^\trial=(s,s,0)$ with
+$s=1.5\,\sY$ and perfect plasticity. Show that the return is radial, and
+give $\vect{\sigma}_\np$.
+\begin{solution}
+The vector $(1,1,0)$ is an eigenvector of $\mat{C}\mat{P}$, with the
+eigenvalue $E/(3(1-\nu))$. Hence
+$\vect{\sigma}_\np=(\mat{I}+\dg\,\mat{C}\mat{P})^{-1}\vect{\sigma}^\trial$ is
+parallel to $\vect{\sigma}^\trial$: the return is radial. On this line
+$\sigma_{eq}=\sigma_{11}$, so that $\vect{\sigma}_\np=(\sY,\sY,0)$, the point
+of the ellipse on the diagonal (Figure~\ref{fig:pn-ps}).
+\end{solution}
+
+\framesub{Two auxiliary Python modules}
+\phantomsection\label{sec:pn-aux}%
+\index{return map!Python implementation}%
+The computational exercises below import two modules, written once for the
+whole chapter.
+\begin{itemize}
+  \item \texttt{ci\_core} (constitutive integration core) contains one
+  function per box of the chapter: the return map of the filament (Box~5.1)
+  and its forward Euler counterpart; the radial return of $J_2$ plasticity
+  with linear or Voce isotropic hardening, linear kinematic hardening and,
+  optionally, the Perzyna update (Box~5.2 and Section~\ref{sec:pn-vp}); the
+  elastic, consistent~\eqref{eq:pn-calg} and continuum tangents; the Tresca
+  return with faces and corners (Box~5.4); and the projected return of plane
+  stress (Box~5.5). Every return map is a function of the strain at $t_\np$
+  and of the internal variables at $t_n$, as in~\eqref{eq:pn-returnmap}, and
+  returns the stress and the updated internal variables. Tensors are stored as
+  vectors of six components with tensorial shear strains, so that the norm
+  counts the shear components twice.
+  \item \texttt{ci\_fem} is a finite element driver for the thick-walled
+  cylinder of Exercise~\ref{exo:pl-cyl} in plane strain: two-node
+  axisymmetric elements with one Gauss point, the unknown being the radial
+  displacement. Its function \texttt{solve} applies the pressure in equal
+  steps and runs the global Newton method of Box~5.3: at every iteration it
+  calls \texttt{radial\_return} of \texttt{ci\_core} at each Gauss point, from
+  the converged variables $\vz_n$, and assembles the internal forces and the
+  consistent or the continuum tangent stiffness. The function
+  \texttt{p\_of\_c} is the closed-form pressure for a plastic front at $r=c$.
+\end{itemize}
+The two modules are short enough to be read in full. They are printed below;
+the exercise scripts are run in the same directory.
+
+\medskip\noindent\textsf{\textbf{Module \texttt{ci\_core}.}}
+\lstinputlisting[firstline=4]{python/examples/ch5/ci_core.py}
+\medskip\noindent\textsf{\textbf{Module \texttt{ci\_fem}}} (the test program of
+Exercise~\ref{exo:pn-fem} follows these lines in the same file).
+\lstinputlisting[firstline=4,lastline=74]{python/examples/ch5/ci_fem.py}
 
 \framesub{The filament}
 
@@ -1220,7 +1476,8 @@ one step the stress at $\varepsilon=0.01$ from the virgin state and compare
 with the bilinear response of Exercise~\ref{exo:pl-mono}; (b) go to
 $\varepsilon=0.004$ and then, in one single step, to $\varepsilon=-0.002$:
 the step contains an elastic unloading and a compressive plastic flow. Compare
-with a computation in 20\,000 steps, and explain.
+with a computation in 20\,000 steps, and explain. The script uses the return
+map \texttt{return\_map\_1d} (Box~5.1) of the module \texttt{ci\_core}.
 \begin{solution}
 (a) $E^{ep}=2.9557$\,GPa and $\sigma=\sY+E^{ep}(0.01-\varepsilon_Y)=275.862069$\,MPa; one
 step gives the same value to all digits, as do 1000 steps. (b) One step gives
@@ -1237,7 +1494,8 @@ of the step, which costs nothing; Exercise~\ref{exo:pn-nonmono} puts it inside.
 The strain rises linearly to $0.008$ at $t_p=1/\sqrt2$ and decreases linearly
 to $-0.002$ at $t=2$; $t_p$ is never a grid point of a uniform subdivision of
 $[0,2]$. With the data of Exercise~\ref{exo:pn-exact}, integrate with $n$
-uniform steps and show that the error is $O(\Delta t)$.
+uniform steps and show that the error is $O(\Delta t)$. The script uses
+\texttt{return\_map\_1d} of \texttt{ci\_core}.
 \begin{solution}
 The step that contains $t_p$ replaces the strain path by the chord joining
 its end points. It misses the tensile plastic flow between
@@ -1248,7 +1506,7 @@ reference $\sigma=-278.42457$\,MPa, $\alpha=1.390835\times10^{-2}$ (400\,001
 steps), the stress error is $26.2$, $8.80$, $1.29$, $0.861$, $0.175$ and
 $0.0033$\,MPa for $n=1$, $2$, $8$, $32$, $128$, $1024$. It decreases on
 average like $1/n$, with fluctuations due to the position of $t_p$ inside its
-step. In cyclic or forming computations the error is controlled by the
+step (Figure~\ref{fig:pn-errors}a). In cyclic or forming computations the error is controlled by the
 resolution of the load reversals, not by the average step size: steps should
 end at the reversals.
 \lstinputlisting[firstline=4]{python/examples/ch5/exo_nonmonotone_1d.py}
@@ -1283,7 +1541,9 @@ thick-walled cylinder of Exercise~\ref{exo:pl-cyl} ($a=100$, $b=200$\,mm,
 plane strain, $E=200$\,GPa, $\nu=0.3$) with Voce hardening ($\sY=250$\,MPa,
 $\sigma_\infty=600$\,MPa, $\delta=30$), loaded by $p=320$\,MPa in 10 equal
 steps, 80 axisymmetric elements. Compare the Newton iterations with
-$\bbCalg$ and with $\bbCep$.
+$\bbCalg$ and with $\bbCep$. The script uses the law \texttt{Voce} of
+\texttt{ci\_core} and the driver \texttt{solve} of \texttt{ci\_fem}, whose
+option \texttt{tangent} selects the consistent or the continuum tangent.
 \begin{solution}
 (a) Proof of Proposition~\ref{prop:pn-calg}. (b) The consistent tangent needs
 $2,2,2,5,6,6,6,6,6,6$ iterations (47 in all), the continuum one
@@ -1303,7 +1563,8 @@ $G^{ep}=\mu K/(3\mu+K)$. Compare one step of the radial return to
 $\gamma=0.01$ with the closed form. (b) Shear to $\varepsilon_{12}=0.002$,
 then increase $\varepsilon_{11}$ to $0.004$ at fixed $\varepsilon_{12}$, with
 $n$ steps in the second stage. Show that the error is $O(\Delta t)$, and that it
-affects the direction of the stress more than the plastic strain.
+affects the direction of the stress more than the plastic strain. The script
+uses \texttt{radial\_return} (Box~5.2) and \texttt{Linear} of \texttt{ci\_core}.
 \begin{solution}
 (a) In simple shear $\norm{\dev\sig}=\sqrt2|\sigma_{12}|$ and
 $\sigma_{eq}=\sqrt3|\sigma_{12}|$, so yielding starts at $k=\sY/\sqrt3$,
@@ -1316,11 +1577,24 @@ $\sigma_{12}=149.706775$\,MPa, the closed form to all digits.
 $\tn$ turns. With 200\,000 steps, $\sigma_{11}=834.824$\,MPa,
 $\sigma_{12}=26.014$\,MPa, $\alpha=3.1146\times10^{-3}$. The errors on
 $\sigma_{12}$ are $30.1$, $4.94$, $0.528$, $0.053$\,MPa for $n=1$, $10$, $100$,
-$1000$: first order. In one step $\sigma_{12}$ is wrong by a factor of two,
-while $\alpha$ is wrong by $4\,\%$: the algorithm lands on the right yield
-surface at the wrong point of it.
+$1000$: first order (Figure~\ref{fig:pn-errors}b). In one step $\sigma_{12}$ is
+wrong by a factor of two, while $\alpha$ is wrong by $4\,\%$: the algorithm
+lands on the right yield surface at the wrong point of it.
 \lstinputlisting[firstline=4]{python/examples/ch5/exo_shear.py}
 \end{solution}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch5/errors.pdf}
+\caption{Relative errors of the return map against the number of steps $n$.
+(a) Filament of Exercise~\ref{exo:pn-nonmono}: the turning point of the
+strain lies inside a step; the error decreases like $1/n$ on average, with
+fluctuations due to the position of the turning point in its step.
+(b) Shear then tension at fixed shear, Exercise~\ref{exo:pn-shear}: the
+errors on $\sigma_{12}$, $\sigma_{11}$ and $\alpha$ are first order. The
+dashed lines have the slope $-1$.}
+\label{fig:pn-errors}
+\end{figure}
 
 \exercise{The plane-stress projected return}\label{exo:pn-ps}
 \index{plane stress!exercise}%
@@ -1334,7 +1608,8 @@ and the function $\varphi^2(\dg)$ of Box~5.5. (b) With $K=2$\,GPa, compute in
 one step uniaxial tension to $\varepsilon_{11}=0.01$ and balanced biaxial
 tension to $\varepsilon_{11}=\varepsilon_{22}=0.005$, and compare with the
 closed forms. (c) Prescribe the in-plane strains: plane strain
-($\varepsilon_{22}=0$) to $\varepsilon_{11}=0.01$. Is one step exact?
+($\varepsilon_{22}=0$) to $\varepsilon_{11}=0.01$. Is one step exact? The
+script uses \texttt{plane\_stress\_return} (Box~5.5) of \texttt{ci\_core}.
 \begin{solution}
 (a) $\mat{C}$ and $\mat{P}$ commute and share the eigenvectors given in
 Section~\ref{sec:pn-ps}; the products of their eigenvalues are
@@ -1365,7 +1640,9 @@ semi-definite matrix $\mat{P}_H$ that vanishes on hydrostatic stresses.
 $\Delta\epsp=\dg\,\partial_{\sig}\sigma_{eq}$ is a closest-point projection, and
 deduce that its consistent tangent is symmetric. (b) What happens if the flow
 follows a different potential $g\ne\sigma_{eq}$ (for instance von Mises, while
-the yield criterion is Hill's)? Check numerically by finite differences.
+the yield criterion is Hill's)? Check numerically by finite differences. The
+script is self-contained: it does not use \texttt{ci\_core}, whose return maps
+are written for von Mises and Tresca only.
 \begin{solution}
 (a) Theorem~\ref{thm:pn-cpp} holds for every convex $\Esig$: the elastic
 domain of Hill's criterion is convex, and the step is the projection onto it.
@@ -1394,7 +1671,8 @@ $\Delta\epsp=\dg^a\tens N_a+\dg^b\tens N_b$. (a) Compute
 $\tens N_i:\bbC:\tens N_j$ and the corner return. (b) Show that the corner is
 the correct return if and only if $2f_b^\trial>f_a^\trial$, and interpret.
 (c) With $\mu=76.92$\,GPa, sweep $f_b^\trial$ from $20$ to $5$\,MPa at
-$f_a^\trial=20$\,MPa.
+$f_a^\trial=20$\,MPa, with \texttt{tresca\_return} (Box~5.4) of
+\texttt{ci\_core}.
 \begin{solution}
 (a) $\tens N_a=\ve_1\otimes\ve_1-\ve_3\otimes\ve_3$ and
 $\tens N_b=\ve_2\otimes\ve_2-\ve_3\otimes\ve_3$ are deviatoric, so
@@ -1423,7 +1701,9 @@ contractive with the filament example of Section~\ref{sec:pn-stab}.
 (c) Numerical test, perfect $J_2$ plasticity: state A is virgin; state B was
 loaded plastically in tension ($\varepsilon_{11}=0.004$, lateral strains
 $-0.002$) and brought back to zero strain. Both are then sheared to
-$\gamma=0.03$ in $n$ steps. Follow the distance between the two stresses.
+$\gamma=0.03$ in $n$ steps. Follow the distance between the two stresses. The
+script uses \texttt{radial\_return} of \texttt{ci\_core}, and a forward
+Euler update written in the script.
 \begin{solution}
 (a) The trial stresses differ by $\sig_n-\sig'_n$, and the return map is the
 projection onto $\Esig$ for $\scal{\cdot}{\cdot}_E$, which is non-expansive.
@@ -1432,13 +1712,26 @@ forward Euler gives $\sigma_\np=\sY$ and $\sigma'_\np=\sY+40$\,MPa, outside the
 domain, and the distance grows from 10 to 40\,MPa; the return map gives
 $\sigma_\np=\sigma'_\np=\sY$. (c) With backward Euler the distance decreases at
 every step, for 4, 20 and 500 steps, from $0.52$ to $10^{-3}$, $7\times10^{-6}$
-and $1.5\times10^{-7}$ (energy norm, $\sqrt{\mathrm{MPa}}$): the two histories
-are forgotten, as plastic flow forgets the initial state. Forward Euler leaves
+and $1.5\times10^{-7}$ (energy norm, $\sqrt{\mathrm{MPa}}$,
+Figure~\ref{fig:pn-contract}): the two histories are forgotten, as plastic
+flow forgets the initial state. Forward Euler leaves
 the yield surface by up to $300\,\%$ with 4 steps and $2\,\%$ with 500 steps.
 Contractivity is the discrete form of dissipation; a scheme without it can
 create energy and is unstable in dynamics.
 \lstinputlisting[firstline=4]{python/examples/ch5/exo_contract.py}
 \end{solution}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.66\textwidth]{figures/ch5/contract.pdf}
+\caption{Exercise~\ref{exo:pn-contract}: energy distance between the stresses
+of the virgin state A and of the pre-strained state B, both sheared to
+$\gamma=0.03$ in $n=4$, $20$ and $500$ steps, against the step number (both
+axes logarithmic). The return map (solid) decreases the distance at every
+step, from $0.52\,\sqrt{\mathrm{MPa}}$ (dotted line) to zero. Forward Euler
+(dashed) stalls at a distance that depends on the step size.}
+\label{fig:pn-contract}
+\end{figure}
 
 \exercise{Viscoplastic updates as minimizations}\label{exo:pn-vp}
 \index{viscoplasticity!exercise}%
@@ -1495,8 +1788,11 @@ Exercise~\ref{exo:pl-cyl} (linear elements, unknown $u(r)$, strains
 $(\dd u/\dd r,\ u/r,\ 0)$), with the radial return of Box~5.2 and the global
 Newton method of Box~5.3 (Algorithm~\ref{alg:pn-fem}). For perfect plasticity,
 $\sY=250$\,MPa, $b=2a$, apply $p=0.8\,p_L$ and $0.95\,p_L$ with
-$p_L=\frac{2\sY}{\sqrt3}\ln\frac ba$, and compare the radius of the plastic
-zone with the Tresca-type solution of Exercise~\ref{exo:pl-cyl}.
+$\displaystyle p_L=\frac{2\sY}{\sqrt3}\ln\frac ba$, and compare the radius of the plastic
+zone with the Tresca-type solution of Exercise~\ref{exo:pl-cyl}. The module
+\texttt{ci\_fem} (page~\pageref{sec:pn-aux}) is such a code, built on
+\texttt{radial\_return} of \texttt{ci\_core}; the test program below calls its
+functions \texttt{solve} and \texttt{p\_of\_c}.
 \begin{algorithm}[H]
 \caption{Incremental Newton solver (Box~5.3)}\label{alg:pn-fem}
 \begin{algorithmic}[1]
@@ -1527,10 +1823,29 @@ i.e.\ for incompressible plastic flow; in the elastic--plastic regime the
 elastic compressibility makes $\sigma_z$ differ slightly. Near $p_L$ the bore
 displacement grows quickly and Newton needs more iterations; at $p_L$ the
 tangent stiffness becomes singular. The weight of a Gauss point is
-$w_g=r_g\,L_e$ (the factor $2\pi$ cancels).
-\lstinputlisting[firstline=4]{python/examples/ch5/ci_fem.py}
+$w_g=r_g\,L_e$ (the factor $2\pi$ cancels). Over the whole range from the
+first yield, at $p=0.541\,p_L$, to $0.98\,p_L$, the computed radius follows
+the closed form (Figure~\ref{fig:pn-cylzone}); the gap stays below $0.7$\,mm
+up to $0.9\,p_L$ and grows to $2.6$\,mm at $0.98\,p_L$. Near $p_L$ the curve
+$c(p)$ is steep, and a small difference in pressure, due to the
+approximation on $\sigma_z$ discussed above, becomes a large difference in
+radius.
+Compare with similar computations performed in standard finite element codes,
+for example Cast3M or FEniCS.
+\lstinputlisting[firstline=77]{python/examples/ch5/ci_fem.py}
 \end{solution}
-\draftnote{Same benchmark prepared in FEniCS (dolfinx) and Cast3M, not run yet; to be printed here once tested.}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/ch5/cylinder_zone.pdf}
+\caption{Exercise~\ref{exo:pn-fem}: radius $c$ of the plastic zone of the
+thick-walled cylinder ($b=2a=200$\,mm, perfect $J_2$ plasticity) against the
+pressure. Finite elements (200 elements, 20 load steps per computation)
+against the closed form
+$p=k\ln(c/a)+\tfrac k2\bigl(1-c^2/b^2\bigr)$, $k=2\sY/\sqrt3$. The plastic
+zone appears at $p=0.541\,p_L$ and reaches the outer radius at $p_L$.}
+\label{fig:pn-cylzone}
+\end{figure}
 
 %======================================================================
 \begin{chapterbib}{99}
