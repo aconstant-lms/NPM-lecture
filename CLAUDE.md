@@ -30,8 +30,9 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   no undefined references, no multiply-defined labels and no overfull boxes.
 - Python lives in `python/` (see python/README.md): figure scripts in `python/figures/<chapter>/`
   (`cd python/figures/ch1 && python3 <script>.py`, outputs into figures/ch1), exercise code in
-  `python/examples/<chapter>/`. For the moment the book prints no code (author's decision, 3 Oct 2026):
-  solutions state the results in words and numbers; the scripts stay in the repository to check them.
+  `python/examples/<chapter>/`, printed in exercise solutions with `\lstinputlisting[firstline=4]{...}`
+  after the results stated in words. Never paste code inline in the .tex: edit the file, run it, quote its
+  output in comments. The book itself does not mention the repository.
 - Commit with a clear message per round of corrections (e.g. "ch2: fix Voigt table, add exercise on ...")
   and push to `main`. The commit message becomes the release note, so make it readable for the author.
 - Every push to `main` triggers `.github/workflows/build-pdf.yml`, which compiles the book and publishes

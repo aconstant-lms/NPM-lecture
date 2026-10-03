@@ -1063,8 +1063,10 @@ energy minimization.
 
 %======================================================================
 \framepart{Exercises}\label{sec:var-exo}
-Part~I checks results numerically or symbolically, with a few lines of
-code in the language of your choice. Part~II is
+Part~I checks results numerically or symbolically with short Python
+scripts (\texttt{numpy}/\texttt{scipy} for numerical checks, \texttt{sympy} for
+symbolic ones); every script was run and its output is quoted in the
+comments. Part~II is
 paper-and-pencil practice with variational calculus. Part~III treats
 constraints and convex conjugates. Solutions are given in small type after
 each exercise.
@@ -1079,7 +1081,8 @@ gradient descent and compare with the direct solution of $\mat{K}\vu=\vf$.
 What is the convergence rate?
 \begin{solution}
 With the step $0.2$ and $500$ iterations, $\vu_n\to(1.5,\,2,\,1.5)\T$, the
-direct solution, to machine precision. The error is multiplied at each step by $\mat{I}-\text{step}\,\mat{K}$, so it
+direct solution, to machine precision.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_gd.py} The error is multiplied at each step by $\mat{I}-\text{step}\,\mat{K}$, so it
 contracts at the rate $\rho=\max_i|1-\text{step}\,\lambda_i(\mat{K})|$
 (Figure~\ref{fig:gd}); the eigenvalues are those of Exercise~\ref{exo:lm-constants}.
 \end{solution}
@@ -1099,6 +1102,7 @@ $v=x(1-x)$.
 $u'v'=\pi\cos(\pi x)(1-2x)$ and $-u''v=\pi^2\sin(\pi x)\,x(1-x)$; the
 boundary term vanishes since $v(0)=v(1)=0$. Both integrals equal
 $4/\pi\approx1.27324$, by quadrature or by hand (integrate by parts twice).
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_ibp_num.py}
 \end{solution}
 
 \exercise{Lax--Milgram constants from eigenvalues}\label{exo:lm-constants}
@@ -1116,6 +1120,7 @@ $M=\lambda_{\max}$. Both bounds are sharp: equality at $\vu=\ve_1$ and
 $\vu=\ve_3$ (Figure~\ref{fig:coercivity}).
 (d) The lower line is coercivity, the upper line boundedness: the two
 hypotheses of Lax--Milgram, here for the bilinear form $a(\vu,\vv)=\vu\T\mat{K}\vv$.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_lm_constants.py}
 \end{solution}
 
 \begin{figure}[h]
@@ -1133,7 +1138,8 @@ $W(\vu^\ast)$ equals the complementary energy $-\tfrac12|\vect{\sigma}^\ast|^2$
 at $\vect{\sigma}^\ast=\mat{B}\vu^\ast$.
 \begin{solution}
 $\vu^\ast=(1.5,2,1.5)\T$, $\vect{\sigma}^\ast=\mat{B}\vu^\ast=(1.5,0.5,-0.5,-1.5)\T$,
-and both energies equal $-2.5$. Analytically: $W(\vu^\ast)=\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast-\vf\T\vu^\ast=-\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast=-\tfrac12|\mat{B}\vu^\ast|^2$,
+and both energies equal $-2.5$.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_primal_dual.py} Analytically: $W(\vu^\ast)=\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast-\vf\T\vu^\ast=-\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast=-\tfrac12|\mat{B}\vu^\ast|^2$,
 the value $W_{\min}$ of Theorem~\ref{thm:min-discrete}.
 \end{solution}
 
@@ -1144,7 +1150,8 @@ $\sin(\pi x)/\pi^2$) with the chain matrix for increasing $n$ and measure the
 convergence rate.
 \begin{solution}
 For $n=3,7,15,31,63$ interior nodes the maximal nodal error is divided by
-about $4$ each time $h$ is halved. The nodal error is $O(h^2)$ (Figure~\ref{fig:conv}), better than the general
+about $4$ each time $h$ is halved.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_conv.py} The nodal error is $O(h^2)$ (Figure~\ref{fig:conv}), better than the general
 $O(h)$ energy-norm bound of C\'ea's lemma, thanks to the smoothness of the
 solution.
 \end{solution}
@@ -1164,6 +1171,7 @@ $\nabla u\cdot\nabla v=(y,x,0)\cdot(0,z,y)=xz$, so the left-hand side is
 $\displaystyle \int xz=\tfrac14$. Since $\Delta v=0$, the right-hand side is the boundary
 term $\displaystyle \int_{\partial\Omega}u\,\partial_nv$: the faces $z=0$ and $z=1$ give
 $\mp\tfrac16$ and cancel, the face $y=1$ gives $\displaystyle \int_0^1\!\!\int_0^1xz\dd x\dd z=\tfrac14$, the others $0$.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_green_cube.py}
 \end{solution}
 
 \exercise{A non-symmetric bilinear form is still solvable}\label{exo:skew}
@@ -1175,7 +1183,8 @@ uniquely solvable.
 With the centred-difference matrix $\mat{S}=(\delta_{i+1,j}-\delta_{i-1,j})/(2h)$,
 $\mat{S}\T=-\mat{S}$, so $\mat{K}+b\mat{S}$ is non-symmetric for $b\neq0$, while
 $\vu\T(\mat{K}+b\mat{S})\vu=\vu\T\mat{K}\vu$ for every $\vu$; the system is
-solvable for $b=0,5,50$. The skew part vanishes on the diagonal $\vu\T\mat{S}\vu=0$, so coercivity is
+solvable for $b=0,5,50$.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_skew.py} The skew part vanishes on the diagonal $\vu\T\mat{S}\vu=0$, so coercivity is
 unaffected: this is why Lax--Milgram applies without symmetry
 (Section~\ref{sec:var-elliptic}).
 \end{solution}
@@ -1237,6 +1246,7 @@ constant, on which $E$ does not depend (Figure~\ref{fig:profiles}, left). A
 Ritz check with $u=a_0+a_1x+a_2x^2$, $f=1$, $g=-1$: $\partial E/\partial a_0=0$
 identically ($a_0$ is free), and the other two conditions give $a_1=0$,
 $a_2=-\tfrac12$, i.e.\ $u'=-x$, the exact solution.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_neumann.py}
 \end{solution}
 
 \exercise{A reaction term}\label{exo:reaction}
