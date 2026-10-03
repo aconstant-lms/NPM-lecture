@@ -22,6 +22,13 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   In exercise parts, CMAME-style pseudocode (`algorithm` + `algpseudocode`, Input/Output, numbered lines).
 - Tonti diagrams: kinematic boxes `kin` (blue), static boxes `stat` (green), labels `kinlab`/`statlab`
   under the boxes; the data (essential conditions, balance and natural conditions) go in the upper row.
+- Exercises start with `\framesub{Short questions}` (exam-style, short solutions), then `\framesub{Problems}`
+  or thematic sub-parts.
+- Constraints are added to Lagrangians with the sign `-\lambda\,(\mat{P}\vu-\vuD)`, so that the multiplier is
+  the reaction (positive); keep this convention in every chapter.
+- New symbols go into the notation list `front/notation_list.tex` (after the table of contents) as well as
+  `preamble/notation.tex`. Appendices in order: `app0_prerequisites` (A), `appA_function_spaces` (B),
+  `appB_variational_derivatives` (C), `appC_integration_by_parts` (D); always cite them by label.
 - Each chapter ends with its own `chapterbib`; bibitem keys must be unique across the whole book.
 - Labels are prefixed per chapter: ch1 `sec:var-*`, ch2 `sec:el-*`/`sec:diff`, ch3 `*:rg-*`, ch4 `*:pl-*`, ch5 `*:pn-*`, appendices `app:*`.
 - Author comments in the sources look like `%% AC: ...`; process them when asked, then delete them.

@@ -1,0 +1,65 @@
+%======================================================================
+%  List of notation -- front matter, after the table of contents
+%======================================================================
+\cleardoublepage
+\phantomsection\label{front:notation}
+\addcontentsline{toc}{chapter}{Notation}
+\markboth{Notation}{Notation}
+\thispagestyle{plain}
+
+\noindent{\color{gray!70!black}\rule{\textwidth}{0.6pt}}\par\vspace{6pt}\noindent
+{\sffamily\bfseries\Huge Notation\par}
+\vspace{14pt}
+
+{\small
+\renewcommand{\arraystretch}{1.12}
+\noindent
+\begin{tabular}{@{}p{3.5cm}p{11.5cm}@{}}
+\multicolumn{2}{@{}l}{\sffamily\bfseries Typography}\\[2pt]
+$u$, $\theta$, $\lambda$ & scalars (italic)\\
+$\vu$, $\vn$, $\vf$ & vectors (bold italic)\\
+$\sig$, $\eps$, $\tk$ & second-order tensors (bold italic)\\
+$\bbC$, $\bbS$, $\bbI$ & fourth-order tensors (blackboard bold)\\
+$\mat{K}$, $\mat{B}$, $\mat{u}$ & matrices and columns of unknowns (bold upright)\\[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Operations}\\[2pt]
+$\vu\cdot\vv=u_iv_i$ & scalar product (summation over repeated indices)\\
+$\tens{a}:\tens{b}=a_{ij}b_{ij}$ & double contraction\\
+$\vu\otimes\vv$ & tensor product, $(\vu\otimes\vv)_{ij}=u_iv_j$\\
+$\tens{a}\vv$, $\bbC:\eps$ & $(\tens{a}\vv)_i=a_{ij}v_j$, \ $(\bbC:\eps)_{ij}=C_{ijkl}\varepsilon_{kl}$\\
+$\tr\tens{a}$, $\dev\tens{a}$ & trace $a_{ii}$, deviator $\tens{a}-\tfrac13(\tr\tens{a})\tI$\\
+$\mat{A}\T$ & transpose\\
+$\tI$, $\bbI$ & second-order identity, symmetric fourth-order identity\\[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Differential operators (Cartesian components)}\\[2pt]
+$\nabla u$, $\nabla\vu$ & gradient, $(\nabla\vu)_{ij}=u_{i,j}$, \ $(\cdot)_{,j}=\partial(\cdot)/\partial x_j$\\
+$\dive\vv$, $\dive\sig$ & divergence, $v_{i,i}$ and $(\dive\sig)_i=\sigma_{ij,j}$\\
+$\eps[\vu]$ & small strain $\tfrac12(\nabla\vu+\nabla\vu\T)$\\
+$\Delta u$ & Laplacian $u_{,ii}$\\
+$\partial_nu$ & normal derivative $\nabla u\cdot\vn$\\[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Domains and data}\\[2pt]
+$\Omega$, $\partial\Omega$, $\vn$ & domain, boundary, outward unit normal\\
+$S_u$; \ $S_t$, $S_\varphi$ & boundary part with prescribed displacement or potential; with prescribed traction or flux\\
+$\uD$, $\vuD$; \ $\vtD$, $\pD$, $\vfD$ & prescribed (data) values: potential, displacement; traction, flux, body force\\
+$\Kad$, $\Sad$ & kinematically and statically admissible fields\\
+$\Gamma$, $\Gamma^\pm$, $\OG$, $\jump{\cdot}$ & crack, its lips, cut domain $\Omega\setminus\Gamma$, jump $(\cdot)^+-(\cdot)^-$\\[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Functionals and spaces}\\[2pt]
+$L^2$, $H^1$, $H^1_0$ & square-integrable functions, finite energy, finite energy with zero trace\\
+$a(u,v)$, $L(v)$ & bilinear form, load (linear form)\\
+$J$, $\mathcal U_p$; \ $J^\ast$, $\mathcal U_p^\ast$ & potential energies; complementary energies\\
+$\mathcal L$ & Lagrangian (multipliers with the sign $-\lambda\,(\mat{P}\vu-\vuD)$: $\lambda$ is the reaction)\\
+$\delta\mathcal W(u)[v]$, $D\mathcal W$ & G\^ateaux and Fr\'echet derivatives\\
+$F^\ast$ & Legendre--Fenchel conjugate\\
+$\RG(v)$ & reciprocity gap\\[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Material constants}\\[2pt]
+$E$, $\nu$, $\lambda$, $\mu$, $K$ & Young's modulus, Poisson's ratio, Lam\'e constants, bulk modulus\\
+$\sY$ & initial yield stress\\[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Plasticity (Chapters~\ref{ch:pl}--\ref{ch:pl-num}, after Simo and Hughes)}\\[2pt]
+$\epse$, $\epsp$ & elastic and plastic strains, $\eps=\epse+\epsp$\\
+$\valpha$, $\tbeta$, $\teta$ & internal hardening variables, back stress, relative stress $\dev\sig-\tbeta$\\
+$\tn$ & unit normal to the von Mises surface\\
+$\Esig$ & elastic domain\\
+$\bbCep$, $\bbCalg$ & continuum elastoplastic and consistent (algorithmic) tangents\\
+$\dg$, $(\cdot)^{\trial}$, $(\cdot)_{\np}$ & plastic multiplier increment, trial state, current step\\
+$\mac{x}$ & ramp (Macaulay) bracket $(x+|x|)/2$\\
+\end{tabular}
+}
+\cleardoublepage

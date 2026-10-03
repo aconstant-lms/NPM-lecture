@@ -323,7 +323,7 @@ where $\Delta_s$ is the Laplacian in the plane. The sum is finite because $P$ is
 m_0=\int_\Gamma w,\qquad \vm_1=\Bigl(\int_\Gamma w\,s_i\Bigr)_i,\qquad
 \tmu=\frac1{m_0}\int_\Gamma w\,(\vs-\vs_0)\otimes(\vs-\vs_0).
 \]
-These fields grow only polynomially on $\partial\Omega$. Those of degree $\le2$ belong to the quadratic finite element space, so the discrete identity is exact on any mesh.
+These fields grow only polynomially on $\partial\Omega$. Only the fields $\eta$ and $s_i\eta$, of degree $\le2$, belong to the quadratic finite element space, so that the discrete identity is exact for them on any mesh. The second-moment fields $s_is_j\eta-\tfrac13\delta_{ij}\eta^3$ are cubic: they are not represented exactly by quadratic elements, and the discrete reciprocity gap carries a discretization error. Together with their size on $\partial\Omega$, this is why the second-moment estimate of the extent is fragile (Exercise~\ref{exo:rg-codes}).
 
 \paragraph{Centre.} $\vs_0=\vm_1/m_0$ is the centre of the opening, i.e.\ of the crack for a symmetric opening.
 
@@ -460,10 +460,10 @@ It has rank one: every experiment gives the \emph{same} normal. With noisy data,
 \paragraph{Two-dimensional formulas.} In 2D the crack is a segment of half-length $a$ on the line $\vn\cdot\vx=c$, with one tangent $\vt$ and abscissa $s=\vt\cdot(\vx-\vx_*)$. Then:
 \begin{itemize}[itemsep=2pt]
 \item Step 2 uses $v_2=(\vn\cdot\vx)^2-(\vt\cdot\vx)^2$.
-\item Step 3 uses the single sine--sinh fields $v_n=\lambda_n^{-1}\sin(\lambda_ns)\sinh(\lambda_n\eta)$, $\lambda_n=n\pi/L$, with $w=\sum_n(2/L)\RG(v_n)\sin(\lambda_ns)$. In a rectangle $\ell\times h$, $L=\sqrt2\max(\ell,h)$ satisfies~\eqref{eq:rg-L}.
+\item Step 3 uses the single sine--sinh fields $v_n=\lambda_n^{-1}\sin(\lambda_ns)\sinh(\lambda_n\eta)$, $\lambda_n=n\pi/L$, with $w=\sum_n(2/L)\RG(v_n)\sin(\lambda_ns)$. In a rectangle $\ell\times h$, every chord is shorter than the diagonal $\sqrt{\ell^2+h^2}\le\sqrt{2}\,\max(\ell,h)$, so $L=\sqrt{2}\,\max(\ell,h)$ satisfies~\eqref{eq:rg-L}.
 \item The moment fields are $v=\eta,\ s\eta,\ s'^2\eta-\tfrac13\eta^3$, and the half-length is $a=2\sqrt{\mu_2}$ for a semi-elliptic opening.
 \item The exact opening in a uniform field is $\jump u=2E_n\sqrt{a^2-s^2}$, from the complex potential $f(z)=-\mathrm iE_n\sqrt{z^2-a^2}+E_tz$. Hence $|\tM|=\pi a^2$, which is also the limit $b\to0$ of the polarization tensor of an insulating ellipse~\cite{AK04}, and $a=\sqrt{m_0/(\pi E_n)}$.
-\item The stability estimate~\eqref{eq:rg-res} reads $N_{\max}\approx L\ln(1/\delta)/(\pi H)$. For the Cast3M rectangle $1.5\times2$ with the crack $(0.5,1.2)$--$(0.8,1.35)$, $H=1.52$ and $L=2.83$. At $\delta=10^{-3}$ only about four terms are usable, a resolution of about $0.7$, twice the crack length $0.335$.
+\item The stability estimate~\eqref{eq:rg-res} reads $N_{\max}\approx L\ln(1/\delta)/(\pi H)$. For the Cast3M rectangle $1.5\times2$ with the crack $(0.5,1.2)$--$(0.8,1.35)$, $H=1.52$ and $L=2\sqrt2\approx2.83$. At $\delta=10^{-3}$ only about four terms are usable, a resolution of about $0.7$, twice the crack length $0.335$.
 \end{itemize}
 
 \paragraph{Virtual experiment.} With noisy data, the weights of Section~\ref{sec:rg-multi} are chosen to maximise the signal relative to the noise. If the experiments have comparable noise levels and the weights are normalised, $\|w\|=1$, the signal $\sum_kw_km_0^{(k)}$ is maximal, by the Cauchy--Schwarz inequality, for
@@ -503,7 +503,68 @@ The signals $\vm=R\vn$ are available after Step 1. For orthogonal uniform loads,
 \end{gbox*}
 
 \framepart{Exercises}\label{sec:rg-exo}
-The following exercises review the main steps. Most can be done by hand; the last one uses the codes. Solutions are given in small type after each exercise.
+The short questions are of the kind asked in the written exam. The problems
+review the main steps; most can be done by hand, the last one uses a finite
+element code. Solutions are given in small type after each exercise.
+
+\framesub{Short questions}
+
+\exercise{Why harmonic adjoint fields?}\label{exo:rg-q-harmonic}
+Why must the adjoint field $v$ be harmonic in the whole uncracked domain
+$\Omega$?
+\begin{solution}
+Green's second identity in $\OG$ contains the volume term
+$\displaystyle \int_{\OG}(v\Delta u-u\Delta v)$. With $\Delta u=0$ it reduces to
+$\displaystyle -\int_{\OG}u\,\Delta v$, which involves the unknown field inside the body.
+It vanishes for every $u$ only if $\Delta v=0$; then only boundary data and
+the crack term remain.
+\end{solution}
+
+\exercise{The normal from three numbers}\label{exo:rg-q-normal}
+One measures $\RG(x_1)=0.2$, $\RG(x_2)=-0.1$, $\RG(x_3)=0.2$. Give $m_0>0$ and
+$\vn$.
+\begin{solution}
+$m_0=\sqrt{0.04+0.01+0.04}=0.3$ and $\vn=(0.2,-0.1,0.2)/0.3=(\tfrac23,-\tfrac13,\tfrac23)$.
+\end{solution}
+
+\exercise{A blind load}\label{exo:rg-q-blind}
+A uniform field is applied parallel to the plane of the crack. What are the
+three numbers $\RG(x_i)$? Can the crack be found?
+\begin{solution}
+The crack does not open: $\jump u=0$, $m_0=0$ and $\RG(x_i)=0$ for $i=1,2,3$.
+The data are those of an uncracked body; the crack is invisible. A second,
+non-parallel load is needed.
+\end{solution}
+
+\exercise{Size of a penny-shaped crack}\label{exo:rg-q-penny}
+In a uniform field with $E_n=1$, the identification gives $m_0=1/3$ for a
+penny-shaped crack. Find its radius.
+\begin{solution}
+$m_0=\tfrac83a^3E_n$, so $a^3=\tfrac18$ and $a=\tfrac12$.
+\end{solution}
+
+\exercise{Resolution and noise}\label{exo:rg-q-resolution}
+The plane of the crack is at most at distance $H=1$ from the boundary and
+the data carry $1\%$ noise. What is the smallest detail of the opening that
+the sine--sinh series can resolve? And with $0.01\%$ noise?
+\begin{solution}
+$\pi H/\ln(1/\delta)=\pi/\ln100\approx0.68$; with $\delta=10^{-4}$,
+$\pi/\ln10^4\approx0.34$. Dividing the noise by $100$ only halves the
+resolution: logarithmic stability.
+\end{solution}
+
+\exercise{Which data?}\label{exo:rg-q-data}
+Which boundary data does the reciprocity gap require, and why is one
+experiment with the usual boundary conditions of a direct problem not
+enough?
+\begin{solution}
+Both the potential and the flux on the whole boundary (complete Cauchy
+data), since $\RG(v)$ integrates $u\,\partial_\nu v-v\varphi$ over
+$\partial\Omega$. A direct problem prescribes only one of them at each point;
+the other must be measured.
+\end{solution}
+
+\framesub{Problems}
 
 \exercise{Harmonic adjoint fields}
 (a) Check that $v_2=(\vn\cdot\vx)^2-\tfrac12\bigl((\vt_1\cdot\vx)^2+(\vt_2\cdot\vx)^2\bigr)$ is harmonic and that $\partial_nv_2=2c$ on $\Pi$.
@@ -526,7 +587,7 @@ The following exercises review the main steps. Most can be done by hand; the las
 \exercise{Steps 1 and 2 by hand (2D)}
 For a two-dimensional body one measures $\RG(x_1)=-0.3$ and $\RG(x_2)=0.4$. With the resulting normal, $\RG\bigl((\vn\cdot\vx)^2-(\vt\cdot\vx)^2\bigr)=0.36$. Find $m_0>0$, $\vn$, $\vt$ and the line of the crack.
 \begin{solution}
-$m_0=\sqrt{0.3^2+0.4^2}=0.5$ and $\vn=(-0.6,\,0.8)$; with $(\vt,\vn)$ direct, $\vt=(-n_2,n_1)=(-0.8,\,-0.6)$. Then $c=0.36/(2\times0.5)=0.36$: the crack lies on the line $-0.6\,x_1+0.8\,x_2=0.36$.
+$m_0=\sqrt{0.3^2+0.4^2}=0.5$ and $\vn=(-0.6,\,0.8)$; with $(\vt,\vn)$ direct, i.e.\ $t_1n_2-t_2n_1=1$, $\vt=(n_2,-n_1)=(0.8,\,0.6)$. Then $c=0.36/(2\times0.5)=0.36$: the crack lies on the line $-0.6\,x_1+0.8\,x_2=0.36$.
 \end{solution}
 
 \exercise{Moments of a semi-elliptic opening (2D)}
@@ -591,10 +652,10 @@ Take $S_u=\emptyset$ in the direct problem. (a) Show that a solution exists only
 (c) No (Exercise~\ref{exo:rg-invariances}(b)).
 \end{solution}
 
-\exercise{With the codes}
-Run \texttt{crack\_rg\_extension.dgibi} (or the FEniCS script) with \texttt{eps = 0.} and then with \texttt{eps = 0.01}, several times. Compare the lengths given by the second moment and by the dipole estimate, and explain the difference.
+\exercise{With the codes}\label{exo:rg-codes}
+With a finite element code (Cast3M or FEniCS), compute the Cauchy data of the cracked rectangle of Section~\ref{sec:rg-num}, add a relative noise $\epsilon=0$ and then $\epsilon=0.01$, several times, and identify the crack. Compare the lengths given by the second moment and by the dipole estimate, and explain the difference.
 \begin{solution}
-Without noise both give about $0.330$ (true $0.335$; the difference is the mesh error at the tips). At $1\%$ noise the dipole length stays within a few percent of $0.33$, while the second-moment length scatters widely and fails ($\mu_2\le0$) in a large fraction of the runs. The reason: $\mu_2m_0$ scales like $a^4$ and its adjoint field contains $\eta^3$, which is large on the boundary, whereas the dipole estimate uses only $m_0$, measured with the linear field $\vn\cdot\vx$.
+Without noise both give about $0.330$ (true $0.335$; the difference is the mesh error at the tips). At $1\%$ noise the dipole length stays within a few percent of $0.33$, while the second-moment length scatters widely and fails ($\mu_2\le0$) in a large fraction of the runs. The reason: $\mu_2m_0$ scales like $a^4$ and its adjoint field contains $\eta^3$, which is large on the boundary, whereas the dipole estimate uses only $m_0$, measured with the linear field $\vn\cdot\vx$. Moreover the cubic second-moment field is not represented exactly by quadratic elements (Section~\ref{ssec:rg-poly}).
 \end{solution}
 
 %======================================================================

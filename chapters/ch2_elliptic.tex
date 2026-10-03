@@ -956,14 +956,10 @@ domain, continuous across the subdomains. The matrix is sparse and well
 conditioned.
 \item \emph{Isogeometric analysis}~\cite{HughesCottrellBazilevs2005,CottrellHughesBazilevs2009}:
 \index{isogeometric analysis}\index{NURBS}%
-the trial functions are the B-splines or NURBS (non-uniform rational
-B-splines) used in computer-aided design to describe the geometry. The same
-functions represent the exact geometry and the displacement, without a mesh
-approximation of curved boundaries, and they are smoother than standard
-elements ($C^{p-1}$ for degree $p$ instead of $C^0$), which suits plates,
-shells and contact. Being defined from control points rather than nodal
-values, they are not interpolating, and essential boundary conditions are
-imposed with more care, for instance by Lagrange multipliers.
+the trial functions are the B-splines or NURBS that describe the exact CAD
+geometry, smoother than standard elements ($C^{p-1}$ for degree $p$). They
+are presented and compared with finite elements in
+Section~\ref{sec:var-iga}.
 \end{itemize}
 
 \subsection{Finite elements}
@@ -994,7 +990,7 @@ nodal values.
 \item \emph{Cubic elements in one dimension} (Hermite cubics):
 $w=a+bx+cx^2+dx^3$; the unknowns are the nodal values and slopes (beams).
 Splines are not defined by nodal values alone and do not qualify as finite
-elements.
+elements in the sense of Ciarlet (Section~\ref{sec:var-bsplines}).
 \item \emph{Bilinear elements on rectangles:} $w=a+bx+cy+dxy$.
 \item \emph{Triangles:} linear, $w=a+bx+cy$, with nodes at the vertices;
 quadratic, $w=a+bx+cy+dx^2+exy+fy^2$, with nodes at the vertices and the

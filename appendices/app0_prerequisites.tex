@@ -1,0 +1,190 @@
+%======================================================================
+\chapter{Prerequisites: tensor algebra and continuum mechanics}\label{app:prereq}
+%======================================================================
+% Added after the review of Oct 2026: "a short prerequisites appendix on
+% tensor algebra and continuum mechanics".
+
+\framepart{Outline}
+This appendix recalls, in a few pages, the tensor algebra and the small-strain
+continuum mechanics used throughout the book. It fixes the notation of the
+list on page~\pageref{front:notation} and gives each operation in
+Cartesian components. Section~\ref{sec:pre-tensors} treats vectors and
+tensors, Section~\ref{sec:pre-calculus} the differential operators, and
+Section~\ref{sec:pre-continuum} the kinematics, stresses and equilibrium of a
+deformable body. Standard references are~\cite{SalenconPre,GurtinPre,ChadwickPre}.
+
+%======================================================================
+\section{Vectors and tensors}\label{sec:pre-tensors}
+\index{tensor algebra}%
+\paragraph{Components.} In an orthonormal basis $(\ve_1,\ve_2,\ve_3)$ a vector is
+$\vu=u_i\ve_i$ and a second-order tensor $\tens{a}=a_{ij}\,\ve_i\otimes\ve_j$, with
+summation over repeated indices. A second-order tensor is a linear map of
+vectors: $(\tens{a}\vv)_i=a_{ij}v_j$. A fourth-order tensor
+$\bbC=C_{ijkl}\,\ve_i\otimes\ve_j\otimes\ve_k\otimes\ve_l$ is a linear map of
+second-order tensors: $(\bbC:\eps)_{ij}=C_{ijkl}\varepsilon_{kl}$.
+
+\begin{gbox}{Products and contractions}
+\begin{itemize}
+  \item scalar product $\vu\cdot\vv=u_iv_i$; \ tensor product
+  $(\vu\otimes\vv)_{ij}=u_iv_j$, so that $(\vu\otimes\vv)\vw=(\vv\cdot\vw)\,\vu$;
+  \item double contraction $\tens{a}:\tens{b}=a_{ij}b_{ij}=\tr(\tens{a}\T\tens{b})$;
+  \item transpose $(\tens{a}\T)_{ij}=a_{ji}$; symmetric part
+  $\sym\tens{a}=\tfrac12(\tens{a}+\tens{a}\T)$; skew part $\tfrac12(\tens{a}-\tens{a}\T)$;
+  \item trace $\tr\tens{a}=a_{ii}=\tI:\tens{a}$; deviator
+  $\dev\tens{a}=\tens{a}-\tfrac13(\tr\tens{a})\tI$, with $\tr\dev\tens{a}=0$.
+\end{itemize}
+\end{gbox}
+
+\paragraph{Orthogonal decompositions.} A symmetric tensor and a skew tensor
+are orthogonal for ``$:$''; so are a spherical tensor $c\tI$ and a deviator.
+Hence, for symmetric $\tens{a}$,
+\[
+  \tens{a}:\tens{a}=\tfrac13(\tr\tens{a})^2+\dev\tens{a}:\dev\tens{a},
+\]
+the identity behind the split of the elastic energy into a volume and a
+shape part (Exercise~\ref{exo:posdef}) and behind the von Mises criterion.
+
+\paragraph{Fourth-order identities.}
+\index{identity tensor}%
+On symmetric tensors, $\bbI$ with
+$I_{ijkl}=\tfrac12(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk})$ is the identity,
+$\tfrac13\tI\otimes\tI$ the projector on spherical tensors and
+$\bbIdev=\bbI-\tfrac13\tI\otimes\tI$ the projector on deviators. They are
+orthogonal projectors: $\bbIdev:\bbIdev=\bbIdev$, $\bbIdev:(\tI\otimes\tI)=0$.
+An isotropic tensor $\bbC=3K\,\tfrac13\tI\otimes\tI+2\mu\,\bbIdev$ is therefore
+inverted by inverting its two eigenvalues: $\bbC^{-1}=\frac{1}{3K}\,\tfrac13\tI\otimes\tI+\frac{1}{2\mu}\,\bbIdev$.
+
+\paragraph{Eigenvalues and invariants.} A symmetric tensor has three real
+eigenvalues and an orthonormal eigenbasis (principal axes). Its principal
+invariants are $I_1=\tr\tens{a}$, $I_2=\tfrac12\bigl((\tr\tens{a})^2-\tr\tens{a}^2\bigr)$
+and $I_3=\det\tens{a}$; for a deviator one uses $J_2=\tfrac12\dev\tens{a}:\dev\tens{a}$
+and $J_3=\det\dev\tens{a}$, the variables of isotropic yield criteria.
+
+%======================================================================
+\section{Differential operators}\label{sec:pre-calculus}
+\index{gradient}\index{divergence}%
+With $(\cdot)_{,j}=\partial(\cdot)/\partial x_j$:
+\begin{gbox}{Gradient and divergence in Cartesian components}
+\[
+  (\nabla u)_i=u_{,i},\qquad (\nabla\vu)_{ij}=u_{i,j},\qquad
+  \dive\vu=u_{i,i}=\tr\nabla\vu,\qquad (\dive\tens{a})_i=a_{ij,j},
+\]
+\[
+  \Delta u=\dive\nabla u=u_{,ii},\qquad
+  \dive(\tens{a}\T\vv)=(\dive\tens{a})\cdot\vv+\tens{a}:\nabla\vv .
+\]
+\end{gbox}
+The last identity, integrated with the divergence theorem, is the integration
+by parts of Theorem~\ref{thm:ibp-tensor}. In cylindrical or spherical
+coordinates the components of $\nabla$ and $\dive$ contain extra terms from the
+derivatives of the basis vectors; they are tabulated in~\cite{SalenconPre}.
+
+%======================================================================
+\section{Small-strain continuum mechanics}\label{sec:pre-continuum}
+\paragraph{Kinematics.}
+\index{strain}\index{compatibility}%
+A body occupies $\Omega$; its points move by the displacement $\vu(\vx)$. When
+the gradient is small, $|\nabla\vu|\ll1$, the change of length and angle is
+measured by the small-strain tensor
+\[
+  \eps[\vu]=\tfrac12(\nabla\vu+\nabla\vu\T),\qquad
+  \varepsilon_{ij}=\tfrac12(u_{i,j}+u_{j,i}).
+\]
+$\varepsilon_{11}$ is the relative elongation of a fibre along $\ve_1$,
+$2\varepsilon_{12}$ the decrease of the right angle between $\ve_1$ and $\ve_2$,
+and $\tr\eps$ the relative change of volume. The skew part of $\nabla\vu$ is an
+infinitesimal rotation, and $\eps[\vu]=\vzero$ exactly for the rigid
+displacements $\vu=\vect{a}+\vect{b}\times\vx$. Conversely, a symmetric field $\eps$
+derives from a displacement in a simply connected domain if and only if it
+satisfies the compatibility conditions
+$\varepsilon_{ij,kl}+\varepsilon_{kl,ij}-\varepsilon_{ik,jl}-\varepsilon_{jl,ik}=0$.
+
+\paragraph{Stresses.}
+\index{stress}\index{Cauchy theorem}%
+The force per unit area exerted across a surface element of normal $\vn$ is
+the traction $\vt$. Cauchy's theorem states that it is linear in $\vn$:
+$\vt=\sig\vn$, $t_i=\sigma_{ij}n_j$, with $\sig$ the Cauchy stress tensor. The
+balance of moments makes $\sig$ symmetric. Its normal component
+$\vn\cdot\sig\vn$ is the normal stress (positive in tension) and its
+tangential part the shear stress.
+
+\begin{gbox}{Equilibrium}
+\index{equilibrium!local}%
+For a body under body forces $\vf$ (per unit volume), in statics,
+\[
+  \dive\sig+\vf=\vzero\ \text{in }\Omega,\qquad \sig=\sig\T,\qquad
+  \sig\vn=\vt\ \text{on }\partial\Omega .
+\]
+\end{gbox}
+These equations follow from the balance of forces and moments on every
+sub-domain, with the divergence theorem. Their weak form is the principle of
+virtual power (Section~\ref{sec:el-vw}).
+
+\paragraph{Energy.} In an elastic material the work of the stresses,
+$\sig:\dot\eps$ per unit volume, is stored as the free energy
+$\psi(\eps)$, with $\sig=\partial\psi/\partial\eps$; for linear elasticity
+$\psi=\tfrac12\eps:\bbC:\eps$ (Chapter~\ref{ch:elliptic}). When part of the
+work is dissipated, as in plasticity, the second law requires a non-negative
+dissipation (Chapter~\ref{ch:pl}).
+
+%======================================================================
+\framepart{Summary}
+\begin{gbox*}
+\begin{itemize}
+  \item \textbf{Tensors} are linear maps: $\tens{a}\vv$, $\bbC:\eps$; all
+  operations are written in Cartesian components with summation over
+  repeated indices.
+  \item \textbf{Spherical and deviatoric parts} are orthogonal; isotropic
+  fourth-order tensors are combinations of the two projectors
+  $\tfrac13\tI\otimes\tI$ and $\bbIdev$, and are inverted eigenvalue by eigenvalue.
+  \item \textbf{Small strains} $\eps=\sym\nabla\vu$ vanish exactly on rigid
+  displacements.
+  \item \textbf{Stresses} are defined by Cauchy's theorem $\vt=\sig\vn$; they
+  satisfy $\dive\sig+\vf=\vzero$ and are symmetric.
+\end{itemize}
+\end{gbox*}
+
+%======================================================================
+\framepart{Exercises}
+
+\exercise{Contractions}\label{exo:pre-contr}
+Let $\tens{a}=\ve_1\otimes\ve_2$. Compute $\tens{a}\ve_2$, $\tens{a}\ve_1$,
+$\tens{a}:\tens{a}$, $\tens{a}:\tens{a}\T$, $\tr\tens{a}$ and $\sym\tens{a}$.
+\begin{solution}
+$\tens{a}\ve_2=\ve_1$, $\tens{a}\ve_1=\vzero$, $\tens{a}:\tens{a}=1$,
+$\tens{a}:\tens{a}\T=0$, $\tr\tens{a}=0$,
+$\sym\tens{a}=\tfrac12(\ve_1\otimes\ve_2+\ve_2\otimes\ve_1)$: a pure shear.
+\end{solution}
+
+\exercise{Deviator of a uniaxial stress}\label{exo:pre-dev}
+Consider the uniaxial stress $\sig=\sigma\,\ve_1\otimes\ve_1$.
+Compute its deviator $\dev\sig$ and the scalar $\sqrt{\tfrac32\dev\sig:\dev\sig}$.
+\begin{solution}
+$\dev\sig=\sigma\,\diag(\tfrac23,-\tfrac13,-\tfrac13)$ and
+$\dev\sig:\dev\sig=\tfrac23\sigma^2$, so $\sqrt{\tfrac32\dev\sig:\dev\sig}=|\sigma|$:
+the von Mises equivalent stress of uniaxial tension is the tensile stress.
+\end{solution}
+
+\exercise{Rigid displacements}\label{exo:pre-rigid}
+Show that $\vu=\vect{a}+\vect{b}\times\vx$ has $\eps[\vu]=\vzero$, and compute
+$\nabla\vu$.
+\begin{solution}
+$u_i=a_i+\epsilon_{ijk}b_jx_k$, so $u_{i,l}=\epsilon_{ijl}b_j$, which is skew in
+$(i,l)$; its symmetric part vanishes.
+\end{solution}
+
+\exercise{Inverting isotropic elasticity}\label{exo:pre-inverse}
+Using the projectors, invert $\sig=\lambda(\tr\eps)\tI+2\mu\eps$.
+\begin{solution}
+$\bbC=(3\lambda+2\mu)\tfrac13\tI\otimes\tI+2\mu\bbIdev$, so
+$\eps=\frac{\tr\sig}{3(3\lambda+2\mu)}\tI+\frac{1}{2\mu}\dev\sig$, i.e.\
+$\eps=\frac{1}{3K}\,\frac{\tr\sig}{3}\tI+\frac{1}{2\mu}\dev\sig$ with
+$K=\lambda+\tfrac23\mu$.
+\end{solution}
+
+%======================================================================
+\begin{chapterbib}{9}
+\bibitem{ChadwickPre} P.~Chadwick, \emph{Continuum Mechanics: Concise Theory and Problems}, Dover, 1999.
+\bibitem{GurtinPre} M.~E.~Gurtin, \emph{An Introduction to Continuum Mechanics}, Academic Press, 1981.
+\bibitem{SalenconPre} J.~Salen\c{c}on, \emph{Handbook of Continuum Mechanics: General Concepts, Thermoelasticity}, Springer, 2001.
+\end{chapterbib}

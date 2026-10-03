@@ -131,14 +131,47 @@ gives the Betti reciprocity theorem of elasticity,
 \section{Domains with a cut}
 \index{integration by parts!cracked domain}\index{jump}%
 When $\Omega$ contains a crack $\Gamma$ with lips $\Gamma^\pm$, the identities
-hold in $\OG=\Omega\setminus\Gamma$, whose boundary consists of $\partial\Omega$
-and of both lips. If $\vn$ is the normal of $\Gamma$ pointing towards
-$\Gamma^+$, the outward normal of $\OG$ is $-\vn$ on $\Gamma^+$ and $+\vn$ on
-$\Gamma^-$. For a field $\vF$ smooth on each side,
+hold in $\OG=\Omega\setminus\Gamma$, whose boundary consists of $\partial\Omega$,
+with outward normal $\vnu$, and of both lips (Figure~\ref{fig:lips}). If $\vn$
+is the normal of $\Gamma$ pointing towards $\Gamma^+$, the outward normal of
+$\OG$ is $-\vn$ on $\Gamma^+$ and $+\vn$ on $\Gamma^-$. For a field $\vF$ smooth
+on each side,
 \[
-  \int_{\OG}\dive\vF\dd x=\int_{\partial\Omega}\vF\cdot\vn\dd s
+  \int_{\OG}\dive\vF\dd x=\int_{\partial\Omega}\vF\cdot\vnu\dd s
   -\int_\Gamma\jump{\vF}\cdot\vn\dd s,\qquad\jump{\vF}=\vF^+-\vF^- .
 \]
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=1.05,>=Stealth]
+  \fill[gray!8] plot[smooth cycle,tension=0.8] coordinates{(-3,0) (-2,1.8) (0.5,2.1) (3,1.2) (3.2,-1) (1,-2) (-2,-1.6)};
+  \draw[thick] plot[smooth cycle,tension=0.8] coordinates{(-3,0) (-2,1.8) (0.5,2.1) (3,1.2) (3.2,-1) (1,-2) (-2,-1.6)};
+  \node at (-2.2,0.9) {$\OG$};
+  \node at (2.75,1.75) {$\partial\Omega$};
+  \draw[->,thick] (3.12,0.2) -- (3.9,0.32) node[right] {$\vnu$};
+  % crack drawn slightly open
+  \draw[line width=1.2pt,cu] (-1.2,0.07) .. controls (0,0.12) .. (1.2,0.07);
+  \draw[line width=1.2pt,cphi] (-1.2,-0.07) .. controls (0,-0.12) .. (1.2,-0.07);
+  \fill[white] (-1.2,0.07) -- (1.2,0.07) -- (1.2,-0.07) -- (-1.2,-0.07) -- cycle;
+  \draw[line width=1.2pt,cu] (-1.2,0.07) .. controls (0,0.12) .. (1.2,0.07);
+  \draw[line width=1.2pt,cphi] (-1.2,-0.07) .. controls (0,-0.12) .. (1.2,-0.07);
+  \node[cu] at (-1.55,0.35) {$\Gamma^+$};
+  \node[cphi] at (-1.55,-0.38) {$\Gamma^-$};
+  % normal of the crack
+  \draw[->,very thick] (1.65,0) -- (1.65,0.75) node[right] {$\vn$};
+  \draw[dashed,gray] (1.2,0) -- (1.65,0);
+  % outward normals of Omega_Gamma on the lips
+  \draw[->,thick,cu] (0,0.65) -- (0,0.16);
+  \node[cu,right] at (0,0.5) {\small $-\vn$};
+  \draw[->,thick,cphi] (0,-0.65) -- (0,-0.16);
+  \node[cphi,right] at (0,-0.5) {\small $+\vn$};
+\end{tikzpicture}
+\caption{A body $\Omega$ cut by a crack $\Gamma$ (drawn open). The crack
+normal $\vn$ points towards the upper lip $\Gamma^+$. The outward normal of
+the cut domain $\OG$ is $\vnu$ on $\partial\Omega$, $-\vn$ on $\Gamma^+$ and
+$+\vn$ on $\Gamma^-$: the two lips are seen from opposite sides, which is the
+origin of the jump $\jump{\vF}=\vF^+-\vF^-$ and of most sign errors.}
+\label{fig:lips}
+\end{figure}
 This is how the jump of the potential across the crack appears in the
 reciprocity gap identity~\eqref{eq:rg-rg}.
 
