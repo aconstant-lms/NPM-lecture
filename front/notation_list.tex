@@ -52,7 +52,7 @@ $\RG(v)$ & reciprocity gap\\[6pt]
 \multicolumn{2}{@{}l}{\sffamily\bfseries Material constants}\\[2pt]
 $E$, $\nu$, $\lambda$, $\mu$, $K$ & Young's modulus, Poisson's ratio, Lam\'e constants, bulk modulus\\
 $\sY$ & initial yield stress\\[6pt]
-\multicolumn{2}{@{}l}{\sffamily\bfseries Plasticity (Chapters~\ref{ch:pl}--\ref{ch:pl-num}, after Simo and Hughes)}\\[2pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Plasticity (Chapters~\ref{ch:pl}--\ref{ch:pl-cyc}, after Simo and Hughes)}\\[2pt]
 $\epse$, $\epsp$ & elastic and plastic strains, $\eps=\epse+\epsp$\\
 $\valpha$, $\tbeta$, $\teta$ & internal hardening variables, back stress, relative stress $\dev\sig-\tbeta$\\
 $\tn$ & unit normal to the von Mises surface\\
@@ -60,6 +60,8 @@ $\Esig$ & elastic domain\\
 $\bbCep$, $\bbCalg$ & continuum elastoplastic and consistent (algorithmic) tangents\\
 $\dg$, $(\cdot)^{\trial}$, $(\cdot)_{\np}$ & plastic multiplier increment, trial state, current step\\
 $\mac{x}$ & ramp (Macaulay) bracket $(x+|x|)/2$\\
+$\Pop$, $\Zop$, $\vrho$ & compatible part of a plastic strain, residual-stress operator, residual stress $\vrho=-\Zop\epsp$\\
+$\Ad$, $\Gcon$ & admissible and constitutive histories on a time window\\
 \end{tabular}
 }
 \cleardoublepage
