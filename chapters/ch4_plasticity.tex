@@ -7,10 +7,10 @@
 % "Exercises in computational inelasticity" (Parts 1 and 5),
 % exercise "Stretching of an elastoplastic sheet" (MEC563, 2025),
 % MEALOR II Ch. 2 (Kondo and Maitournam, 2023).
-% Chapters 5 and 6 are referred to by number until they exist (then use \ref).
+% Chapter 6 is referred to by number until it exists (then use \ref).
 
 \framepart{Outline}
-Metals loaded beyond a threshold keep a permanent deformation after unloading and dissipate energy. This chapter builds the classical theory of rate-independent plasticity in small strains. We follow the route of Simo and Hughes~\cite{SimoHughes1998}: the model is first written for a filament, where every ingredient can be computed by hand, and then for a three-dimensional body. The same model is then rewritten in the language of generalized standard materials of Halphen and Nguyen~\cite{HalphenNguyen1975}: a free energy and a convex dissipation potential. This rewriting shows that the flow rule is the optimality condition of a maximization, the principle of maximum plastic dissipation. Its convexity gives the main properties of the elastoplastic boundary-value problem: uniqueness of the stresses, a minimum principle for the rates, and bounds on the limit load. The integration of the model in time is the subject of Chapter~5.
+Metals loaded beyond a threshold keep a permanent deformation after unloading and dissipate energy. This chapter builds the classical theory of rate-independent plasticity in small strains. We follow the route of Simo and Hughes~\cite{SimoHughes1998}: the model is first written for a filament, where every ingredient can be computed by hand, and then for a three-dimensional body. The same model is then rewritten in the language of generalized standard materials of Halphen and Nguyen~\cite{HalphenNguyen1975}: a free energy and a convex dissipation potential. This rewriting shows that the flow rule is the optimality condition of a maximization, the principle of maximum plastic dissipation. Its convexity gives the main properties of the elastoplastic boundary-value problem: uniqueness of the stresses, a minimum principle for the rates, and bounds on the limit load. The integration of the model in time is the subject of Chapter~\ref{ch:pl-num}.
 
 \paragraph{By the end of this chapter you should be able to:}
 \begin{itemize}
@@ -294,7 +294,7 @@ $\dot\sigma^\trial=E\dot\varepsilon$, $\dot\alpha^\trial=0$: the filament
 loads plastically if, and only if, it is on the yield surface and the trial
 rates point outwards, $\dot f^\trial>0$. The same idea, applied to finite
 increments instead of rates, gives the elastic predictor of
-Chapter~5.
+Chapter~\ref{ch:pl-num}.
 
 In one dimension the elastic domain is an interval of the stress axis
 (Figure~\ref{fig:pl-1d-domain}). Without hardening it is fixed,
@@ -1004,7 +1004,7 @@ The last line of the table defines a scalar product on generalized stresses,
   \norm{\vSig}_E^2=\scal{\vSig}{\vSig}_E ,
 \end{equation}
 where $\tfrac12\norm{\vSig}_E^2$ is the complementary energy, elastic plus
-hardening. Chapter~5 shows that the implicit integration of the
+hardening. Chapter~\ref{ch:pl-num} shows that the implicit integration of the
 flow rule is the projection of a trial state onto $\Esig$ in this norm.
 
 %======================================================================
@@ -1135,7 +1135,7 @@ $\vSig_2\cdot\dot\vz_2\ge\vSig_1\cdot\dot\vz_2$. Add the two inequalities.
 The flow rule is a \emph{monotone} relation between forces and fluxes, the
 nonlinear analogue of a positive definite matrix. Monotonicity is the
 property behind the uniqueness of the stresses (Section~\ref{sec:pl-bvp}),
-the stability of the integration algorithms (Chapter~5) and the
+the stability of the integration algorithms (Chapter~\ref{ch:pl-num}) and the
 convergence of the global--local methods (Chapter~6).
 
 \paragraph{The dissipation function of von Mises.}
@@ -1205,7 +1205,7 @@ The equations split into two groups of different nature
 internal variables, they form a linear elasticity problem with initial strain
 $\epsp$. The flow rule is \emph{nonlinear} and \emph{local}: it is an
 evolution law at each material point, coupled to the others only through the
-stress. Every algorithm of Chapters~5 and~6
+stress. Every algorithm of Chapters~\ref{ch:pl-num} and~6
 exploits this split.
 
 \begin{figure}[h]
@@ -1443,7 +1443,7 @@ at $P_L$, elastic unloading with a permanent displacement.}
 The first exercises work on the filament by hand; the next ones on the
 three-dimensional model and on generalized standard materials; the last ones
 are classical boundary-value problems with closed-form solutions, which serve
-as benchmarks for the numerical methods of Chapter~5. Solutions
+as benchmarks for the numerical methods of Chapter~\ref{ch:pl-num}. Solutions
 are given in small type after each exercise.
 
 \framesub{The filament}
@@ -1518,7 +1518,7 @@ independently of $H$. With kinematic hardening only, this range is $2\sY$ and
 the reverse yield stress $\sigma^*-2\sY$ is smaller in magnitude than
 $\sigma^*$: Bauschinger effect. With isotropic hardening only, the reverse
 yield stress is $-\sigma^*$.
-(b) The return map of Chapter~5, exact for this model on
+(b) The return map of Chapter~\ref{ch:pl-num}, exact for this model on
 monotone strain increments, gives the turning-point stresses (MPa)
 $(257.389,\,-271.949,\,286.079)$ for (i), $(257.389,\,-257.389,\,257.389)$ for
 (ii) and $(257.389,\,-264.669,\,271.842)$ for (iii). The first value is the same
@@ -1719,7 +1719,7 @@ and, integrating,
 \]
 The logarithm diverges as $\theta\to\pi/3$: the limit stresses are reached
 only asymptotically. A strain-driven computation with the radial return of
-Chapter~5 ($\nu=0.3$, $\sY=250$\,MPa) reproduces the formula to
+Chapter~\ref{ch:pl-num} ($\nu=0.3$, $\sY=250$\,MPa) reproduces the formula to
 six digits:
 \lstinputlisting[firstline=4]{python/examples/ch4/exo_sheet.py}
 \end{solution}

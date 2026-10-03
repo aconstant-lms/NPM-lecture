@@ -1,0 +1,84 @@
+*
+* Thick-walled cylinder under internal pressure (Chapter 5)
+* axisymmetric, plane strain (UZ blocked on both faces), von Mises
+* plasticity with Voce isotropic hardening, PASAPAS.
+*
+* STATUS: UNTESTED. Written in the style of sheet_plane_strain.dgibi;
+* it has not been run. Reference values (python/examples/ch5/exo_tangent.py,
+* 80 elements, 10 steps): u(a) = 3.4526 mm at p = 320 MPa.
+*
+* Units: mm, MPa.
+*
+* andrei.constantinescu constant@polytechnique.edu
+*
+* STEP 1  options: 2D axisymmetric (coordinates r, z)
+*
+  opti dime 2 mode axis elem qua8 echo 1;
+*
+* STEP 2  mesh of a slice a <= r <= b, 0 <= z <= h
+*
+  a = 100.; b = 200.; h = 5.;
+  nr = 40;
+  p1 = a 0.; p2 = b 0.; p3 = b h; p4 = a h;
+  l12 = droi nr p1 p2;
+  l23 = droi 1 p2 p3;
+  l34 = droi nr p3 p4;
+  l41 = droi 1 p4 p1;
+  dom = dall l12 l23 l34 l41;
+  trac dom;
+*
+* STEP 3  material: elastic constants and the tensile curve of the
+*         Voce law R(alpha) = 600 - 350 exp(-30 alpha), given as
+*         (total strain, stress) points, starting at first yield
+*
+  you = 2.e5; nu = 0.3;
+  lal = prog 0. pas 0.002 0.3;
+  lsi = (prog 600.) - ((prog 350.) * (exp (-30. * lal)));
+  leps = (lsi / you) + lal;
+  lsi = (prog 0.) et lsi;
+  leps = (prog 0.) et leps;
+  trac1 = evol manu 'EPS' leps 'SIG' lsi;
+  dess trac1;
+*
+  mod_p = mode dom 'MECANIQUE' 'ELASTIQUE' 'ISOTROPE'
+                   'PLASTIQUE' 'ISOTROPE';
+  mat_p = mate mod_p 'YOUN' you 'NU' nu 'TRAC' trac1;
+*
+* STEP 4  boundary conditions: plane strain (UZ = 0 on both faces)
+*
+  bl1 = bloq uz l12;
+  bl2 = bloq uz l34;
+  AA = bl1 et bl2;
+*
+* STEP 5  loading: unit pressure on the bore, amplitude 0 -> 320 MPa
+*
+  fp = pres 'MASS' mod_p 1. l41;
+  tt = prog 0. 10.;
+  ap = prog 0. 320.;
+  ev_p = evol manu 'TEMPS' tt 'COEF' ap;
+  ch_p = char 'MECA' fp ev_p;
+*
+* STEP 6  incremental computation (Newton with the consistent tangent
+*         is the default of PASAPAS for this model)
+*
+  tab = table;
+  tab . 'MODELE' = mod_p;
+  tab . 'CARACTERISTIQUES' = mat_p;
+  tab . 'BLOCAGES_MECANIQUES' = AA;
+  tab . 'CHARGEMENT' = ch_p;
+  tab . 'TEMPS_CALCULES' = prog 0. pas 1. 10.;
+  pasapas tab;
+*
+* STEP 7  bore displacement against pressure
+*
+  lp = prog; lu = prog;
+  repeter loop (dime tab . deplacements);
+    ii = &loop - 1;
+    lp = lp et (prog (320. * (tab . temps . ii) / 10.));
+    lu = lu et (prog (extr tab . deplacements . ii 'UR' p1));
+  fin loop;
+  ev_u = evol manu 'u(a) [mm]' lu 'p [MPa]' lp;
+  dess ev_u;
+  list lu;
+*
+  opti donn 5;

@@ -1,0 +1,344 @@
+*
+* Tensile test of sheet under plane strain 
+*
+* 
+* andrei.constantinescu constant@polytechnique.edu
+*
+*
+* STEP 1 
+*
+* i) choice of the geometric element type of the mesh (this will automatically lead 
+* to the choice of the FEM function approximation)
+*
+* ii) options of the computation 2D plane strain, cartesian coordinates  
+*
+
+myelem = QUA4;
+
+opti dime 2 echo 1 elem myelem;
+
+*
+*
+* STEP2 - Construction of the mesh
+*
+* Physical dimensions
+*  
+*   - length [mm]
+*   - stress & Young muduli [MPa]
+*   - time [s] 
+*
+* time plays a role in rate dependent plasticity (viscoplasticity)  
+*
+* Dimensions of the geometrical domain
+*
+* ldom - halfsize of the outersquare  
+* r    - radius of the hole 
+*
+
+  ldom = 1.;
+  r = 0.1;
+
+*
+*  p* point on the outer square 
+*  a* points on the inner circle
+*
+
+  p1 = 0. 0.;
+  p2 = ldom 0.;
+  p3 = ldom ldom;
+  p4 = 0. ldom;
+
+
+*
+* number of elements (natural numbers) 
+*
+*    negative is just a flag indicating a varying mesh size 
+*    'DINI'  'DFIN' size of first (intial) and last element (final)
+*
+*    see 'DROITE' for details
+*    
+  nelem = 10;  
+
+  d12 = droite nelem p1 p2;
+  d23 = droite nelem p2 p3;
+  d34 = droite nelem p3 p4;
+  d41 = droite nelem p4 p1;
+
+  dom = dall d12 d23 d34 d41;
+  
+*
+* Plot the domain for a short check
+*
+*   option nclk - noclick, does not stop the run at this point, 
+*               no need to click 'FIN TRACE' 
+*  
+
+  trace dom;
+
+* 
+*
+* A short  elastic computation 
+*
+*   this is NOT compulsatory for the next elastoplastic step !
+*
+* STEP 3
+* 
+*    computation of the stiffness matrix from model and material definition 
+  
+  mod  = dom mode mecanique elastique isotrope;
+  mat  = mod mate 'YOUN' 2.e11 'NU' 0.3; 
+  
+  KK = rigi mod mat; 
+
+*
+* STEP 4 
+*
+*  definition of the imposed boundary conditions 
+*
+*    - symetry on d12 and d41 
+*    - given displacement on d34 
+*    - free surface: hole and d23 (defined by default)
+*
+  
+  Ad12 = bloq uy d12;
+  Ad41 = bloq ux d41;
+  Ad23 = bloq ux d23;
+
+  Adp1 = bloq ux p1;
+
+  Ad34 = bloq uy d34;
+
+  ud34  = depi Ad34 0.01;
+  
+* AA = Ad12 et Ad23 et Ad41 et Ad34;
+
+ AA = Ad12 et Adp1 et Ad34;
+ 
+*
+* STEP 5 
+*   computation of the elastic solution in displacements 
+*   the of the corresonding stresses and plot of the stresses
+  
+  u = reso (KK et AA) ud34;  
+
+  sig = sigma mod mat u;
+
+  trace (dom et (((contour dom) plus (1.e1 * u)) coul rouge));
+
+*
+* Elastoplastic computations
+*
+* STEP 6 
+*
+*    definition of new material models and parameters 
+*    for elastoplasticity with linear kinematic hardening    
+*
+
+   mod_p   = mode dom 'MECANIQUE' 'ELASTIQUE' 'ISOTROPE'
+                      'PLASTIQUE' 'PARFAIT';
+   mat_p   = mate mod_p 'YOUN' 2.e11  'NU' 0.3
+                        'SIGY' 200.e6;
+
+
+*
+*  STEP 6
+*
+*     elastoplastic computation is nonlinear and the load will be gradually incresead
+*     using an imposed load history, the solution method is equally a timemarching scheme 
+*     therefore a list of time instants will be needed. 
+*
+*   tt list of time instant imposed using the PROG operator 
+*
+
+*   tt     = prog 0. 5. 10. 15. 20.;  
+ 
+  tt     = prog 0. 50.;  
+
+   
+*
+*  Imposed forces or displacements are functions of space and time 
+*    and defined here using a separation of variables:
+*
+*    FF(x,t) =  a(t) f(x)
+* 
+*    a(t) amplitude history created with EVOL 
+*    f(x) spatial distribution created with FORCE, PRESS, DIMP etc.   
+*   
+
+*
+* creation of list of amplitudes a_ud34 which combined with the list of time instants tt
+* give the amplitude history ev_ud34 plotted with DESSIN 
+*
+
+*   a_ud34 = prog 0. 1. 0. -1. 0.;
+ 
+   a_ud34 = prog 0. 1.;
+
+   ev_ud34 = evol manu 'TEMPS' tt 'DIMP' a_ud34;
+ 
+   dess ev_ud34;
+ 
+*
+*  CHARgement combines the amplitude and the spatial distribution 
+*  info the loading history of the imposed displacement 
+*
+*  ** its an imposed displacement, so one should not forget the 
+*  projection matrices coming from the Lagrange multipliers which 
+*  will be added to the stiffness
+*
+ 
+   ch_ud34 = char 'DIMP' ud34 ev_ud34; 
+ 
+**
+*  STEP 7 
+*
+*  TABLE create a generalized list with all the data needed 
+*  to integrate compute the solution of the elastoplastic 
+*  problem with PASAPAS
+*    
+*
+*  PASPAS also handles elastodynamics, transient heat conduction, .... etc
+*  with a similar input list.
+* 
+ 
+   tabexp = table;
+ 
+*
+*  Indices:
+*    - 'MODELE' = all the model objects of the body
+*    - 'CARACTERISTIQUES' = all the material objects containing the information about the material parameters 
+*
+      
+   tabexp . 'MODELE' = mod_p;
+   tabexp . 'CARACTERISTIQUES'  =   mat_p;
+
+*
+*  - 'BLOCAGES_MECANIQUES' = all the projection matrices reprsenting imposed displacements, temperatures, etc. 
+*  coming from the Lagrange multipliers which 
+*  will be added to the stiffness
+*
+
+   tabexp . 'BLOCAGES_MECANIQUES' = AA;
+   
+
+*
+* - 'CHARGEMENT' = the all the loading histories 
+*   
+
+   tabexp . 'CHARGEMENT'          = ch_ud34; 
+
+*
+* - 'TEMPS_CALCULES' = all the instants where we want the solution to be computed 
+*
+*  if the instants for which solutions have to be kepts is not defined in 'TEMPS_SAUVEES'
+*  all the solution at all 'TEMPS_CALCULES' will be kept in the list TABLE as a result 
+*
+ 
+   tabexp . 'TEMPS_CALCULES'      = prog 0. pas 1. 50.; 
+
+*
+*  STEP 8 
+*
+* Launch the nonlinear integration method PASAPAS 
+* 
+* the solution is written in the same list as the input, here denoted as tabexp !
+*
+   pasapas tabexp; 
+
+   
+** 
+*  STEP 9 Inspection of the result
+*
+*  the different list and sublists (table et sous tables) are listed:
+*
+*   
+*
+*   list tabexp; -> all indexes of tabepx
+*   list tabexp . deplacements ; -> all indexes of displacement solutions 
+*   list tabexp . contraintes ; -> all indexes of stress in displacement 
+*
+*   list taexp . temps; -> table with indexes and corresponding time instant
+
+   list tabexp;
+   list tabexp . deplacements ;
+   list tabexp . contraintes ;
+
+
+**
+*  STEP 10 Postprocessing 
+*
+*  several list are constructed using the operator PROG and the 
+*  append operation constructed with ET and PROG.
+*
+*  initialization of the list
+ 
+   thetime = prog;
+
+   sigyy = prog;
+   sigxx = prog;
+   sigzz = prog;
+   epsyy = prog;
+
+*
+* Construction of a loop to extract the results from the solution fields 
+* 
+*  dime tabexp . deplacements -> will give the number of saved displacement fields in the computation 
+*                                the same number for stresses equally applies 
+*
+*
+*  &loop is the iteration value of the loop called loop in REPETER  
+*
+*  extr tabexp . deplacements . ii UX a3; -> extract the 'UX' component of the ii displacement field 
+*                                            in the node given by the point a3
+*
+*  extr tabexp . contraintes . ii 'SMYY' 1 30 2  -> extract the 'SMYY' component of the ii stress field 
+*                                            in mes zone 1 element 30 gauss point 2
+*
+*
+*
+*
+
+   repeter loop (dime tabexp . deplacements);
+   ii = &loop - 1;
+   
+   thetime = thetime et (prog tabexp . temps . ii);
+
+   
+   sigyy = sigyy et 
+        (prog (extr tabexp . contraintes . ii 'SMYY' 1 30 2));
+   sigxx = sigxx et 
+        (prog (extr tabexp . contraintes . ii 'SMXX' 1 30 2));
+   sigzz = sigzz et 
+        (prog (extr tabexp . contraintes . ii 'SMZZ' 1 30 2));
+   epsyy = epsyy et 
+      (prog (extr 
+        (epsi mod tabexp . deplacements . ii) 'EPYY' 1 30 2));
+   
+   fin loop;
+
+*
+*
+* Construction of the functions: time - field values by associating the 
+*    list thetime with the list of the field values using EVOLUTION 
+**    
+*
+   es_yy = evol jaune manu 'strain_yy' epsyy 'stress_yy' sigyy;
+   es_xx = evol rouge manu 'strain_yy' epsyy 'stress_xx' sigxx;
+   es_zz = evol vert manu 'strain_yy' epsyy 'stress_zz' sigzz;
+ 
+*
+*  Plot of the function using DESSIN 
+*   
+
+*   dessin (es_yy et es_xx);
+
+dessin es_yy;
+
+*
+*
+* STEP 11
+*
+*   control is handed over to the standard input window of Cast3M
+*  
+
+  opti donn 5;

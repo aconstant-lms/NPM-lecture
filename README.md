@@ -10,7 +10,7 @@ The index is produced by makeindex, run automatically by `imakeidx` (style `prea
 Uncomment `\includeonly{...}` in `main.tex` to compile a single chapter.
 
 ## Layout
-    main.tex                      book skeleton (frontmatter, 4 chapters, 3 appendices)
+    main.tex                      book skeleton (frontmatter, 5 chapters, 3 appendices)
     preamble/style.tex            RG-style typography: sans-serif headings, gray boxes (gbox),
                                   \exercise{...} + solution environment, chapterbib, TikZ styles
     preamble/notation.tex         notation for the whole book (see below)
@@ -21,12 +21,17 @@ Uncomment `\includeonly{...}` in `main.tex` to compile a single chapter.
     chapters/ch3_rg_crack.tex     Ch. 3  Identification of a planar crack by the reciprocity gap (rg_crack_theory)
     chapters/ch4_plasticity.tex   Ch. 4  Plasticity: yield, flow and generalized standard materials
                                   (slides c03, filament sheet, plasticity notes, MEALOR II Ch. 2)
+    chapters/ch5_plasticity_num.tex Ch. 5  Plasticity: integration algorithms (return map, consistent
+                                  tangent, Newton, corners, plane stress, viscoplasticity, stability,
+                                  variational updates; Computational Inelasticity exercises)
     appendices/appA_...           App. A Function spaces, Poincare inequality, Cea's lemma
     appendices/appB_...           App. B Variational derivatives (Gateaux, Frechet, functional derivative, E-L)
     appendices/appC_...           App. C Integration by parts: the Gauss-Ostrogradsky family
-    figures/ch1, ch2, ch4, appB   figures (ch2 = slide figures)
+    figures/ch1, ch2, ch4, ch5, appB   figures (ch2 = slide figures)
     python/figures/...            figure scripts (run from their own directory)
     python/examples/...           exercise code, printed in the book with \lstinputlisting
+    cast3m/, fenics/              Cast3M and FEniCSx versions of some exercises (see their README:
+                                  untested files are not printed in the book)
 
 ## Notation (preamble/notation.tex)
     vectors, 2nd-order tensors   bold italic    \vect{u} \tens{\sigma}  shortcuts \vu \vn \sig \eps \tk
