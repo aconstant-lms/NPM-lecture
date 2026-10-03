@@ -71,13 +71,23 @@ energy density & $\tfrac12\nabla u\cdot\tk\nabla u$ & $\tfrac12\eps:\bbC:\eps$\\
 \section{Steady diffusion}\label{sec:diff}
 \index{diffusion}\index{conductivity tensor}\index{boundary condition!essential}\index{boundary condition!natural}%
 A potential $u$ (temperature, electric potential, hydraulic head,
-concentration, out-of-plane displacement) drives a flux. The physical
-settings are listed in Table~\ref{tab:rg-phys} of Chapter~\ref{ch:rg}.
+concentration, out-of-plane displacement) drives a flux. The section follows
+the same frame as elasticity: the equations, the coefficients, the structure,
+virtual power, the energy principles and the Lagrangian.
 
+\subsection{The equations}
 \begin{gbox}{Diffusion problem}
 Let $\Omega\subset\R^3$ be a bounded Lipschitz domain with outward unit normal
-$\vn$, and $\partial\Omega=\overline{S_u}\cup\overline{S_\varphi}$ a partition
-of its boundary. Find $u:\Omega\to\R$ such that
+$\vn$, and $\partial\Omega=\overline{S_u}\cup\overline{S_\varphi}$,
+$S_u\cap S_\varphi=\emptyset$, a partition of its boundary. Find the potential
+$u$ and the flux $\vp$ such that
+\begin{align}
+  \vp&=\tk\nabla u &&\text{constitutive law (Fourier, Ohm, Darcy, Fick)},\label{eq:diff-law}\\
+  \dive\vp+f&=0 &&\text{balance in }\Omega,\label{eq:diff-balance}\\
+  u=\uD\ \text{on }S_u, &\qquad \vp\cdot\vn=\pD\ \text{on }S_\varphi
+  &&\text{boundary conditions}.\label{eq:diff-bc}
+\end{align}
+Eliminating the flux,
 \begin{equation}\label{eq:diffusion}
 \left\{\begin{aligned}
 \dive(\tk\nabla u)+f&=0 &&\text{in }\Omega,\\
@@ -85,23 +95,64 @@ u&=\uD &&\text{on }S_u \quad\text{(potential given)},\\
 (\tk\nabla u)\cdot\vn&=\pD &&\text{on }S_\varphi \quad\text{(flux given)}.
 \end{aligned}\right.
 \end{equation}
-The conductivity $\tk(\vx)$ is a symmetric, uniformly positive definite
-second-order tensor field: $\vxi\cdot\tk\vxi\ge\alpha|\vxi|^2$.
+In components: $p_i=k_{ij}u_{,j}$, $p_{i,i}+f=0$, $p_in_i=\pD$.
 \end{gbox}
+The physical flux is $\vq=-\vp=-\tk\nabla u$: heat flows from hot to cold,
+and $\pD=-\vq\cdot\vn$ is the \emph{incoming} flux; $f$ is a volume source.
 
-\paragraph{The tensor of diffusion coefficients.}
+\subsection{The tensor of diffusion coefficients}
 \index{conductivity tensor!symmetry and positivity}%
-In components the flux is $p_i=k_{ij}u_{,j}$, with $\tk=k_{ij}\,\ve_i\otimes\ve_j$.
-Symmetry, $k_{ij}=k_{ji}$, is the condition for an energy to exist (as for the
-springs, Section~\ref{ssec:symmetry}; in thermodynamics it is Onsager's
-reciprocity). Positive definiteness makes the dissipation positive: heat
-flows from hot to cold. In its principal axes $\tk=\diag(k_1,k_2,k_3)$ with
-$k_i>0$: isotropic for $k_1=k_2=k_3=k$, transversely isotropic for a fibre
-composite or a layered rock, $k_1=k_2\neq k_3$. It is the second-order
-counterpart of the fourth-order tensor $\bbC$ of elasticity
-(Section~\ref{sec:el-moduli}).
+\begin{gbox}{Symmetry and positivity of $\tk$}
+\begin{itemize}
+  \item $\tk=k_{ij}\,\ve_i\otimes\ve_j$ is a second-order tensor field;
+  \item symmetry, $k_{ij}=k_{ji}$: condition for an energy to exist (as for the
+  springs, Section~\ref{ssec:symmetry}); in thermodynamics, Onsager's
+  reciprocity;
+  \item positivity, $\vxi\cdot\tk\vxi\ge\alpha|\vxi|^2$ with $\alpha>0$: positive
+  dissipation, heat flows from hot to cold;
+  \item isotropy: $\tk=k\,\tI$ with $k>0$, a single coefficient.
+\end{itemize}
+\end{gbox}
+In its principal axes $\tk=\diag(k_1,k_2,k_3)$, $k_i>0$: isotropic for
+$k_1=k_2=k_3=k$, transversely isotropic for a fibre composite or a layered
+rock, $k_1=k_2\neq k_3$. It is the second-order counterpart of the fourth-order
+tensor $\bbC$ of elasticity (Section~\ref{sec:el-moduli}). In the rest of this
+section the medium is isotropic, and Table~\ref{tab:diff-values} gives orders
+of magnitude of $k$ in the physical settings of the model problem.
 
-\paragraph{Structure of the equations.}
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{>{\raggedright}p{2.5cm}>{\raggedright}p{2.6cm}>{\raggedright}p{3.0cm}>{\raggedright\arraybackslash}p{6.2cm}}
+\toprule
+\sffamily setting & \sffamily potential $u$ & \sffamily coefficient $k$ & \sffamily typical values (room temperature)\\
+\midrule
+heat conduction (Fourier) & temperature [K] & thermal conductivity [W\,m$^{-1}$K$^{-1}$] &
+copper 400, aluminium 237, carbon steel 50, stainless steel 15, concrete 1--2, glass 1, water 0.6, wood 0.1--0.2, polymer foam 0.03, air 0.026\\
+electric conduction (Ohm) & electric potential [V] & electrical conductivity [S\,m$^{-1}$] &
+copper $6.0\times10^{7}$, aluminium $3.8\times10^{7}$, carbon steel $\approx6\times10^{6}$, stainless steel $1.4\times10^{6}$, sea water 5, tap water $10^{-3}$--$10^{-1}$, glass $10^{-15}$--$10^{-11}$\\
+porous media (Darcy) & hydraulic head [m] & hydraulic conductivity [m\,s$^{-1}$] &
+gravel $10^{-3}$--$1$, clean sand $10^{-5}$--$10^{-2}$, silt $10^{-9}$--$10^{-5}$, clay $10^{-12}$--$10^{-9}$\\
+mass diffusion (Fick) & concentration [mol\,m$^{-3}$] & diffusion coefficient [m$^2$\,s$^{-1}$] &
+gases in air $\approx2\times10^{-5}$ (CO$_2$: $1.6\times10^{-5}$), small solutes in water $\approx10^{-9}$ (NaCl: $1.6\times10^{-9}$), carbon in austenite at $1000^\circ$C $\approx3\times10^{-11}$\\
+anti-plane elasticity & displacement $u_3$ [m] & shear modulus $\mu$ [Pa] &
+steel $80\times10^{9}$, copper $45\times10^{9}$, aluminium $26\times10^{9}$, rubber $\approx10^{6}$\\
+\bottomrule
+\end{tabular}
+\caption{Isotropic diffusion coefficients $k$ in the settings of the model
+problem $\dive(k\nabla u)+f=0$. Orders of magnitude; values depend on
+composition and temperature~\cite{IncroperaDeWitt,FreezeCherry,Crank1975}.}
+\label{tab:diff-values}
+\end{table}
+The ranges are striking: thermal conductivities span four orders of
+magnitude, electrical conductivities more than twenty, hydraulic
+conductivities twelve. The same equation therefore describes a copper bar
+(a good conductor, almost uniform potential) and a clay barrier (a nearly
+impermeable one); only the ratio of $k$ between neighbouring materials
+matters for the shape of the field, and an insulating crack is the limit
+$k\to0$ in a thin layer (Chapter~\ref{ch:rg}).
+
+\subsection{Structure of the equations}
 \index{Tonti diagram!diffusion}\index{admissible fields!diffusion}%
 The diffusion problem has the structure of the spring chain of
 Chapter~\ref{ch:var} (Figure~\ref{fig:tonti-diff}): the gradient plays the
@@ -120,8 +171,8 @@ homogeneous medium, $\tk=k\tI$, this is the Poisson equation $-k\Delta u=f$.
   \draw[arr] (u) -- (e) node[midway,left,font=\small]{$\nabla$};
   \draw[arr] (e) -- (s) node[midway,below,font=\small]{$\tk$};
   \draw[arr] (s) -- (f) node[midway,right,font=\small]{$-\dive$, \ $\cdot\,\vn$};
-  \node[below=0.15cm of e,kinlab,align=center] {kinematic: $\mathcal K(\uD,S_u)$};
-  \node[below=0.15cm of s,statlab,align=center] {static: $\mathcal S(f,\pD,S_\varphi)$};
+  \node[below=0.15cm of e,kinlab,align=center] {kinematically admissible: $\Kad(\uD,S_u)$};
+  \node[below=0.15cm of s,statlab,align=center] {statically admissible: $\Sad(f,\pD,S_\varphi)$};
 \end{tikzpicture}
 \caption{Tonti diagram of steady diffusion. Left column (blue): kinematic
 quantities, with the potential prescribed on $S_u$; right column (green):
@@ -129,57 +180,150 @@ static quantities, with the balance of the flux and the prescribed boundary
 flux. Compare with Figures~\ref{fig:tonti-discrete} and~\ref{fig:tonti-el}.}
 \label{fig:tonti-diff}
 \end{figure}
-The two columns define the admissible fields,
-$\mathcal K(\uD,S_u)=\{v:\ v=\uD\text{ on }S_u\}$ and
-$\mathcal S(f,\pD,S_\varphi)=\{\vp:\ \dive\vp+f=0\text{ in }\Omega,\ \vp\cdot\vn=\pD\text{ on }S_\varphi\}$.
-The solution is the potential $u\in\mathcal K$ whose flux $\tk\nabla u$ lies in
-$\mathcal S$.
+The two columns define the two sets of admissible fields:
+\begin{align*}
+  \Kad(\uD,S_u)&=\{v\ :\ v=\uD\ \text{on }S_u\},\\
+  \Sad(f,\pD,S_\varphi)&=\{\vp\ :\ \dive\vp+f=0\ \text{in }\Omega,\ \vp\cdot\vn=\pD\ \text{on }S_\varphi\}.
+\end{align*}
+The solution is the potential $u\in\Kad$ whose flux $\tk\nabla u$ lies in
+$\Sad$.
 
-\paragraph{Strong form $\to$ weak form $\to$ energy.} The route is the one of
-Chapter~\ref{ch:var}. Multiply by a test function $v$ vanishing on $S_u$ and
-integrate by parts with Theorem~\ref{thm:ibp-matrix}:
+\subsection{Virtual power: the weak form of the balance}
+\index{virtual power principle!diffusion}\index{weak form!diffusion}%
+For a virtual potential $v$ define the virtual powers of the sources and of
+the fluxes:
+\[
+  \mathcal P_e(v)=\int_\Omega fv\dd x+\int_{\partial\Omega}(\vp\cdot\vn)\,v\dd s,\qquad
+  \mathcal P_i(v)=-\int_\Omega\vp\cdot\nabla v\dd x .
+\]
+\begin{gbox}{Principle of virtual power (diffusion)}
+For every virtual potential $v$,
+\begin{equation}\label{eq:diff-pvp}
+  \mathcal P_e(v)+\mathcal P_i(v)=0 .
+\end{equation}
+For a uniform field $v=c$, $\nabla v=\vzero$ and $\mathcal P_i(v)=0$: the
+constants play the role of rigid motions.
+\end{gbox}
+The principle is equivalent to the balance~\eqref{eq:diff-balance} and to the
+boundary flux $\vp\cdot\vn$. Indeed, by Theorem~\ref{thm:ibp-matrix},
+\[
+  \int_\Omega\vp\cdot\nabla v\dd x=-\int_\Omega(\dive\vp)\,v\dd x
+  +\int_{\partial\Omega}(\vp\cdot\vn)\,v\dd s ,
+\]
+and~\eqref{eq:diff-pvp} for all $v$ is $\displaystyle \int_\Omega(\dive\vp+f)\,v\dd x=0$.
+Choosing $v=1$ gives the global balance $\displaystyle \int_\Omega f\dd x+\int_{\partial\Omega}\vp\cdot\vn\dd s=0$:
+what is produced inside leaves through the boundary.
+
+With the constitutive law, and $v$ restricted to the fields vanishing on
+$S_u$, the principle becomes the weak form of diffusion: find
+$u\in\Kad(\uD,S_u)$ such that
 \begin{equation}\label{eq:diffusion-weak}
   \int_\Omega\tk\nabla u\cdot\nabla v\dd x=\int_\Omega fv\dd x
-  +\int_{S_\varphi}\pD v\dd s\qquad\forall v\in V_0 ,
+  +\int_{S_\varphi}\pD v\dd s\qquad\forall v\in\Kad(0,S_u).
 \end{equation}
-with $V_0=\{v\in H^1(\Omega):\ v=0\text{ on }S_u\}$ and $u\in\uD+V_0$. The
-bilinear form is symmetric, so the problem is the minimization of
+If $|S_u|>0$, the Poincar\'e inequality holds on $\Kad(0,S_u)$, the form is
+coercive, and Lax--Milgram gives a unique solution depending continuously on
+the data: the problem is well posed. If $S_u=\emptyset$, a solution exists only
+if $\displaystyle \int_\Omega f+\int_{\partial\Omega}\pD=0$ (the global balance above),
+and it is unique up to a constant (Exercise~\ref{exo:neumann}).
+
+\subsection{Energy principles}
+\index{energy!potential (diffusion)}\index{energy!complementary (diffusion)}%
+As in thermoelasticity (Section~\ref{sec:el-energy}), we include an
+\emph{initial flux} $\vp_0$ and an \emph{imposed gradient} $\vect{g}^D$, so that
+\[
+  \vp=\vp_0+\tk\,(\nabla u-\vect{g}^D).
+\]
+In porous media written in pressure, $\vect{g}^D=\rho\vect{g}$ is the weight of the
+fluid (gravity drives the flow even without pressure gradient); $\vp_0$
+represents a prescribed background flux. Without them, $\vp=\tk\nabla u$.
+
+\begin{gbox}{Potential energy (diffusion)}
+For $v\in\Kad(\uD,S_u)$,
 \begin{equation}\label{eq:diffusion-energy}
-  J(v)=\frac12\int_\Omega\tk\nabla v\cdot\nabla v\dd x-\int_\Omega fv\dd x
-  -\int_{S_\varphi}\pD v\dd s,\qquad v\in\uD+V_0 .
+  J(v)=\int_\Omega\Bigl(\vp_0\cdot\nabla v
+  +\tfrac12(\nabla v-\vect{g}^D)\cdot\tk(\nabla v-\vect{g}^D)\Bigr)\dd x
+  -\int_\Omega fv\dd x-\int_{S_\varphi}\pD v\dd s .
 \end{equation}
-If $|S_u|>0$, the Poincar\'e--Friedrichs inequality holds on $V_0$, the form
-is coercive, and Lax--Milgram gives a unique solution depending continuously
-on the data: the problem is well posed. If $S_u=\emptyset$, a solution exists
-only if $\displaystyle \int_\Omega f+\int_{\partial\Omega}\pD=0$, and it is unique up to a
-constant (Exercise~\ref{exo:neumann}).
+\end{gbox}
+
+\begin{gbox}{Complementary energy (diffusion)}
+For $\vq\in\Sad(f,\pD,S_\varphi)$, with $\hat\vq=\vq-\vp_0+\tk\vect{g}^D$,
+\begin{equation}\label{eq:diffusion-comp}
+  J^\ast(\vq)=-\frac12\int_\Omega\hat\vq\cdot\tk^{-1}\hat\vq\dd x
+  +\int_{S_u}\uD\,(\vq\cdot\vn)\dd s .
+\end{equation}
+\end{gbox}
+
+\begin{gbox}{Extremal properties (diffusion)}
+Let $(u,\vp)$ be the solution.
+\begin{itemize}
+\item $u$ \emph{minimizes} the potential energy over the kinematically
+admissible potentials: $J(v)\ge J(u)$ for all $v\in\Kad(\uD,S_u)$.
+\item $\vp$ \emph{maximizes} the complementary energy over the statically
+admissible fluxes: $J^\ast(\vp)\ge J^\ast(\vq)$ for all $\vq\in\Sad(f,\pD,S_\varphi)$.
+\item If $\vp_0=\vzero$ and $\vect{g}^D=\vzero$, the two values coincide:
+$J(u)=J^\ast(\vp)$.
+\end{itemize}
+\end{gbox}
+For any admissible pair,
+$J^\ast(\vq)\le J^\ast(\vp)=J(u)\le J(v)$: two-sided bounds, as in elasticity.
+The proof is the same as for elasticity (Section~\ref{sec:el-energy}): the
+weak form~\eqref{eq:diffusion-weak} kills the linear part of $J(v)-J(u)$, and
+the quadratic part $\tfrac12\int\nabla(v-u)\cdot\tk\nabla(v-u)$ is non-negative.
+The gap $J(v)-J^\ast(\vq)$ is computed in Exercise~\ref{exo:diff-comp}.
+
+\subsection{The Lagrangian of the potential energy}\label{ssec:diff-lagrangian}
+\index{Lagrangian!diffusion}\index{Lagrange multiplier!boundary flux}%
+As for elasticity (Section~\ref{ssec:el-lagrangian}), the constraint
+$u=\uD$ on $S_u$ is relaxed with a Lagrange multiplier on $S_u$, which yields
+all the equations, including the boundary conditions and the reactions, from
+a single stationarity condition~\cite{BonnetFrangi2007}.
+
+\begin{gbox}{Lagrangian of diffusion}
+For unconstrained potentials $v$ and multipliers $\mu$ on $S_u$,
+\begin{multline}\label{eq:L-diff}
+  \mathcal L(v,\mu)=\int_\Omega\Bigl(\vp_0\cdot\nabla v
+  +\tfrac12(\nabla v-\vect{g}^D)\cdot\tk(\nabla v-\vect{g}^D)\Bigr)\dd x\\
+  -\int_\Omega fv\dd x-\int_{S_\varphi}\pD v\dd s
+  -\int_{S_u}\mu\,(v-\uD)\dd s .
+\end{multline}
+The solution $(u,\mu)$ is a saddle point of $\mathcal L$: a minimum in $v$ and
+a maximum in $\mu$.
+\end{gbox}
+\paragraph{Derivation of the equations.} Write
+$\vp=\vp_0+\tk(\nabla u-\vect{g}^D)$. Stationarity with respect to $\mu$ gives
+$u=\uD$ on $S_u$. Stationarity with respect to $v$, in every direction $w$,
+gives
+\[
+  \int_\Omega\vp\cdot\nabla w\dd x-\int_\Omega fw\dd x
+  -\int_{S_\varphi}\pD w\dd s-\int_{S_u}\mu\,w\dd s=0 .
+\]
+Integrating by parts with Theorem~\ref{thm:ibp-matrix},
+\[
+  \int_\Omega(-\dive\vp-f)\,w\dd x+\int_{S_\varphi}(\vp\cdot\vn-\pD)\,w\dd s
+  +\int_{S_u}(\vp\cdot\vn-\mu)\,w\dd s=0\qquad\forall w,
+\]
+hence the balance $\dive\vp+f=0$ in $\Omega$, the flux condition
+$\vp\cdot\vn=\pD$ on $S_\varphi$, and $\mu=\vp\cdot\vn$ on $S_u$: the multiplier
+is the flux through the boundary where the potential is imposed, for
+instance the heat extracted by a thermostat or the current through an
+electrode. The constitutive law, with its initial flux and imposed gradient,
+is contained in the definition of the energy density.
 
 \paragraph{Remarks.}
 \begin{itemize}
   \item \emph{Essential and natural conditions.} The potential $\uD$ is built
-  into the space; the flux $\pD$ appears as a boundary term of the energy.
-  In a finite element code, the first are imposed on the unknowns (or by
-  Lagrange multipliers, Section~\ref{ssec:ritz-lagrange}), the second enter
-  the right-hand side.
+  into the space $\Kad$ or imposed by the multiplier; the flux $\pD$ appears as
+  a boundary term of the energy. In a finite element code, the first are
+  imposed on the unknowns or by Lagrange multipliers
+  (Section~\ref{ssec:ritz-lagrange}), the second enter the right-hand side.
   \item \emph{Complementary boundary conditions.} On each part of the
   boundary exactly one datum is given, potential or flux. If both are known
   on a part of the boundary and nothing on another, the problem is no longer
   a direct problem: it becomes an \emph{inverse problem}, which is the subject
   of Chapter~\ref{ch:rg}.
-  \item \emph{The flux.} Physically, the flux is $\vq=-\tk\nabla u$ (Fourier,
-  Ohm, Darcy, Fick); $\pD=-\vq\cdot\vn$ is the incoming flux.
 \end{itemize}
-
-\paragraph{The complementary energy.} The dual problem of
-\index{energy!complementary (diffusion)}%
-Section~\ref{sec:var-dual} is posed on statically admissible fluxes
-$\vp$, satisfying $\dive\vp+f=0$ in $\Omega$ and $\vp\cdot\vn=\pD$ on
-$S_\varphi$:
-\begin{equation}\label{eq:diffusion-comp}
-  J^\ast(\vp)=-\frac12\int_\Omega\vp\cdot\tk^{-1}\vp\dd x+\int_{S_u}\uD\,\vp\cdot\vn\dd s .
-\end{equation}
-At the solution $\vp=\tk\nabla u$ and $J(u)=J^\ast(\vp)$
-(Exercise~\ref{exo:diff-comp}).
 
 %======================================================================
 \section{Linear elasticity: the equations}\label{sec:el-eq}
@@ -644,17 +788,8 @@ the traction exerted by the support, the reaction. The constitutive law,
 with its thermal and initial-stress terms, is contained in the definition of
 the energy density.
 
-\paragraph{Diffusion.} In the same way, for the diffusion
-problem~\eqref{eq:diffusion} (temperature $u$, heat source $f$, prescribed
-heat flux $\pD$),
-\[
-  \mathcal L(v,\mu)=\int_\Omega\tfrac12\nabla v\cdot\tk\nabla v\dd x-\int_\Omega fv\dd x
-  -\int_{S_\varphi}\pD v\dd s-\int_{S_u}\mu\,(v-\uD)\dd s .
-\]
-Stationarity gives $u=\uD$ on $S_u$, $\dive(\tk\nabla u)+f=0$ in $\Omega$,
-$\tk\nabla u\cdot\vn=\pD$ on $S_\varphi$, and $\mu=\tk\nabla u\cdot\vn$ on $S_u$:
-the multiplier is the heat flux through the boundary where the temperature is
-imposed, for instance the current through an electrode in electrostatics.
+The Lagrangian of diffusion, built in the same way, is given in
+Section~\ref{ssec:diff-lagrangian}.
 
 \paragraph{Remark: two-field Lagrangians.} Relaxing also the constitutive law,
 with the stress as an independent field, gives the Hellinger--Reissner
@@ -969,18 +1104,19 @@ value is $\displaystyle -\tfrac12\int\sig:\eps$, minus the stored energy, as for
 
 \exercise{Complementary energy in diffusion}\label{exo:diff-comp}
 \index{constitutive relation error}\index{a posteriori error estimation}%
-Show that $J^\ast(\vp)\le J(v)$ for all admissible $v$ and $\vp$
+With $\vp_0=\vzero$ and $\vect{g}^D=\vzero$, show that $J^\ast(\vq)\le J(v)$ for
+all $v\in\Kad(\uD,S_u)$ and $\vq\in\Sad(f,\pD,S_\varphi)$
 in~\eqref{eq:diffusion-energy}--\eqref{eq:diffusion-comp}, with equality at
 the solution.
 \begin{solution}
-For $v\in\uD+V_0$ and $\vp$ statically admissible, integrate by parts:
-$\displaystyle \int_\Omega\vp\cdot\nabla v=-\int_\Omega(\dive\vp)v+\int_{\partial\Omega}(\vp\cdot\vn)v
-=\int_\Omega fv+\int_{S_\varphi}\pD v+\int_{S_u}\uD\,\vp\cdot\vn$. Then
+For $v$ and $\vq$ admissible, integrate by parts:
+$\displaystyle \int_\Omega\vq\cdot\nabla v=-\int_\Omega(\dive\vq)v+\int_{\partial\Omega}(\vq\cdot\vn)v
+=\int_\Omega fv+\int_{S_\varphi}\pD v+\int_{S_u}\uD\,\vq\cdot\vn$. Then
 \[
-  J(v)-J^\ast(\vp)=\tfrac12\int_\Omega(\tk\nabla v-\vp)\cdot\tk^{-1}(\tk\nabla v-\vp)\dd x\ge0 ,
+  J(v)-J^\ast(\vq)=\frac12\int_\Omega(\tk\nabla v-\vq)\cdot\tk^{-1}(\tk\nabla v-\vq)\dd x\ge0 ,
 \]
-with equality iff $\vp=\tk\nabla v$, i.e.\ at the solution. The gap
-$J(v)-J^\ast(\vp)$ is computable and bounds the error in energy norm: this is
+with equality iff $\vq=\tk\nabla v$, i.e.\ at the solution. The gap
+$J(v)-J^\ast(\vq)$ is computable and bounds the error in energy norm: this is
 the basis of a posteriori error estimation by constitutive relation error.
 \end{solution}
 
@@ -1079,11 +1215,14 @@ scalar problem with an insulating crack studied in Chapter~\ref{ch:rg}.
 \bibitem{BonnetFrangi2007} M.~Bonnet, A.~Frangi, \emph{Analyse des solides d\'eformables par la m\'ethode des \'el\'ements finis}, \'Editions de l'\'Ecole Polytechnique, 2007.
 \bibitem{Chadwick2001} P.~Chadwick, M.~Vianello, S.~C.~Cowin, A new proof that the number of linear elastic symmetries is eight, \emph{J. Mech. Phys. Solids} 49 (2001) 2471--2492.
 \bibitem{Coirier1997} J.~Coirier, \emph{M\'ecanique des milieux continus}, Dunod, 1997.
+\bibitem{Crank1975} J.~Crank, \emph{The Mathematics of Diffusion}, 2nd ed., Oxford University Press, 1975.
 \bibitem{ConstantinescuKorsunsky2007} A.~Constantinescu, A.~Korsunsky, \emph{Elasticity with Mathematica}, Cambridge University Press, 2007.
 \bibitem{CottrellHughesBazilevs2009} J.~A.~Cottrell, T.~J.~R.~Hughes, Y.~Bazilevs, \emph{Isogeometric Analysis: Toward Integration of CAD and FEA}, Wiley, 2009.
+\bibitem{FreezeCherry} R.~A.~Freeze, J.~A.~Cherry, \emph{Groundwater}, Prentice-Hall, 1979.
 \bibitem{Germain1983} P.~Germain, \emph{M\'ecanique des milieux continus}, Masson, 1983.
 \bibitem{HughesCottrellBazilevs2005} T.~J.~R.~Hughes, J.~A.~Cottrell, Y.~Bazilevs, Isogeometric analysis: CAD, finite elements, NURBS, exact geometry and mesh refinement, \emph{Comput. Methods Appl. Mech. Engrg.} 194 (2005) 4135--4195.
 \bibitem{Hughes1987} T.~J.~R.~Hughes, \emph{The Finite Element Method}, Prentice Hall, 1987.
+\bibitem{IncroperaDeWitt} F.~P.~Incropera, D.~P.~DeWitt, T.~L.~Bergman, A.~S.~Lavine, \emph{Fundamentals of Heat and Mass Transfer}, 6th ed., Wiley, 2007.
 \bibitem{Salencon2001} J.~Salen\c{c}on, \emph{Handbook of Continuum Mechanics: General Concepts, Thermoelasticity}, Springer, 2001.
 \bibitem{SoutasLittle1973} R.~W.~Soutas-Little, \emph{Elasticity}, Dover, 1973.
 \bibitem{StrangAM} G.~Strang, \emph{Introduction to Applied Mathematics}, Wellesley-Cambridge Press, 1986.
