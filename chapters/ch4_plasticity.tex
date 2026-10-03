@@ -490,7 +490,7 @@ second-order tensors, elements of the space $\Sym$, and the plastic strain
 $\epsp$ is a symmetric tensor field.
 
 \subsection{Elastic law}\label{ssec:pl-elastic}
-\index{plastic strain}\index{strain!additive decomposition}%
+\index{plastic strain}\index{strain!additive decomposition}\index{initial strain}\index{eigenstrain|see{initial strain}}%
 The strain is split additively, $\eps=\epse+\epsp$, and the stress is given by
 the elastic law of Chapter~\ref{ch:elliptic} applied to the elastic part:
 \begin{equation}\label{eq:pl-elastic}
@@ -517,7 +517,7 @@ hardening variables $\vq$ describe the position and the size of the domain;
 we first consider fixed $\vq$ and write $f(\sig)$.
 
 \paragraph{Isotropy and invariants.}
-\index{stress!invariants}\index{stress!deviator}\index{Haigh--Westergaard space}%
+\index{stress!invariants}\index{stress!deviator}\index{Haigh--Westergaard space}\index{deviatoric plane}\index{Lode angle}%
 For an isotropic material, $f(\sig)$ depends only on the principal stresses
 $\sigma_1,\sigma_2,\sigma_3$, symmetrically. It is convenient to split the
 stress into its mean (hydrostatic) part and its deviator,
@@ -533,7 +533,9 @@ In the $\pi$-plane, the deviator has polar coordinates $(\norm{\tens{s}},\theta)
 where $\norm{\tens{s}}=\sqrt{\tens{s}:\tens{s}}=\sqrt{2J_2}$ and the Lode
 angle $\theta$ is a function of $J_3/J_2^{3/2}$.
 
-\paragraph{Metals are insensitive to pressure.} Plastic flow in metals is
+\paragraph{Metals are insensitive to pressure.}
+\index{incompressibility!plastic}%
+Plastic flow in metals is
 produced by slip on crystallographic planes, driven by shear stresses. A
 superposed hydrostatic pressure does not change the yield stress, and the
 plastic strain is isochoric, $\tr\epsp=0$. The yield function then depends
@@ -594,7 +596,7 @@ hexagonal pyramid~\cite{Salencon2002}. All the criteria above define convex
 sets; Section~\ref{sec:pl-maxdiss} explains why convexity is not an accident.
 
 \subsection{Flow rule, hardening rule and loading conditions}\label{ssec:pl-flow}
-\index{flow rule}\index{hardening rule}\index{flow rule!associative}%
+\index{flow rule}\index{hardening rule}\index{flow rule!associative}\index{plasticity!rate-independent}%
 The general model of rate-independent plasticity~\cite[Sec.~2.2]{SimoHughes1998}
 gives the rates of the plastic strain and of the hardening variables in terms
 of a single multiplier $\gamma$.
@@ -782,7 +784,7 @@ the results of Section~\ref{sec:pl-maxdiss} do not apply to it, although its
 dissipation is non-negative (Exercise~\ref{exo:pl-af}).
 
 \paragraph{Corners.}
-\index{Tresca criterion!flow rule}\index{yield surface!corner}%
+\index{Tresca criterion!flow rule}\index{yield surface!corner}\index{Koiter's rule}%
 The Tresca criterion is not differentiable on the edges of the hexagon. It is
 the intersection of six smooth (planar) criteria $f_\beta\le0$, and the flow
 rule is then written with one multiplier per active surface,
@@ -876,7 +878,7 @@ As for the filament, only the initial yield stress dissipates; the hardening
 part of the plastic work is stored.
 
 \subsection{Generalized standard materials}\label{ssec:pl-gsm-def}
-\index{dissipation potential}\index{generalized standard material!definition}\index{normality rule}%
+\index{dissipation potential}\index{generalized standard material!definition}\index{normality rule}\index{Biot equation}\index{Legendre--Fenchel transform!dual dissipation potential}\index{Fenchel--Young inequality!normality rule}%
 \begin{definition}[Halphen--Nguyen~\cite{HalphenNguyen1975}]\label{def:pl-gsm}
 A material is \emph{generalized standard} if its state laws derive from a free
 energy $\psi(\eps,\vz)$, convex in $(\eps,\vz)$, and if there is a
@@ -1007,7 +1009,7 @@ flow rule is the projection of a trial state onto $\Esig$ in this norm.
 
 %======================================================================
 \section{The principle of maximum plastic dissipation}\label{sec:pl-maxdiss}
-\index{maximum plastic dissipation}%
+\index{maximum plastic dissipation}\index{Drucker's postulate}%
 The normality rule has a variational form, which extends
 Proposition~\ref{prop:pl-1d-maxdiss}: among all admissible generalized
 stresses, the actual one maximizes the dissipated power. It was postulated by
@@ -1099,7 +1101,7 @@ lies in the cone of normals.}
 \end{figure}
 
 \begin{remark}[The Lagrangian of Simo and Hughes]\label{rem:pl-kkt}
-\index{Karush--Kuhn--Tucker conditions!plasticity}%
+\index{Karush--Kuhn--Tucker conditions!plasticity}\index{Slater condition}\index{plastic multiplier!as a Lagrange multiplier}%
 Statement (a) is a constrained optimization problem: the actual $\vSig$
 minimizes $-\vSig^\ast\cdot\dot\vz$ under the constraint $f(\vSig^\ast)\le0$.
 Its Lagrangian is $\mathcal L(\vSig^\ast,\gamma)=-\vSig^\ast\cdot\dot\vz+\gamma f(\vSig^\ast)$,
@@ -1177,6 +1179,7 @@ rate. The unknowns are the displacement $\vu(\vx,t)$, the stress $\sig(\vx,t)$
 and the internal variables $\vz(\vx,t)=(\epsp,\valpha)(\vx,t)$.
 
 \subsection{Equations}\label{ssec:pl-bvp-eq}
+\index{Tonti diagram!elastoplasticity}%
 \begin{gbox}{Quasi-static elastoplastic evolution problem}
 For $t\in[0,T]$:
 \begin{align}
@@ -1229,7 +1232,7 @@ nonlinear relation, and it is local.}
 \end{figure}
 
 \subsection{Uniqueness of the stresses}\label{ssec:pl-unique}
-\index{uniqueness!elastoplastic stresses}%
+\index{uniqueness!elastoplastic stresses}\index{function space!BD@$BD$}%
 \begin{theorem}\label{thm:pl-unique}
 Let $(\vu_i,\sig_i,\vz_i)$, $i=1,2$, be two smooth solutions of the evolution
 problem with the same data and the same initial state. Let $\bbC$ be
@@ -1307,7 +1310,7 @@ Hill's criterion for the loss of uniqueness of the rate problem (bifurcation,
 necking, shear banding)~\cite{Hill1958,Nguyen2000}.
 
 \subsection{Perfect plasticity and limit analysis}\label{ssec:pl-limit}
-\index{limit analysis}\index{limit load}\index{plasticity!perfect}%
+\index{limit analysis}\index{limit load}\index{plasticity!perfect}\index{limit analysis!static approach}\index{limit analysis!kinematic approach}%
 For an elastic--perfectly plastic material the elastic domain is a fixed
 convex set $P\subset\Sym$ of stresses. Under a load that increases
 proportionally, $\lambda\ell$ with $\ell(\vv)=\displaystyle\int_\Omega\vfD\cdot\vv\dd x+\int_{S_t}\vtD\cdot\vv\dd s$
@@ -1343,7 +1346,7 @@ $\pi_P(\tens d)=\sqrt{2/3}\,\sY\norm{\tens d}$ if $\tr\tens d=0$ and $+\infty$
 otherwise (Example~\ref{ex:pl-mises-pi}): collapse mechanisms are isochoric.
 
 \begin{example}[A bar clamped at both ends]\label{ex:pl-bar}
-\index{residual stress}\index{limit load!bar}%
+\index{residual stress}\index{limit load!bar}\index{shakedown}%
 A bar of length $L$, section $A$, elastic--perfectly plastic, is clamped at
 both ends and loaded by an axial force $P$ at $x=a$, with $a<L/2$
 (Figure~\ref{fig:pl-bar}). Let $N_1$ and $N_2$ be the normal forces in
@@ -1772,7 +1775,7 @@ $\ve_1\otimes\ve_1-\vm\otimes\vm$ for every unit $\vm\perp\ve_1$.
 \end{solution}
 
 \exercise{The dissipation function of Drucker--Prager}\label{exo:pl-dp}
-\index{Drucker--Prager criterion!dissipation function}%
+\index{Drucker--Prager criterion!dissipation function}\index{dilatancy}%
 For the Drucker--Prager domain
 $P=\{\sig:\ \sigma_{eq}+\alpha_{DP}\tr\sig-\sigma_0\le0\}$, $\alpha_{DP}>0$,
 show with Kondo and Maitournam~\cite{KondoMaitournam2023} that
@@ -1852,7 +1855,7 @@ map.
 \end{solution}
 
 \exercise{Bending of a beam and springback}\label{exo:pl-bending}
-\index{bending!elastic--plastic}\index{springback}%
+\index{bending!elastic--plastic}\index{springback}\index{shape factor}%
 A beam of rectangular section $b\times h$, elastic--perfectly plastic, is bent
 by a moment $M$, with $\varepsilon=-\kappa y$. (a) With an elastic core
 $|y|\le c$, show that $\displaystyle M=\sY b\bigl(\frac{h^2}{4}-\frac{c^2}{3}\bigr)$, and give
