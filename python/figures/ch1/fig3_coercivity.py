@@ -46,7 +46,7 @@ ax.grid(alpha=0.3)
 ax.set_xlim(0, xmax)
 ax.set_ylim(0, a_uu.max()*1.05)
 fig.tight_layout()
-fig.savefig("../../figures/ch1/ex3_coercivity.pdf")
+fig.savefig("../../../figures/ch1/ex3_coercivity.pdf")
 print("all points within [alpha*||u||^2, M*||u||^2]:",
       bool(np.all(a_uu >= alpha*norm_sq - 1e-9) and np.all(a_uu <= M*norm_sq + 1e-9)))
 print("alpha =", alpha, " M =", M)

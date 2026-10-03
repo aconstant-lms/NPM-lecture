@@ -52,5 +52,5 @@ ax.legend(frameon=False, fontsize=7, loc="center right")
 ax.grid(alpha=0.3)
 
 fig.tight_layout()
-fig.savefig("../../figures/ch1/doublewell_bistability.pdf")
+fig.savefig("../../../figures/ch1/doublewell_bistability.pdf")
 print("saved. final values:", {u0: round(traj[-1],4) for u0,traj in trajectories.items()})

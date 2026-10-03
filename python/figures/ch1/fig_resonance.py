@@ -49,5 +49,5 @@ ax.legend(frameon=False, fontsize=7, loc="upper right")
 ax.grid(alpha=0.3)
 
 fig.tight_layout()
-fig.savefig("../../figures/ch1/resonance_example.pdf")
+fig.savefig("../../../figures/ch1/resonance_example.pdf")
 print("saved")

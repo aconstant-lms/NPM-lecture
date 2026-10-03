@@ -1,0 +1,254 @@
+%======================================================================
+\chapter{Function spaces, the Poincar\'e inequality and C\'ea's lemma}\label{app:spaces}
+%======================================================================
+% Written for the author's note: "need of an introduction of functional
+% spaces with examples and counterexamples; small explanation when
+% Poincare appears; similar for Cea's theorem".
+
+\framepart{Outline}
+This appendix gives the minimum of functional analysis used in the book, in
+the hands-on style of Strang~\cite{StrangFix1973,StrangCSE2007}: every
+definition comes with its finite-dimensional analogue, an example and a
+counterexample. Section~\ref{sec:sp-spaces} defines the spaces $L^2$, $H^1$
+and $H^1_0$ and explains why they must be complete.
+Section~\ref{sec:sp-traces} treats boundary values and loads.
+Section~\ref{sec:sp-poincare} proves the Poincar\'e inequality and
+Section~\ref{sec:sp-cea} C\'ea's lemma. For a complete treatment see
+\cite{BrezisSp,EvansSp,AdamsSp}.
+
+%======================================================================
+\section{Spaces of finite energy}\label{sec:sp-spaces}
+\index{function space}%
+\paragraph{Norms and inner products.} On $\R^n$ the Euclidean inner product
+$\vu\cdot\vv=\sum u_iv_i$ gives the norm $|\vu|$. For functions on a domain
+$\Omega$, sums become integrals:
+\begin{align*}
+  (u,v)_{L^2}&=\int_\Omega uv\dd x, &
+  \norm{v}_{L^2}^2&=\int_\Omega v^2\dd x,\\
+  (u,v)_{H^1}&=\int_\Omega\bigl(uv+\nabla u\cdot\nabla v\bigr)\dd x, &
+  \norm{v}_{H^1}^2&=\norm{v}_{L^2}^2+\norm{\nabla v}_{L^2}^2 .
+\end{align*}
+$L^2(\Omega)$ and $H^1(\Omega)$ are the functions for which these norms are
+finite; $H^1_0(\Omega)$ is the subspace of $H^1$ of functions vanishing on
+$\partial\Omega$. Derivatives are taken in the weak sense: $g=v'$ if
+$\int g\varphi=-\int v\varphi'$ for all smooth $\varphi$ vanishing at the ends,
+which is integration by parts used as a definition. A hat function has the
+weak derivative $\pm1/h$, piecewise constant; a step function has none in
+$L^2$ (its derivative is a Dirac mass).
+
+\paragraph{Why completeness matters.}
+\index{completeness}\index{Hilbert space}%
+The direct method (Section~\ref{sec:var-direct}) and Lax--Milgram
+(Section~\ref{sec:var-lm}) need limits of sequences to stay in the space.
+$L^2$, $H^1$ and $H^1_0$ are complete: they are \emph{Hilbert spaces}.
+Spaces of smooth functions are not. The functions
+$v_n(x)=\sqrt{x^2+1/n^2}$ are smooth on $(-1,1)$ and converge in the $H^1$ norm
+to $|x|$, which is not differentiable at $0$. A minimizer searched among
+smooth functions may therefore not exist, while it exists in $H^1$; this is
+why the weak form is posed in $H^1$ and not in $C^1$ or $C^2$.
+
+\paragraph{Continuity depends on the dimension.}
+\index{Sobolev embedding}%
+In one dimension an $H^1$ function is continuous, and even
+H\"older-continuous:
+\[
+  |v(x)-v(y)|=\Bigl|\int_y^xv'\Bigr|\le|x-y|^{1/2}\,\norm{v'}_{L^2}
+\]
+by Cauchy--Schwarz. In two and three dimensions this fails: $\ln|\ln r|$ is in
+$H^1$ near the origin of $\R^2$ but unbounded (Exercise~\ref{exo:sp-loglog}).
+Point values, and hence point loads and point constraints, make sense in 1D
+(springs, bars, beams) but not in 2D or 3D, where a point force produces a
+displacement with infinite energy (Exercise~\ref{exo:sp-point}).
+
+%======================================================================
+\section{Boundary values and loads}\label{sec:sp-traces}
+\paragraph{Traces.}
+\index{trace}%
+An $L^2$ function has no boundary value: changing it on the boundary, a set of
+zero volume, does not change it. An $H^1$ function has one, its \emph{trace},
+and
+\[
+  \norm{v}_{L^2(\partial\Omega)}\le C_T\,\norm{v}_{H^1(\Omega)} .
+\]
+The traces of $H^1(\Omega)$ functions form the space $H^{1/2}(\partial\Omega)$,
+``half a derivative'' smoother than $L^2$. Prescribed potentials or
+displacements must therefore belong to $H^{1/2}$: a potential that jumps
+along the boundary (two electrodes in contact) is not admissible, and the
+corresponding energy is infinite.
+
+\paragraph{Loads and the dual space.}
+\index{dual space}%
+A load is a linear form $L(v)$ on the space of test functions: the work of
+the forces in the virtual displacement $v$. It must be continuous,
+$|L(v)|\le\norm{L}\,\norm{v}$, i.e.\ belong to the dual space; for
+$H^1_0(\Omega)$ the dual is denoted $H^{-1}(\Omega)$. Body forces in $L^2$ and
+surface tractions in $L^2(\partial\Omega)$, or more generally in
+$H^{-1/2}(\partial\Omega)$, are admissible. A point force $L(v)=Fv(\vx_0)$ is
+admissible in 1D, where point values are continuous on $H^1$, and not in 2D
+or 3D. The discrete analogue is a vector $\vf$ acting on $\vu$ by $\vf\T\vu$.
+
+%======================================================================
+\section{The Poincar\'e inequality}\label{sec:sp-poincare}
+\index{Poincar\'e inequality}%
+\begin{theorem}[Poincar\'e]\label{thm:poincare}
+Let $\Omega$ be bounded. There is a constant $C_P$, depending only on $\Omega$,
+such that
+\[
+  \norm{v}_{L^2(\Omega)}\le C_P\,\norm{\nabla v}_{L^2(\Omega)}\qquad\forall v\in H^1_0(\Omega).
+\]
+On an interval of length $L$ the best constant is $C_P=L/\pi$.
+\end{theorem}
+\begin{proof}[Proof on an interval]
+Let $v\in H^1_0(0,L)$. Since $v(0)=0$,
+$v(x)=\int_0^xv'(t)\dd t$, and by Cauchy--Schwarz
+$v(x)^2\le x\int_0^Lv'^2$. Integrating over $(0,L)$ gives
+$\int_0^Lv^2\le\frac{L^2}{2}\int_0^Lv'^2$, i.e.\ the inequality with
+$C_P=L/\sqrt2$. For the best constant expand $v$ in the sine series
+$v=\sum_kb_k\sin(k\pi x/L)$, which satisfies the boundary conditions:
+$\int v^2=\frac L2\sum b_k^2$ and
+$\int v'^2=\frac L2\sum(k\pi/L)^2b_k^2\ge(\pi/L)^2\int v^2$, with equality
+for $v=\sin(\pi x/L)$.
+\end{proof}
+
+\paragraph{What it means.} A function pinned to zero on the boundary cannot be
+large without slopes. The best constant is the inverse square root of the
+smallest eigenvalue of $-\Delta$ with Dirichlet conditions,
+$1/C_P^2=\lambda_1=\min_v\int|\nabla v|^2/\int v^2$, the Rayleigh quotient of
+\eqref{eq:rayleigh}. Physically $\lambda_1$ fixes the fundamental frequency of
+a membrane or a string, and the Euler load of a column
+(Section~\ref{sec:var-lm}).
+
+\paragraph{Counterexamples.} Without a boundary condition the inequality fails:
+constants have zero gradient. On $H^1(\Omega)$ it holds only for functions of
+zero mean (Poincar\'e--Wirtinger inequality), which is why the pure Neumann
+problem is solved up to a constant (Exercise~\ref{exo:neumann}). In matrix
+terms, $\mat{B}\T\mat{B}$ is singular when the springs are not attached to a
+wall: the rigid translation $\vu=(1,1,1)\T$ costs no energy.
+
+%======================================================================
+\section{C\'ea's lemma}\label{sec:sp-cea}
+\index{C\'ea's lemma@C\'ea's lemma}\index{Galerkin method!orthogonality}%
+\begin{theorem}[C\'ea]\label{thm:cea}
+Let $a$ be bounded ($M$) and coercive ($\alpha$) on $V$, $u\in V$ the solution of
+$a(u,v)=L(v)$ for all $v\in V$, and $u_h\in V_h\subset V$ the Galerkin solution,
+$a(u_h,v_h)=L(v_h)$ for all $v_h\in V_h$. Then
+\[
+  \norm{u-u_h}\le\frac M\alpha\,\inf_{v_h\in V_h}\norm{u-v_h} .
+\]
+\end{theorem}
+\begin{proof}
+Subtracting the two equations for $v=v_h\in V_h$ gives the \emph{Galerkin
+orthogonality} $a(u-u_h,v_h)=0$ for all $v_h\in V_h$. For any $v_h$, since
+$u_h-v_h\in V_h$,
+\[
+  \alpha\norm{u-u_h}^2\le a(u-u_h,u-u_h)=a(u-u_h,u-v_h)\le M\norm{u-u_h}\norm{u-v_h}.
+\]
+Divide by $\norm{u-u_h}$ and take the infimum over $v_h$.
+\end{proof}
+
+\paragraph{What it means.} The Galerkin method makes no error of its own: up to
+the factor $M/\alpha$ it delivers the best approximation that the space $V_h$
+can offer. If $a$ is symmetric, Galerkin orthogonality says that $u_h$ is the
+orthogonal projection of $u$ on $V_h$ for the energy inner product $a$; by
+Pythagoras, $a(u-v_h,u-v_h)=a(u-u_h,u-u_h)+a(u_h-v_h,u_h-v_h)$, so $u_h$ is the
+best approximation in the energy norm and the factor $M/\alpha$ disappears.
+In matrix terms, the Galerkin solution solves the reduced system
+$\mat{W}\T\mat{K}\mat{W}\,\vect{c}=\mat{W}\T\vf$, where the columns of
+$\mat{W}$ span the trial space.
+
+\paragraph{Convergence rate.} The infimum is bounded by choosing for $v_h$ the
+interpolant $I_hu$ of $u$ with the hat functions. On each element of size
+$h$, $|(u-I_hu)'|$ is controlled by $h\,|u''|$, so
+$\norm{u-u_h}_{H^1}\le C\,h\,\norm{u''}_{L^2}$: linear elements converge at
+order $h$ in energy, and at order $h^2$ in $L^2$ (Exercise~\ref{exo:conv}).
+
+%======================================================================
+\framepart{Summary}
+\begin{gbox*}
+\begin{itemize}
+  \item \textbf{$L^2$, $H^1$, $H^1_0$} are the functions with finite mean
+  square, finite energy, and finite energy with zero boundary values. They
+  are complete (Hilbert spaces), which is what existence proofs need.
+  \item \textbf{Examples and counterexamples:} hat functions are in $H^1$,
+  steps are not; in 2D and 3D, $H^1$ functions may be unbounded and point
+  forces have infinite energy.
+  \item \textbf{Traces} of $H^1$ functions lie in $H^{1/2}(\partial\Omega)$;
+  loads are elements of the dual space.
+  \item \textbf{Poincar\'e:} on $H^1_0$ the gradient controls the function,
+  $C_P=1/\sqrt{\lambda_1}$; the discrete analogue is the absence of rigid
+  motions.
+  \item \textbf{C\'ea:} the Galerkin solution is the best approximation up to
+  $M/\alpha$, and exactly the best in the energy norm for symmetric problems.
+\end{itemize}
+\end{gbox*}
+
+%======================================================================
+\framepart{Exercises}
+
+\exercise{Powers of $x$}\label{exo:sp-powers}
+For which $\alpha>0$ is $x^\alpha$ in $L^2(0,1)$? In $H^1(0,1)$? In
+$H^2(0,1)$?
+\begin{solution}
+$\int_0^1x^{2\alpha}<\infty$ for all $\alpha>-\tfrac12$, so always in $L^2$;
+$\int_0^1\alpha^2x^{2\alpha-2}<\infty$ iff $\alpha>\tfrac12$;
+$\int_0^1x^{2\alpha-4}<\infty$ iff $\alpha>\tfrac32$ (or $\alpha=1$, where the
+second derivative vanishes).
+\end{solution}
+
+\exercise{An unbounded function of finite energy}\label{exo:sp-loglog}
+In the disc $r<\tfrac12$ of $\R^2$, show that $v=\ln|\ln r|$ belongs to $H^1$
+but is unbounded.
+\begin{solution}
+$|\nabla v|=1/(r|\ln r|)$, so
+$\int|\nabla v|^2=2\pi\int_0^{1/2}\frac{\dd r}{r\ln^2r}=\frac{2\pi}{\ln2}<\infty$
+(substitute $s=\ln r$). The function itself is square integrable and tends to
+$+\infty$ as $r\to0$.
+\end{solution}
+
+\exercise{A point force on a membrane}\label{exo:sp-point}
+A membrane of tension $T$ occupies the disc $r<R$, is fixed on $r=R$ and
+loaded by a point force $F$ at its centre. (a) Show that $u=\frac{F}{2\pi T}\ln(R/r)$
+satisfies the equilibrium $-T\Delta u=0$ for $r>0$ and carries the total
+force $F$. (b) Compute the energy in the annulus $\epsilon<r<R$ and let
+$\epsilon\to0$. (c) Compare with a string loaded at one point.
+\begin{solution}
+(a) $\Delta\ln r=0$ for $r>0$, and the flux through a circle is
+$-2\pi rT\,u'(r)=F$. (b) $\tfrac T2\int|\nabla u|^2=\frac{F^2}{4\pi T}\ln(R/\epsilon)\to\infty$:
+infinite energy, and infinite displacement at the load point. (c) A string
+loaded at one point takes a triangular shape of finite energy: in 1D point
+values are continuous on $H^1$ and point forces are admissible. In 2D a
+force must be spread over an area, however small.
+\end{solution}
+
+\exercise{The Poincar\'e constant by the Rayleigh quotient}\label{exo:sp-rayleigh}
+Use the trial function $v=x(1-x)$ in the Rayleigh quotient
+$\int_0^1v'^2/\int_0^1v^2$ to bound $\lambda_1$ on $(0,1)$ from above, and
+compare with $\pi^2$.
+\begin{solution}
+$\int_0^1(1-2x)^2=\tfrac13$ and $\int_0^1x^2(1-x)^2=\tfrac1{30}$, so the
+quotient is $10\ge\pi^2\approx9.87$: an error of $1.3\%$ with a single
+parabola. This is the Rayleigh--Ritz method for eigenvalues, used later for
+buckling loads.
+\end{solution}
+
+\exercise{Galerkin is exact at the nodes in 1D}\label{exo:sp-nodal}
+For $-u''=f$ on $(0,1)$, $u(0)=u(1)=0$, show that the linear finite element
+solution $u_h$ equals the exact solution at the nodes, so that $u_h=I_hu$
+and the error is exactly the interpolation error of C\'ea's lemma.
+\begin{solution}
+Galerkin orthogonality reads $\int_0^1(u-u_h)'\varphi_i'=0$ for every hat
+function. Since $\varphi_i'=\pm1/h$ on the two elements of node $i$, this is
+$\frac1h\bigl[(e(x_i)-e(x_{i-1}))-(e(x_{i+1})-e(x_i))\bigr]=0$ for the error
+$e=u-u_h$, with $e(0)=e(1)=0$: the nodal errors satisfy the discrete Laplace
+equation with zero end values, hence vanish. This special property of 1D
+explains the high nodal accuracy observed in Exercise~\ref{exo:conv}.
+\end{solution}
+
+%======================================================================
+\begin{chapterbib}{9}
+\bibitem{AdamsSp} R.~A.~Adams, J.~J.~F.~Fournier, \emph{Sobolev Spaces}, 2nd ed., Academic Press, 2003.
+\bibitem{BrezisSp} H.~Brezis, \emph{Functional Analysis, Sobolev Spaces and Partial Differential Equations}, Springer, 2011.
+\bibitem{EvansSp} L.~C.~Evans, \emph{Partial Differential Equations}, 2nd ed., AMS, 2010.
+\bibitem{StrangCSE2007} G.~Strang, \emph{Computational Science and Engineering}, Wellesley-Cambridge Press, 2007.
+\bibitem{StrangFix1973} G.~Strang, G.~J.~Fix, \emph{An Analysis of the Finite Element Method}, Prentice-Hall, 1973.
+\end{chapterbib}

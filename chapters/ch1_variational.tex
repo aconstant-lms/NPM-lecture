@@ -26,19 +26,26 @@ constraints and finite elements.
   multipliers;
   \item recognize the structure $\mat{B}\T\mat{C}\mat{B}$ underlying springs,
   circuits, trusses and finite elements;
+  \item recognize the structure of adjoint operators in the Tonti diagram, and
+  make the precise link between differential operators and their
+  linear-algebra counterparts: gradient and $\mat{B}$, divergence and
+  $-\mat{B}\T$, bilinear form and stiffness matrix;
+  \item know the function spaces in which the energy is finite, with their
+  examples and counterexamples;
   \item derive a strong PDE from an energy, reconstruct an energy from a
   symmetric weak form, and recognize when no energy exists.
 \end{itemize}
 
 \paragraph{Plan of the chapter.} Section~\ref{sec:var-intro} explains why the question
 matters. Section~\ref{sec:var-discrete} works out the discrete picture:
-springs, the Tonti diagram, the minimum of the energy, symmetry and
-reciprocity. Sections~\ref{sec:var-weak}--\ref{sec:var-elliptic} pass to the
+springs, the Tonti diagram, the minimum of the energy, symmetry,
+reciprocity, and constraints with Lagrange multipliers.
+Section~\ref{sec:var-spaces} introduces the function spaces of the continuum.
+Sections~\ref{sec:var-weak}--\ref{sec:var-elliptic} pass to the
 continuum: weak and strong forms, existence by minimization, the
 Lax--Milgram theorem and general elliptic operators.
 Section~\ref{sec:var-dual} constructs the dual problem,
-Section~\ref{sec:var-lagrange} adds constraints, Section~\ref{sec:var-fem}
-discretizes by finite elements, and Section~\ref{sec:var-phys} returns to
+Section~\ref{sec:var-fem} discretizes by finite elements, and Section~\ref{sec:var-phys} returns to
 physics with minimal surfaces. A summary, exercises with solutions
 (page~\pageref{sec:var-exo}) and the references close the chapter. The technical definitions of the variational
 derivatives (G\^ateaux, Fr\'echet, functional derivative) are given in
@@ -109,25 +116,36 @@ required.
 
 \subsection{A chain of springs}\label{ssec:springs}
 \index{spring chain}\index{compatibility}\index{equilibrium!discrete}\index{constitutive law!Hooke (springs)}%
-Consider four springs connecting three masses between two fixed walls.
-\begin{center}
+Consider four springs connecting three masses between two fixed walls
+(Figure~\ref{fig:springs}). All motions are along the axis $x$.
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}[scale=1]
   \draw[thick] (0,-0.5) -- (0,0.5);
   \foreach \y in {-0.5,-0.3,-0.1,0.1,0.3,0.5} \draw (0,\y) -- (-0.18,\y-0.18);
   \draw[thick] (9,-0.5) -- (9,0.5);
   \foreach \y in {-0.5,-0.3,-0.1,0.1,0.3,0.5} \draw (9,\y) -- (9.18,\y-0.18);
-  \draw[spring] (0,0) -- (2,0);      \node[above] at (1,0.28) {\small $e_1,\,\sigma_1$};
-  \draw[spring] (2.5,0) -- (4.25,0); \node[above] at (3.375,0.28) {\small $e_2,\,\sigma_2$};
-  \draw[spring] (4.75,0) -- (6.5,0); \node[above] at (5.625,0.28) {\small $e_3,\,\sigma_3$};
-  \draw[spring] (7,0) -- (9,0);      \node[above] at (8,0.28) {\small $e_4,\,\sigma_4$};
+  \draw[spring] (0,0) -- (2,0);      \node[below] at (1,-0.28) {\small $c_1;\ e_1,\sigma_1$};
+  \draw[spring] (2.5,0) -- (4.25,0); \node[below] at (3.375,-0.28) {\small $c_2;\ e_2,\sigma_2$};
+  \draw[spring] (4.75,0) -- (6.5,0); \node[below] at (5.625,-0.28) {\small $c_3;\ e_3,\sigma_3$};
+  \draw[spring] (7,0) -- (9,0);      \node[below] at (8,-0.28) {\small $c_4;\ e_4,\sigma_4$};
   \foreach \i/\xpos in {1/2.25, 2/4.5, 3/6.75} {
     \draw[thick,fill=white] (\xpos,0) circle (0.25);
     \node at (\xpos,0) {$m_{\i}$};
-    \draw[arr] (\xpos,-0.35) -- (\xpos,-0.85);
-    \node[below] at (\xpos,-0.85) {$u_{\i},\,f_{\i}$};
+    \draw[thick,cu] (\xpos,-0.25) -- (\xpos,-1.05);
+    \draw[arr,cu] (\xpos,-1.05) -- (\xpos+0.75,-1.05) node[right,font=\small] {$u_{\i}$};
+    \draw[arr,orange!80!black] (\xpos,0.95) -- (\xpos+0.75,0.95) node[right,font=\small] {$f_{\i}$};
+    \draw[orange!80!black,thick] (\xpos,0.25) -- (\xpos,0.95);
   }
+  \draw[->] (0,-1.6) -- (9.7,-1.6) node[right] {$x$};
+  \draw (0,-1.53) -- (0,-1.67) node[below,font=\small] {$0$};
 \end{tikzpicture}
-\end{center}
+\caption{A chain of three masses and four springs of stiffness $c_i>0$
+between two fixed walls. The displacements $u_i$ and the external forces
+$f_i$ are counted positive in the direction of the axis $x$; $e_i$ is the
+elongation of spring $i$ and $\sigma_i$ its tension.}
+\label{fig:springs}
+\end{figure}
 Let $\vu=(u_1,u_2,u_3)$ be the nodal displacements, $\ve=(e_1,\dots,e_4)$ the
 spring elongations, $\vect{\sigma}=(\sigma_1,\dots,\sigma_4)$ the spring
 forces and $\vf$ the external nodal forces. The three groups of equations are:
@@ -139,7 +157,8 @@ forces and $\vf$ the external nodal forces. The three groups of equations are:
   \begin{bmatrix} u_1 \\ u_2 \\ u_3 \end{bmatrix};
 \]
 \item \emph{constitutive law} (Hooke), $\vect{\sigma}=\mat{C}\ve$, with
-$\mat{C}=\diag(c_1,c_2,c_3,c_4)$ the spring stiffnesses;
+$\mat{C}=\diag(c_1,c_2,c_3,c_4)$ the spring stiffnesses, all positive,
+$c_i>0$, so that $\mat{C}$ is positive definite;
 \item \emph{equilibrium} of each mass, $\vf=\mat{B}\T\vect{\sigma}$:
 \[
   \begin{bmatrix} f_1 \\ f_2 \\ f_3 \end{bmatrix}
@@ -175,20 +194,28 @@ the finite element stiffness matrix in Section~\ref{sec:var-fem}.
 \index{Tonti diagram!discrete}\index{stiffness matrix}%
 \begin{figure}[h]
 \centering
-\begin{tikzpicture}[node distance=1.4cm and 3.6cm]
-  \node[smallbox] (x) {$\vu$ \\ \footnotesize displacement};
-  \node[smallbox, right=3.6cm of x] (f) {$\vf$ \\ \footnotesize force};
-  \node[smallbox, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
-  \node[smallbox, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
+\begin{tikzpicture}[node distance=1.4cm and 2.4cm,
+  tb/.style={smallbox,minimum width=3.3cm}]
+  \node[tb] (x) {$\vu$ \\ \footnotesize displacement};
+  \node[tb, right=2.4cm of x] (f) {$\vf=\mat{B}\T\vect{\sigma}$ \\ \footnotesize force};
+  \node[tb, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
+  \node[tb, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
+  \node[tb, right=1.6cm of f, minimum width=2.4cm] (wf) {$\vf\T\vu$ \\ \footnotesize external work};
+  \node[tb, right=1.6cm of s, minimum width=2.4cm] (ws) {$\vect{\sigma}\T\ve$ \\ \footnotesize internal work};
   \draw[arr] (x) -- (e) node[midway,left]{$\mat{B}$};
   \draw[arr] (e) -- (s) node[midway,below]{$\mat{C}$};
   \draw[arr] (s) -- (f) node[midway,right]{$\mat{B}\T$};
-  \node[left=0.3cm of e,font=\scriptsize\sffamily,align=right] {kinematic};
-  \node[right=0.3cm of s,font=\scriptsize\sffamily,align=left] {static};
+  \node at ($(wf)!0.5!(ws)$) {\Large $\Vert$};
+  \node[below=0.15cm of e,font=\small\sffamily] {kinematic};
+  \node[below=0.15cm of s,font=\small\sffamily] {static};
+  \node[below=0.15cm of ws,font=\small\sffamily] {mechanical work};
 \end{tikzpicture}
-\caption{Tonti diagram of the spring chain. Top row: primary fields; bottom
-row: derived fields, kinematic on the left, static on the right, joined by
-the material law $\mat{C}$.}
+\caption{Tonti diagram of the spring chain. Left column: kinematic
+quantities; middle column: static quantities, joined by the material law
+$\mat{C}$. The right column is the mechanical work: the external work
+$\vf\T\vu$ equals the internal work $\vect{\sigma}\T\ve$ for every $\vu$
+because the equilibrium operator is the transpose of the compatibility
+operator.}
 \label{fig:tonti-discrete}
 \end{figure}
 Figure~\ref{fig:tonti-discrete} shows the structure. By
@@ -255,7 +282,7 @@ $J(u)=\tfrac12a(u,u)-L(u)$, a non-symmetric one generally has none
 (Exercises~\ref{exo:guess-energy} and~\ref{exo:no-energy}).
 
 \subsection{Reciprocity: the Maxwell--Betti theorem}\label{ssec:reciprocity}
-\index{reciprocity!Maxwell--Betti}\index{Maxwell--Betti theorem}\index{Faraday experiment}%
+\index{reciprocity!Maxwell--Betti}\index{Maxwell--Betti theorem}\index{reciprocity!rod experiment}\index{reciprocity!history}%
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[scale=1]
@@ -289,10 +316,17 @@ $F^{(1)}u^{(2)}_P=F^{(2)}u^{(1)}_Q$.}
 \end{figure}
 Loading a structure at $P$ and measuring the displacement at $Q$ gives the
 same cross-work as loading at $Q$ and measuring at $P$
-(Figure~\ref{fig:reciprocity}). This is the reciprocity principle, shown in
-class as the ``Faraday experiment''.\footnote{In the literature the result is
-credited to Clebsch ($\sim$1862), Maxwell (1864), Betti (1872) and Rayleigh
-(1873).}\draftnote{Faraday attribution: keep as the name of the classroom demo?}
+(Figure~\ref{fig:reciprocity}). This is the reciprocity principle. In class
+it is shown on a cantilever rod, following the presentation of
+Fung~\cite{Fung1965}.\draftnote{Name ``Faraday experiment'': please give the
+section/page of Fung where the rod experiment and its name appear; I could not
+check the book.} The theorem has a long history. Clebsch stated it for elastic
+bodies in his treatise of 1862~\cite{Clebsch1862}; Maxwell formulated it for
+frames, as the equality of the cross-displacements, in 1864~\cite{Maxwell1864};
+Betti proved the general reciprocal work theorem of elasticity in
+1872~\cite{Betti1872}; and Rayleigh extended it to vibrating systems in
+1873~\cite{Rayleigh1873}. Tarnai and Lengyel~\cite{TarnaiLengyel2007} review
+the whole family of reciprocal theorems.
 
 \begin{proposition}\label{prop:reciprocity}
 \index{reciprocity!and symmetry}\index{flexibility matrix}%
@@ -335,6 +369,166 @@ tensions satisfying $\mat{B}\T\vect{\sigma}=\vf$, is the discrete
 \emph{complementary energy principle}: the finite-dimensional counterpart of
 the primal/dual pair of Section~\ref{sec:var-dual}, with $\mat{B}\T$ playing
 the role of $-\dive$ and $\mat{C}^{-1}$ that of the conjugate energy.
+
+\subsection{Constraints and Lagrange multipliers}\label{sec:var-lagrange}
+\index{constraint}\index{Lagrange multiplier}\index{Lagrangian}%
+Many problems minimize an energy under constraints: imposed displacements,
+incompressibility, contact, plasticity. The Lagrangian turns the constrained
+problem into an unconstrained saddle-point problem.
+
+\begin{gbox}{Constrained optimization}
+\index{Karush--Kuhn--Tucker conditions}\index{saddle point}\index{complementarity condition}%
+Let $C$ and $\vect{A}=(A_1,\dots,A_m)$ be convex functions on $\R^n$.
+\begin{itemize}
+\item \emph{Problem $\mathcal P$:} minimize $C(\vx)$ under the constraint
+$\vect{A}(\vx)\le\vb$.
+\item \emph{Lagrangian:}
+$\mathcal L(\vx,\vect{y})=C(\vx)+\vect{y}\cdot\bigl(\vect{A}(\vx)-\vb\bigr)$,
+$\vect{y}\in\R^m$.
+\item \emph{Karush--Kuhn--Tucker conditions.} If $\vx$ solves $\mathcal P$
+(and a qualification condition holds), there is $\vect{y}\ge\vzero$ with
+\[
+  \nabla C(\vx)+\sum_iy_i\nabla A_i(\vx)=\vzero,\qquad
+  \vect{y}\ge\vzero,\quad\vect{A}(\vx)\le\vb,\quad
+  y_i\bigl(A_i(\vx)-b_i\bigr)=0\ \ \forall i .
+\]
+\end{itemize}
+For equality constraints $\vect{A}(\vx)=\vb$ the multipliers have no sign,
+and the conditions reduce to $\nabla_{\vx}\mathcal L=\vzero$,
+$\nabla_{\vect{y}}\mathcal L=\vzero$: $(\vx,\vect{y})$ is a saddle point of
+$\mathcal L$.
+\end{gbox}
+
+\begin{figure}[h]
+\centering
+\includegraphics[height=5cm]{figures/ch1/lagrange.pdf}
+\caption{Level sets of a convex cost $C$ and a constraint. At the constrained
+minimum the gradient of $C$ is balanced by a multiple of the gradient of the
+constraint.}
+\label{fig:lagrange}
+\end{figure}
+
+The last condition is \emph{complementarity}: either the constraint is
+active, $A_i(\vx)=b_i$, or its multiplier vanishes. The multiplier is the
+force needed to enforce the constraint. In Chapter~\ref{ch:elliptic},
+imposed displacements in a Ritz approximation are enforced this way, and the
+multipliers are the reaction forces (Section~\ref{ssec:ritz-lagrange}).
+Exercises~\ref{exo:kkt1}--\ref{exo:kkt4} work through four cases.
+
+\paragraph{Example: an imposed displacement in the spring chain.}
+\index{Lagrange multiplier!reaction force}\index{Tonti diagram!with constraints}%
+Impose the displacement of the third mass, $u_3=\uD$, instead of a force.
+The constraint is linear, $\mat{P}\vu=\uD$ with $\mat{P}=(0\ 0\ 1)$, and the
+Lagrangian of the energy~\eqref{eq:W-discrete} is
+\[
+  \mathcal L(\vu,\lambda)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu+\lambda\,(\mat{P}\vu-\uD).
+\]
+Its stationarity conditions form the saddle-point system
+\begin{equation}\label{eq:saddle-springs}
+  \begin{bmatrix}\mat{K}&\mat{P}\T\\ \mat{P}&0\end{bmatrix}
+  \begin{bmatrix}\vu\\ \lambda\end{bmatrix}=
+  \begin{bmatrix}\vf\\ \uD\end{bmatrix}.
+\end{equation}
+The first line is the equilibrium of the masses,
+$\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, with the reaction
+$\vect{r}=-\mat{P}\T\lambda$: the multiplier is the force that the support
+must exert to impose the displacement. With unit stiffnesses, $\vf=\vzero$ and
+$\uD=1$: $\vu=(\tfrac13,\tfrac23,1)\T$ and $\lambda=-\tfrac43$. The support
+pushes the third mass with the force $r_3=\tfrac43$, the stiffness of the
+three left springs in series ($\tfrac13$) plus that of the right spring ($1$). The computation is in \texttt{python/examples/ch1/springs\_constraint.py}.
+The Tonti diagram keeps its structure (Figure~\ref{fig:tonti-constraint}):
+the constraint enters the kinematic column, its multiplier the static one.
+The same construction imposes displacements in a finite element code
+(Section~\ref{ssec:ritz-lagrange}).
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=1.4cm and 2.6cm,
+  tb/.style={smallbox,minimum width=4.1cm}]
+  \node[tb] (x) {$\vu$, \quad $\mat{P}\vu=\uD$ \\ \footnotesize displacement, constraint};
+  \node[tb, right=2.6cm of x] (f) {$\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, \ $\vect{r}=-\mat{P}\T\lambda$ \\ \footnotesize forces and reaction};
+  \node[tb, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
+  \node[tb, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
+  \draw[arr] (x) -- (e) node[midway,left]{$\mat{B}$};
+  \draw[arr] (e) -- (s) node[midway,below]{$\mat{C}$};
+  \draw[arr] (s) -- (f) node[midway,right]{$\mat{B}\T$};
+  \node[below=0.15cm of e,font=\small\sffamily] {kinematic};
+  \node[below=0.15cm of s,font=\small\sffamily] {static};
+\end{tikzpicture}
+\caption{Tonti diagram of the spring chain with an imposed displacement. The
+constraint $\mat{P}\vu=\uD$ restricts the kinematic column; its Lagrange
+multiplier appears in the static column as the reaction
+$\vect{r}=-\mat{P}\T\lambda$.}
+\label{fig:tonti-constraint}
+\end{figure}
+
+
+%======================================================================
+\section{Function spaces in a nutshell}\label{sec:var-spaces}
+\index{function space}\index{Sobolev space}%
+In the spring chain the unknown is a vector of $\R^3$ and the energy is
+finite for every $\vu$. In the continuum the unknown is a function, and the
+first question is: \emph{for which functions is the energy finite?} The
+answer defines the space in which the problem is posed. Three spaces suffice
+for this book; their definitions, the proofs and the precise statements are
+in Appendix~\ref{app:spaces}.
+
+\paragraph{$L^2(\Omega)$: finite mean square.}
+\index{function space!L2@$L^2$}%
+$v\in L^2(\Omega)$ if $\norm{v}_{L^2}^2=\int_\Omega v^2\dd x<\infty$. It is the
+continuum version of the Euclidean norm $|\vu|^2=\sum u_i^2$. A function may be
+discontinuous or even unbounded and still belong to $L^2$:
+$x^{-1/4}\in L^2(0,1)$, but $x^{-1/2}\notin L^2(0,1)$ since
+$\int_0^1x^{-1}\dd x=\infty$.
+
+\paragraph{$H^1(\Omega)$: finite energy.}
+\index{function space!H1@$H^1$}%
+$v\in H^1(\Omega)$ if $v$ and its gradient are in $L^2$:
+$\norm{v}_{H^1}^2=\int_\Omega\bigl(v^2+|\nabla v|^2\bigr)\dd x<\infty$. This is
+exactly the condition for the Dirichlet energy~\eqref{eq:poisson-energy} to be
+finite. The gradient is the continuum version of $\mat{B}$, and
+$\int|\nabla v|^2$ that of $|\mat{B}\vu|^2$.
+
+\paragraph{$H^1_0(\Omega)$: finite energy and zero boundary values.}
+\index{function space!H10@$H^1_0$}\index{trace}%
+$H^1_0(\Omega)$ contains the $v\in H^1(\Omega)$ with $v=0$ on $\partial\Omega$:
+the essential boundary condition is built into the space, as the fixed walls
+are built into the matrix $\mat{B}$ of the spring chain. Boundary values of
+$H^1$ functions (traces) are well defined, in a space called
+$H^{1/2}(\partial\Omega)$.
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{>{\raggedright}p{4.2cm}>{\raggedright}p{2.6cm}>{\raggedright\arraybackslash}p{7.4cm}}
+\toprule
+\sffamily function & \sffamily space & \sffamily comment\\
+\midrule
+hat function (piecewise linear, continuous) & $H^1$, not $H^2$ & kinks are allowed: this is why linear finite elements are conforming\\
+step function & $L^2$, not $H^1$ & its derivative is a Dirac mass: a jump costs infinite energy, unless the domain is cut (a crack)\\
+$x^\alpha$ on $(0,1)$, $\alpha>0$ & $H^1$ iff $\alpha>\tfrac12$ & $\int_0^1x^{2\alpha-2}\dd x<\infty$ iff $\alpha>\tfrac12$\\
+$r^{1/2}\cos(\theta/2)$ (crack tip, 2D) & $H^1$ & the gradient is singular, $\sim r^{-1/2}$, but its square is integrable: crack-tip fields have finite energy (Chapter~\ref{ch:rg})\\
+$\ln|\ln r|$ near $r=0$ (2D) & $H^1$, unbounded & in 2D and 3D, $H^1$ functions need not be continuous: point values are not defined\\
+$\ln r$ (2D), $1/r$ (3D) & not $H^1$ near $0$ & a point force has infinite energy in 2D and 3D, while it is admissible in 1D (strings, beams, springs)\\
+\bottomrule
+\end{tabular}
+\caption{Examples and counterexamples of finite-energy functions.}
+\label{tab:spaces}
+\end{table}
+
+\paragraph{The Poincar\'e inequality.}
+\index{Poincar\'e inequality}%
+In $H^1_0(\Omega)$ the slope controls the function:
+\begin{equation}\label{eq:poincare}
+  \norm{v}_{L^2}\le C_P\,\norm{\nabla v}_{L^2}\qquad\forall v\in H^1_0(\Omega),
+\end{equation}
+with $C_P$ depending only on $\Omega$ ($C_P=L/\pi$ on an interval of length
+$L$). In words: a function pinned to zero on the boundary cannot be large
+without having slopes. Without the boundary condition the inequality fails:
+a constant has zero gradient and a nonzero norm. This is exactly the
+discrete statement that $\mat{B}$ has independent columns, i.e.\ that the
+structure has no rigid-body motion, and $1/C_P^2$ plays the role of
+$\lambda_{\min}(\mat{B}\T\mat{B})$. The proof is in Appendix~\ref{app:spaces}.
 
 %======================================================================
 \section{Weak and strong forms: the right function space}\label{sec:var-weak}
@@ -394,8 +588,9 @@ semicontinuity answer it without constructing the solution~\cite{Dacorogna2008}.
 \end{center}
 For the energy~\eqref{eq:poisson-energy} on $V=H^1_0(\Omega)$:
 \begin{itemize}
-  \item \emph{coercivity:} by the Poincar\'e inequality
-  $\norm{v}_{L^2}\le C_P\norm{\nabla v}_{L^2}$,
+  \item \emph{coercivity:} by the Poincar\'e inequality~\eqref{eq:poincare},
+  $\norm{v}_{L^2}\le C_P\norm{\nabla v}_{L^2}$ (a function vanishing on the
+  boundary is controlled by its slope),
   \[
     J(v)\ge\tfrac12\norm{\nabla v}_{L^2}^2-C_P\norm{f}_{L^2}\norm{\nabla v}_{L^2}\to\infty
     \quad\text{as }\norm{v}_{H^1_0}\to\infty;
@@ -408,6 +603,14 @@ For the energy~\eqref{eq:poisson-energy} on $V=H^1_0(\Omega)$:
 \end{itemize}
 So $u$ is a minimizer, and its first variation gives $-\Delta u=f$ in the weak
 sense.
+
+\paragraph{In matrix terms.} For $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu$ in
+$\R^n$ the same three steps are elementary: $W\ge\tfrac12\lambda_{\min}|\vu|^2-|\vf||\vu|$
+grows at infinity (coercivity), so a minimizing sequence stays in a ball;
+a ball of $\R^n$ is compact, so a subsequence converges; and $W$ is
+continuous, so the limit is a minimizer. In infinite dimension a bounded
+sequence need not converge, and \emph{weak} convergence with \emph{lower
+semicontinuity} replaces compactness and continuity.
 
 %======================================================================
 \section{The Lax--Milgram theorem}\label{sec:var-lm}
@@ -437,8 +640,16 @@ $L(v)=\int_\Omega fv$ on $H^1_0(\Omega)$:
   \item $L$ is bounded: $|L(v)|\le\norm{f}_{L^2}\norm{v}_{L^2}\le C_P\norm{f}_{L^2}\norm{v}_{H^1_0}$.
 \end{itemize}
 Lax--Milgram gives existence and uniqueness directly, without mentioning
-minimization. The discrete bounds~\eqref{eq:rayleigh} are the same two
-hypotheses for a matrix.
+minimization.
+
+\paragraph{In matrix terms.} For $a(\vu,\vv)=\vv\T\mat{K}\vu$ on $\R^n$,
+boundedness is $\lambda_{\max}<\infty$ (always true in finite dimension) and
+coercivity is $\vu\T\mat{K}\vu\ge\alpha|\vu|^2$, i.e.\ the symmetric part of
+$\mat{K}$ is positive definite. Then $\mat{K}\vu=\vf$ has a unique solution
+with $|\vu|\le|\vf|/\alpha$: this is the whole content of Lax--Milgram in
+$\R^n$. The bounds~\eqref{eq:rayleigh} are the two hypotheses, and the theorem
+is needed only because the constants must not degenerate as the dimension
+goes to infinity (as the mesh is refined).
 
 \subsection*{What goes wrong without coercivity}
 Boundedness alone is not enough. Two examples, one linear and one nonlinear,
@@ -460,6 +671,31 @@ $f\perp\sin\pi x$ in $L^2$. For $f=1$, $\int_0^1\sin\pi x\dd x=2/\pi\neq0$:
 \textbf{no solution}. For $f=\sin2\pi x$ the condition holds, and
 $u_c=\sin(2\pi x)/(3\pi^2)+c\sin\pi x$ solves the problem for every
 $c\in\R$: \textbf{infinitely many solutions} (Figure~\ref{fig:resonance}).
+
+\paragraph{Physical examples.}
+\index{resonance!vibrating string}\index{buckling!Euler load}%
+Two classical situations lead exactly to this equation.
+\begin{itemize}
+\item \emph{A string driven at its fundamental frequency.} A string of
+tension $T$, linear density $\rho$ and length $L$, fixed at both ends and
+loaded by $p(x)\cos\omega t$, vibrates as $w(x)\cos\omega t$ with
+$-Tw''-\rho\omega^2w=p$. On the unit interval, $\rho\omega^2/T=\pi^2$ means
+$\omega=\omega_1=\frac{\pi}{L}\sqrt{T/\rho}$, the fundamental frequency. Without
+damping, a load that excites the first mode ($\int p\sin\pi x\neq0$) has no
+periodic response: the amplitude grows without bound. A load orthogonal to
+the mode produces a response defined up to a free oscillation in the mode.
+\item \emph{A column at the Euler load.} A pinned column of length $L$ and
+bending stiffness $EI$, compressed by $P$ and bent by the moment $M(x)$ of
+lateral loads, deflects as $-EIw''-Pw=M$. On the unit interval the
+operator is singular for $P/EI=\pi^2$, i.e.\ at the Euler load
+$P_E=\pi^2EI/L^2$~\cite{TimoshenkoGere1961}. Below $P_E$ the lateral deflection
+is amplified by the factor $1/(1-P/P_E)$; at $P_E$ a symmetric lateral load
+has no equilibrium, and without lateral load every $w=c\sin(\pi x/L)$ is in
+equilibrium: neutral equilibrium, the onset of buckling.
+\end{itemize}
+In both cases the loss of coercivity is a physical event: resonance or
+buckling. Stability and buckling are treated in the last part of the
+course.
 
 \begin{figure}[h]
 \centering
@@ -490,6 +726,32 @@ $u\equiv0$ is a critical point whose second variation
 is \emph{negative} for every nonzero constant $v$: $u\equiv0$ is unstable
 (Figure~\ref{fig:doublewell}). Stability through the second variation is the
 subject of the last part of the course.
+
+\paragraph{Physical examples.}
+\index{double well!post-buckling}\index{snap-through}\index{phase transition}%
+\begin{itemize}
+\item \emph{The buckled column.} Beyond the Euler load, write the deflection
+of the pinned column as $w=a\sin(\pi x/L)$. The bending energy
+$\tfrac12EI\int(w'')^2$ minus the work of $P$ on the shortening
+$\tfrac12\int(w')^2$ gives, to leading orders,
+\[
+  \Pi(a)=\frac{\pi^2}{4L}\,(P_E-P)\,a^2+\beta\,a^4,\qquad\beta>0,
+\]
+where the quartic term comes from the geometric nonlinearity of the elastica.
+For $P<P_E$ the straight column is the unique minimum; for $P>P_E$, $\Pi$ is a
+double well: the straight position $a=0$ is unstable, and the column buckles
+to the left or to the right, $a=\pm a^\ast$ with $a^{\ast2}\propto P-P_E$. The
+resonance example above is the linearization of this problem at $P=P_E$.
+\item \emph{Bistable structures.} A shallow arch or a two-bar (von Mises)
+truss under a vertical load has two stable equilibria and snaps through from
+one to the other: the energy along the snapping path is a double well.
+\item \emph{Phase transitions.} In a binary alloy, $u$ is the local
+concentration and the two wells are the two phases; the gradient term
+$\tfrac{\varepsilon^2}{2}(u')^2$ is the energy of the interface between them.
+This is the original setting of the Allen--Cahn
+equation~\cite{AllenCahn1979}; twinned martensite in shape-memory alloys is
+its elastic analogue.
+\end{itemize}
 
 \begin{figure}[h]
 \centering
@@ -646,52 +908,6 @@ discrete counterpart is the truss of Section~\ref{sec:var-discrete}, and
 Exercise~\ref{exo:primal-dual} checks it numerically.
 
 %======================================================================
-\section{Constraints and Lagrange multipliers}\label{sec:var-lagrange}
-\index{constraint}\index{Lagrange multiplier}\index{Lagrangian}%
-Many problems minimize an energy under constraints: imposed displacements,
-incompressibility, contact, plasticity. The Lagrangian turns the constrained
-problem into an unconstrained saddle-point problem.
-
-\begin{gbox}{Constrained optimization}
-\index{Karush--Kuhn--Tucker conditions}\index{saddle point}\index{complementarity condition}%
-Let $C$ and $\vect{A}=(A_1,\dots,A_m)$ be convex functions on $\R^n$.
-\begin{itemize}
-\item \emph{Problem $\mathcal P$:} minimize $C(\vx)$ under the constraint
-$\vect{A}(\vx)\le\vb$.
-\item \emph{Lagrangian:}
-$\mathcal L(\vx,\vect{y})=C(\vx)+\vect{y}\cdot\bigl(\vect{A}(\vx)-\vb\bigr)$,
-$\vect{y}\in\R^m$.
-\item \emph{Karush--Kuhn--Tucker conditions.} If $\vx$ solves $\mathcal P$
-(and a qualification condition holds), there is $\vect{y}\ge\vzero$ with
-\[
-  \nabla C(\vx)+\sum_iy_i\nabla A_i(\vx)=\vzero,\qquad
-  \vect{y}\ge\vzero,\quad\vect{A}(\vx)\le\vb,\quad
-  y_i\bigl(A_i(\vx)-b_i\bigr)=0\ \ \forall i .
-\]
-\end{itemize}
-For equality constraints $\vect{A}(\vx)=\vb$ the multipliers have no sign,
-and the conditions reduce to $\nabla_{\vx}\mathcal L=\vzero$,
-$\nabla_{\vect{y}}\mathcal L=\vzero$: $(\vx,\vect{y})$ is a saddle point of
-$\mathcal L$.
-\end{gbox}
-
-\begin{figure}[h]
-\centering
-\includegraphics[height=5cm]{figures/ch1/lagrange.pdf}
-\caption{Level sets of a convex cost $C$ and a constraint. At the constrained
-minimum the gradient of $C$ is balanced by a multiple of the gradient of the
-constraint.}
-\label{fig:lagrange}
-\end{figure}
-
-The last condition is \emph{complementarity}: either the constraint is
-active, $A_i(\vx)=b_i$, or its multiplier vanishes. The multiplier is the
-force needed to enforce the constraint. In Chapter~\ref{ch:elliptic},
-imposed displacements in a Ritz approximation are enforced this way, and the
-multipliers are the reaction forces (Section~\ref{ssec:ritz-lagrange}).
-Exercises~\ref{exo:kkt1}--\ref{exo:kkt4} work through four cases.
-
-%======================================================================
 \section{Galerkin approximation and finite elements}\label{sec:var-fem}
 \index{Galerkin method}\index{C\'ea's lemma@C\'ea's lemma}\index{finite element method!one-dimensional}\index{stiffness matrix}%
 The weak formulation is exactly what finite element methods discretize:
@@ -720,6 +936,14 @@ form $\int_0^1u'v'=\int_0^1fv$.
   \item C\'ea's lemma gives $\norm{u-u_h}_{H^1_0}\le C\inf_{v_h}\norm{u-v_h}_{H^1_0}=O(h)$
   for smooth $u$; nodal values converge faster (Exercise~\ref{exo:conv}).
 \end{itemize}
+\paragraph{C\'ea's lemma in words.} The Galerkin solution is, up to the factor
+$M/\alpha$, the \emph{best} approximation of $u$ that the chosen space can
+offer: the error of the method is an approximation error, not an error of
+the equations. For a symmetric form the factor disappears in the energy
+norm, where $u_h$ is exactly the best approximation (the Ritz method
+minimizes the energy). The error is then estimated by interpolating $u$ with
+the hat functions, which gives $O(h)$. The proof takes three lines and is
+given in Appendix~\ref{app:spaces}.
 Finite elements for elasticity, with the matrices $\mat{B}$, $\mat{C}$ and
 $\mat{B}\T\mat{C}\mat{B}$ of Section~\ref{sec:var-discrete}, are presented in
 Chapter~\ref{ch:elliptic}.
@@ -779,6 +1003,35 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
   yet Lax--Milgram still applies.
 \end{itemize}
 \end{gbox*}
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lll}
+\toprule
+ & \sffamily continuum & \sffamily discrete (spring chain, finite elements)\\
+\midrule
+unknown & $u(\vx)\in H^1_0(\Omega)$ & $\vu\in\R^n$\\
+kinematic operator & gradient $\nabla$ & compatibility matrix $\mat{B}$\\
+equilibrium operator & $-\dive$, adjoint of $\nabla$ & $\mat{B}\T$, transpose of $\mat{B}$\\
+material law & $\tk$ or $\bbC$ & $\mat{C}=\diag(c_i)$\\
+bilinear form & $a(u,v)=\int\tk\nabla u\cdot\nabla v$ & $\vv\T\mat{K}\vu$, $\mat{K}=\mat{B}\T\mat{C}\mat{B}$\\
+load & $L(v)=\int fv+\int_{S_\varphi}\pD v$ & $\vv\T\vf$\\
+energy & $J(v)=\tfrac12a(v,v)-L(v)$ & $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu$\\
+weak form & $a(u,v)=L(v)\ \forall v$ & $\vv\T(\mat{K}\vu-\vf)=0\ \forall\vv$, i.e.\ $\mat{K}\vu=\vf$\\
+coercivity, boundedness & $\alpha$, $M$ & $\lambda_{\min}(\mat{K})$, $\lambda_{\max}(\mat{K})$\\
+Poincar\'e inequality & $\norm{v}\le C_P\norm{\nabla v}$ on $H^1_0$ & $\mat{B}$ has independent columns: no rigid motion\\
+essential condition & built into $H^1_0$ & fixed walls, or $\mat{P}\vu=\vuD$ with a multiplier\\
+natural condition & boundary term in $L$ & nodal force in $\vf$\\
+reciprocity & Green's second identity & $\mat{K}=\mat{K}\T$\\
+dual problem & $\max-\tfrac12\int|\vp|^2$, $\dive\vp+f=0$ & $\max-\tfrac12\vect{\sigma}\T\mat{C}^{-1}\vect{\sigma}$, $\mat{B}\T\vect{\sigma}=\vf$\\
+\bottomrule
+\end{tabular}
+\caption{A dictionary between the continuum and the discrete settings, in the
+spirit of Strang~\cite{Strang1986}.}
+\label{tab:dictionary}
+\end{table}
+Table~\ref{tab:dictionary} gathers the correspondence between differential
+operators and matrices used throughout the chapter.
 The same pattern (energy, weak form, abstract existence theorem, duality,
 discretization) appears in linear elasticity, Stokes flow, image denoising by
 total variation, and many machine learning objectives written as regularized
@@ -788,7 +1041,8 @@ energy minimization.
 \framepart{Exercises}\label{sec:var-exo}
 Part~I checks results numerically or symbolically: every script was run
 (\texttt{numpy}/\texttt{scipy} for numerical checks, \texttt{sympy} for
-symbolic ones) and its output is quoted in the comments. Part~II is
+symbolic ones) and its output is quoted in the comments. The scripts are the
+files of \texttt{python/examples/ch1/}, printed verbatim. Part~II is
 paper-and-pencil practice with variational calculus. Part~III treats
 constraints and convex conjugates. Solutions are given in small type after
 each exercise.
@@ -802,16 +1056,7 @@ $\vf=(1,1,1)\T$), minimize $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu$ by
 gradient descent and compare with the direct solution of $\mat{K}\vu=\vf$.
 What is the convergence rate?
 \begin{solution}
-\begin{lstlisting}
-import numpy as np
-K = np.array([[2,-1,0],[-1,2,-1],[0,-1,2]], dtype=float)
-f = np.array([1,1,1], dtype=float)
-u, step = np.zeros(3), 0.2
-for _ in range(500):
-    u -= step * (K @ u - f)              # gradient of W is K u - f
-print(np.round(u, 4), np.round(np.linalg.solve(K, f), 4))
-# [1.5 2.  1.5] [1.5 2.  1.5]   max difference ~ 1e-15
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_gd.py}
 The error is multiplied at each step by $\mat{I}-\text{step}\,\mat{K}$, so it
 contracts at the rate $\rho=\max_i|1-\text{step}\,\lambda_i(\mat{K})|$
 (Figure~\ref{fig:gd}); the eigenvalues are those of Exercise~\ref{exo:lm-constants}.
@@ -829,16 +1074,7 @@ follows the predicted rate $\rho=\max_i|1-\text{step}\,\lambda_i(\mat{K})|$.}
 Verify $\int_0^1u'v'\dd x=-\int_0^1u''v\dd x+[u'v]_0^1$ for $u=\sin\pi x$,
 $v=x(1-x)$.
 \begin{solution}
-\begin{lstlisting}
-from scipy.integrate import quad
-import numpy as np
-du  = lambda x: np.pi*np.cos(np.pi*x)
-d2u = lambda x: -np.pi**2*np.sin(np.pi*x)
-v   = lambda x: x*(1-x);  dv = lambda x: 1-2*x
-lhs = quad(lambda x: du(x)*dv(x), 0, 1)[0]
-rhs = quad(lambda x: -d2u(x)*v(x), 0, 1)[0] + du(1)*v(1) - du(0)*v(0)
-print(lhs, rhs)        # 1.27323954 1.27323954  (= 4/pi)
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_ibp_num.py}
 \end{solution}
 
 \exercise{Lax--Milgram constants from eigenvalues}\label{exo:lm-constants}
@@ -856,15 +1092,7 @@ $M=\lambda_{\max}$. Both bounds are sharp: equality at $\vu=\ve_1$ and
 $\vu=\ve_3$ (Figure~\ref{fig:coercivity}).
 (d) The lower line is coercivity, the upper line boundedness: the two
 hypotheses of Lax--Milgram, here for the bilinear form $a(\vu,\vv)=\vu\T\mat{K}\vv$.
-\begin{lstlisting}
-import numpy as np
-K = np.array([[2,-1,0],[-1,2,-1],[0,-1,2]], dtype=float)
-lam = np.linalg.eigvalsh(K); alpha, M = lam[0], lam[-1]
-rng = np.random.default_rng(0)
-for _ in range(5):
-    u = rng.normal(size=3); a = u @ K @ u
-    print(alpha*u@u <= a <= M*u@u)          # True, five times
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_lm_constants.py}
 \end{solution}
 
 \begin{figure}[h]
@@ -881,13 +1109,7 @@ With $\ve=\mat{B}\vu$ and unit stiffnesses, check that the potential energy
 $W(\vu^\ast)$ equals the complementary energy $-\tfrac12|\vect{\sigma}^\ast|^2$
 at $\vect{\sigma}^\ast=\mat{B}\vu^\ast$.
 \begin{solution}
-\begin{lstlisting}
-import numpy as np
-B = np.array([[1,0,0],[-1,1,0],[0,-1,1],[0,0,-1]], dtype=float)
-K, f = B.T @ B, np.ones(3)
-u = np.linalg.solve(K, f); s = B @ u
-print(0.5*u@K@u - f@u, -0.5*s@s)   # -2.5 -2.5
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_primal_dual.py}
 Analytically: $W(\vu^\ast)=\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast-\vf\T\vu^\ast=-\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast=-\tfrac12|\mat{B}\vu^\ast|^2$,
 the value $W_{\min}$ of Theorem~\ref{thm:min-discrete}.
 \end{solution}
@@ -898,16 +1120,7 @@ Solve $-u''=\sin\pi x$ on $(0,1)$, $u(0)=u(1)=0$ (exact solution
 $\sin(\pi x)/\pi^2$) with the chain matrix for increasing $n$ and measure the
 convergence rate.
 \begin{solution}
-\begin{lstlisting}
-import numpy as np
-def err(n):
-    h = 1.0/(n+1); x = np.linspace(h, 1-h, n)
-    K = (2*np.eye(n) - np.eye(n,k=1) - np.eye(n,k=-1))/h**2
-    u = np.linalg.solve(K, np.sin(np.pi*x))
-    return h, np.max(np.abs(u - np.sin(np.pi*x)/np.pi**2))
-for n in [3, 7, 15, 31, 63]: print(*err(n))
-# the error is divided by 4 when h is halved: O(h^2)
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_conv.py}
 The nodal error is $O(h^2)$ (Figure~\ref{fig:conv}), better than the general
 $O(h)$ energy-norm bound of C\'ea's lemma, thanks to the smoothness of the
 solution.
@@ -928,17 +1141,7 @@ $\nabla u\cdot\nabla v=(y,x,0)\cdot(0,z,y)=xz$, so the left-hand side is
 $\int xz=\tfrac14$. Since $\Delta v=0$, the right-hand side is the boundary
 term $\int_{\partial\Omega}u\,\partial_nv$: the faces $z=0$ and $z=1$ give
 $\mp\tfrac16$ and cancel, the face $y=1$ gives $\int_0^1\!\!\int_0^1xz\dd x\dd z=\tfrac14$, the others $0$.
-\begin{lstlisting}
-import sympy as sp
-x, y, z = sp.symbols('x y z'); u, v = x*y, y*z
-lhs = sp.integrate(sum(sp.diff(u,s)*sp.diff(v,s) for s in (x,y,z)),
-                   (x,0,1),(y,0,1),(z,0,1))
-faces = [(x,0,-1,(y,z)),(x,1,1,(y,z)),(y,0,-1,(x,z)),
-         (y,1,1,(x,z)),(z,0,-1,(x,y)),(z,1,1,(x,y))]
-bnd = sum(sp.integrate((u*sg*sp.diff(v,w)).subs(w,val),(a,0,1),(b,0,1))
-          for w,val,sg,(a,b) in faces)
-print(lhs, bnd)        # 1/4 1/4
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_green_cube.py}
 \end{solution}
 
 \exercise{A non-symmetric bilinear form is still solvable}\label{exo:skew}
@@ -947,18 +1150,7 @@ $\mat{K}$. Check that $\vu\T(\mat{K}+b\mat{S})\vu=\vu\T\mat{K}\vu$, that
 $\mat{K}+b\mat{S}$ is non-symmetric for $b\neq0$, and that the system remains
 uniquely solvable.
 \begin{solution}
-\begin{lstlisting}
-import numpy as np
-n, h = 5, 1/6
-K = (2*np.eye(n) - np.eye(n,k=1) - np.eye(n,k=-1))/h**2
-S = (np.eye(n,k=1) - np.eye(n,k=-1))/(2*h)       # S^T = -S
-rng = np.random.default_rng(1)
-for b in [0.0, 5.0, 50.0]:
-    A = K + b*S; u = rng.normal(size=n)
-    print(b, np.allclose(A, A.T), np.isclose(u@A@u, u@K@u),
-          np.linalg.norm(np.linalg.solve(A, np.ones(n))))
-# symmetric only for b = 0; quadratic form unchanged; always solvable
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_skew.py}
 The skew part vanishes on the diagonal $\vu\T\mat{S}\vu=0$, so coercivity is
 unaffected: this is why Lax--Milgram applies without symmetry
 (Section~\ref{sec:var-elliptic}).
@@ -1019,14 +1211,7 @@ condition $g=-\int_0^1f\dd x$: a pure Neumann problem is solvable only if the
 data satisfy it (Fredholm alternative), and the solution is unique up to a
 constant, on which $E$ does not depend (Figure~\ref{fig:profiles}, left). A
 Ritz check with $u=a_0+a_1x+a_2x^2$, $f=1$, $g=-1$:
-\begin{lstlisting}
-import sympy as sp
-x, a0, a1, a2 = sp.symbols('x a0 a1 a2')
-u = a0 + a1*x + a2*x**2
-E = sp.integrate(sp.diff(u,x)**2/2 - u, (x,0,1)) + u.subs(x,1)
-print(sp.diff(E, a0))                                    # 0: a0 free
-print(sp.solve([sp.diff(E,a1), sp.diff(E,a2)], [a1,a2])) # a1=0, a2=-1/2
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_neumann.py}
 \end{solution}
 
 \exercise{A reaction term}\label{exo:reaction}
@@ -1237,16 +1422,23 @@ Section~\ref{sec:var-lagrange}, and reappears in plasticity.
 \bibitem{AdamsFournier2003} R.~A.~Adams, J.~J.~F.~Fournier, \emph{Sobolev Spaces}, 2nd ed., Academic Press, 2003.
 \bibitem{AllenCahn1979} S.~M.~Allen, J.~W.~Cahn, A microscopic theory for antiphase boundary motion and its application to antiphase domain coarsening, \emph{Acta Metall.} 27 (1979) 1085--1095.
 \bibitem{BrennerScott2008} S.~C.~Brenner, L.~R.~Scott, \emph{The Mathematical Theory of Finite Element Methods}, 3rd ed., Springer, 2008.
+\bibitem{Betti1872} E.~Betti, Teoria della elasticit\`a, \emph{Il Nuovo Cimento} 7--8 (1872), in several parts; see 7 (1872) 158--180.
 \bibitem{Brezis2011} H.~Brezis, \emph{Functional Analysis, Sobolev Spaces and Partial Differential Equations}, Springer, 2011.
+\bibitem{Clebsch1862} A.~Clebsch, \emph{Theorie der Elasticit\"at fester K\"orper}, Teubner, Leipzig, 1862.
 \bibitem{Cea1964} J.~C\'ea, Approximation variationnelle des probl\`emes aux limites, \emph{Ann. Inst. Fourier} 14 (1964) 345--444.
 \bibitem{Ciarlet2002} P.~G.~Ciarlet, \emph{The Finite Element Method for Elliptic Problems}, SIAM Classics in Applied Mathematics 40, 2002.
 \bibitem{Courant1950} R.~Courant, \emph{Dirichlet's Principle, Conformal Mapping, and Minimal Surfaces}, Interscience, 1950.
 \bibitem{Dacorogna2008} B.~Dacorogna, \emph{Direct Methods in the Calculus of Variations}, 2nd ed., Springer, 2008.
 \bibitem{EkelandTemam1999} I.~Ekeland, R.~Temam, \emph{Convex Analysis and Variational Problems}, SIAM Classics in Applied Mathematics 28, 1999.
 \bibitem{Evans2010} L.~C.~Evans, \emph{Partial Differential Equations}, 2nd ed., AMS, 2010.
+\bibitem{Fung1965} Y.~C.~Fung, \emph{Foundations of Solid Mechanics}, Prentice-Hall, Englewood Cliffs, 1965.
 \bibitem{Garding1953} L.~G\aa rding, Dirichlet's problem for linear elliptic partial differential equations, \emph{Math. Scand.} 1 (1953) 55--72.
 \bibitem{GilbargTrudinger2001} D.~Gilbarg, N.~S.~Trudinger, \emph{Elliptic Partial Differential Equations of Second Order}, Springer Classics in Mathematics, 2001.
 \bibitem{LaxMilgram1954} P.~D.~Lax, A.~N.~Milgram, Parabolic equations, in \emph{Contributions to the Theory of Partial Differential Equations}, Ann. Math. Studies 33, Princeton, 1954, 167--190.
+\bibitem{Maxwell1864} J.~C.~Maxwell, On the calculation of the equilibrium and stiffness of frames, \emph{Philos. Mag.} 27 (1864) 294--299.
+\bibitem{Rayleigh1873} Lord Rayleigh (J.~W.~Strutt), Some general theorems relating to vibrations, \emph{Proc. London Math. Soc.} 4 (1873) 357--368.
 \bibitem{Rockafellar1970} R.~T.~Rockafellar, \emph{Convex Analysis}, Princeton University Press, 1970.
 \bibitem{Strang1986} G.~Strang, \emph{Introduction to Applied Mathematics}, Wellesley-Cambridge Press, 1986.
+\bibitem{TarnaiLengyel2007} T.~Tarnai, A.~Lengyel, Reciprocal theorems: an old subject revisited, \emph{Int. J. Mech. Eng. Educ.} 35 (2007) 138--147.
+\bibitem{TimoshenkoGere1961} S.~P.~Timoshenko, J.~M.~Gere, \emph{Theory of Elastic Stability}, 2nd ed., McGraw-Hill, 1961.
 \end{chapterbib}

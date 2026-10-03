@@ -851,14 +851,7 @@ $w_m=x^m$, $m=1,\dots,n$. Compute $K_{m\ell}=\int_0^1w_m'w_\ell'$ and its
 condition number for $n=3,5,7,9$. Compare with $n$ hat functions.
 \begin{solution}
 $K_{m\ell}=m\ell/(m+\ell-1)$, a Hilbert-like matrix.
-\begin{lstlisting}
-import numpy as np
-for n in [3,5,7,9]:
-    K = np.array([[m*l/(m+l-1) for l in range(1,n+1)] for m in range(1,n+1)])
-    ev = np.linalg.eigvalsh(K); print(n, ev[-1]/ev[0])
-# 3: 2.8e2   5: 1.9e5   7: 1.7e8   9: 1.6e11
-# hat functions (tridiagonal K): 5.8, 13.9, 25.3, 39.9
-\end{lstlisting}
+\lstinputlisting[firstline=4]{python/examples/ch2/exo_conditioning.py}
 The condition number of the monomial basis grows geometrically; that of the
 finite element basis like $1/h^2$.
 \end{solution}

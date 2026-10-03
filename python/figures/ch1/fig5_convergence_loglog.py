@@ -34,7 +34,7 @@ ax.set_ylabel(r"$\max_i |u_i - u(x_i)|$")
 ax.legend(frameon=False, fontsize=9)
 ax.grid(True, which="both", alpha=0.3)
 fig.tight_layout()
-fig.savefig("../../figures/ch1/ex5_convergence_loglog.pdf")
+fig.savefig("../../../figures/ch1/ex5_convergence_loglog.pdf")
 
 rates = np.log(errs[:-1]/errs[1:]) / np.log(hs[:-1]/hs[1:])
 print("h:", hs)

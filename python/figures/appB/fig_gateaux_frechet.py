@@ -1,7 +1,7 @@
-"""Appendix A figure: Gateaux vs Frechet differentiability.
+"""Appendix B figure: Gateaux vs Frechet differentiability.
 
-Run from anywhere:   python3 scripts/appA/fig_gateaux_frechet.py
-Output: figures/appA/gateaux_frechet.pdf
+Run from anywhere:   python3 python/figures/appB/fig_gateaux_frechet.py
+Output: figures/appB/gateaux_frechet.pdf
 Notation follows the book: bold vectors (mathtext \\mathbf), matrices upright bold.
 """
 import os
@@ -23,8 +23,8 @@ plt.rcParams.update({
 })
 BLUE, ORANGE, GREEN, RED, GRAY = "#1f5ac8", "#d9822b", "#14963c", "#b22222", "#777777"
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-APA = os.path.join(ROOT, "figures", "appA")
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+APA = os.path.join(ROOT, "figures", "appB")
 os.makedirs(APA, exist_ok=True)
 
 K = np.array([[2, -1, 0], [-1, 2, -1], [0, -1, 2]], dtype=float)

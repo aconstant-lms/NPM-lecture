@@ -24,7 +24,10 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
 - One conversation per chapter; touch other files only when needed (cross-references, notation).
 - Build: `pdflatex -interaction=nonstopmode main.tex` three times. Before committing, the log must have
   no undefined references, no multiply-defined labels and no overfull boxes.
-- Figures from scripts: `cd scripts/ch1 && python3 <script>.py` (outputs into figures/ch1).
+- Python lives in `python/` (see python/README.md): figure scripts in `python/figures/<chapter>/`
+  (`cd python/figures/ch1 && python3 <script>.py`, outputs into figures/ch1), exercise code in
+  `python/examples/<chapter>/`, included in the book with `\lstinputlisting[firstline=4]{...}`.
+  Never paste code inline in the .tex: create or edit the file, run it, quote its output in comments.
 - Commit with a clear message per round of corrections (e.g. "ch2: fix Voigt table, add exercise on ...")
   and push to `main`. The commit message becomes the release note, so make it readable for the author.
 - Every push to `main` triggers `.github/workflows/build-pdf.yml`, which compiles the book and publishes

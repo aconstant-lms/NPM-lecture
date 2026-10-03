@@ -59,5 +59,5 @@ ax.legend(frameon=False, fontsize=8)
 ax.grid(alpha=0.3)
 
 fig.tight_layout()
-fig.savefig("../../figures/ch1/ex8_9_10_profiles.pdf")
+fig.savefig("../../../figures/ch1/ex8_9_10_profiles.pdf")
 print("saved")
