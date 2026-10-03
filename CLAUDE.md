@@ -17,6 +17,9 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   entries (see the printed index) instead of creating near-duplicates; use `sortkey@Display` for accents/math.
 - In running text, inline integrals and fractions are written with `\displaystyle` (`$\displaystyle \int...$`,
   `$\displaystyle \frac...$`); `\tfrac` stays small. Not in tables, captions or headings.
+- Algorithms: in the chapter text, Simo & Hughes "Box" style: a `gbox` titled `Box <ch>.<n>  <title>`,
+  numbered steps (`enumerate`, bold labels), each a short sentence followed by its formulas; cite as Box~... .
+  In exercise parts, CMAME-style pseudocode (`algorithm` + `algpseudocode`, Input/Output, numbered lines).
 - Tonti diagrams: kinematic boxes `kin` (blue), static boxes `stat` (green), labels `kinlab`/`statlab`
   under the boxes; the data (essential conditions, balance and natural conditions) go in the upper row.
 - Each chapter ends with its own `chapterbib`; bibitem keys must be unique across the whole book.
