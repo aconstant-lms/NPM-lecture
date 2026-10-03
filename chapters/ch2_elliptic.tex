@@ -19,8 +19,14 @@ finite element methods.
   \item write the strong form, the weak form and the energies of a diffusion
   or a linear elasticity problem, with its essential and natural boundary
   conditions;
-  \item handle the tensor of elastic moduli $\bbC$: its symmetries, its matrix
-  representation, isotropy and the conditions of positive definiteness;
+  \item handle the tensor of diffusion coefficients $\tk$ and the tensor of
+  elastic moduli $\bbC$: their symmetries, their matrix representation,
+  isotropy and the conditions of positive definiteness;
+  \item read the structure of both problems on their Tonti diagram, with the
+  adjoint operators $\nabla$ and $-\dive$, $\eps[\cdot]$ and $-\dive$, and the
+  boundary traces $\cdot\,\vn$;
+  \item write the Lagrangian of the potential energy, with thermal terms and
+  boundary conditions, and derive all the equations from it;
   \item state and prove the minimum of the potential energy and the maximum
   of the complementary energy, and use them to bound the solution;
   \item build a Ritz--Galerkin approximation, impose displacements with
@@ -83,6 +89,52 @@ The conductivity $\tk(\vx)$ is a symmetric, uniformly positive definite
 second-order tensor field: $\vxi\cdot\tk\vxi\ge\alpha|\vxi|^2$.
 \end{gbox}
 
+\paragraph{The tensor of diffusion coefficients.}
+\index{conductivity tensor!symmetry and positivity}%
+In components the flux is $p_i=k_{ij}u_{,j}$, with $\tk=k_{ij}\,\ve_i\otimes\ve_j$.
+Symmetry, $k_{ij}=k_{ji}$, is the condition for an energy to exist (as for the
+springs, Section~\ref{ssec:symmetry}; in thermodynamics it is Onsager's
+reciprocity). Positive definiteness makes the dissipation positive: heat
+flows from hot to cold. In its principal axes $\tk=\diag(k_1,k_2,k_3)$ with
+$k_i>0$: isotropic for $k_1=k_2=k_3=k$, transversely isotropic for a fibre
+composite or a layered rock, $k_1=k_2\neq k_3$. It is the second-order
+counterpart of the fourth-order tensor $\bbC$ of elasticity
+(Section~\ref{sec:el-moduli}).
+
+\paragraph{Structure of the equations.}
+\index{Tonti diagram!diffusion}\index{admissible fields!diffusion}%
+The diffusion problem has the structure of the spring chain of
+Chapter~\ref{ch:var} (Figure~\ref{fig:tonti-diff}): the gradient plays the
+role of $\mat{B}$, the conductivity that of $\mat{C}$, and the pair formed by
+$-\dive$ in $\Omega$ and the normal trace $\cdot\,\vn$ on $S_\varphi$ that of
+$\mat{B}\T$. Substituting, $u$ solves $-\dive(\tk\nabla u)=f$; for an isotropic
+homogeneous medium, $\tk=k\tI$, this is the Poisson equation $-k\Delta u=f$.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=1.2cm and 1.3cm,
+  tb/.style={smallbox,minimum width=4.3cm}]
+  \node[tb,kin] (u) {$u$, \quad $u=\uD$ on $S_u$\\ \footnotesize potential};
+  \node[tb,stat,right=3.6cm of u] (f) {$\dive\vp+f=0$ in $\Omega$,\ \ $\vp\cdot\vn=\pD$ on $S_\varphi$\\ \footnotesize sources and boundary fluxes};
+  \node[tb,kin,below=of u] (e) {$\nabla u$\\ \footnotesize gradient};
+  \node[tb,stat,below=of f] (s) {$\vp=\tk\nabla u$\\ \footnotesize flux};
+  \draw[arr] (u) -- (e) node[midway,left,font=\small]{$\nabla$};
+  \draw[arr] (e) -- (s) node[midway,below,font=\small]{$\tk$};
+  \draw[arr] (s) -- (f) node[midway,right,font=\small]{$-\dive$, \ $\cdot\,\vn$};
+  \node[below=0.15cm of e,kinlab,align=center] {kinematic: $\mathcal K(\uD,S_u)$};
+  \node[below=0.15cm of s,statlab,align=center] {static: $\mathcal S(f,\pD,S_\varphi)$};
+\end{tikzpicture}
+\caption{Tonti diagram of steady diffusion. Left column (blue): kinematic
+quantities, with the potential prescribed on $S_u$; right column (green):
+static quantities, with the balance of the flux and the prescribed boundary
+flux. Compare with Figures~\ref{fig:tonti-discrete} and~\ref{fig:tonti-el}.}
+\label{fig:tonti-diff}
+\end{figure}
+The two columns define the admissible fields,
+$\mathcal K(\uD,S_u)=\{v:\ v=\uD\text{ on }S_u\}$ and
+$\mathcal S(f,\pD,S_\varphi)=\{\vp:\ \dive\vp+f=0\text{ in }\Omega,\ \vp\cdot\vn=\pD\text{ on }S_\varphi\}$.
+The solution is the potential $u\in\mathcal K$ whose flux $\tk\nabla u$ lies in
+$\mathcal S$.
+
 \paragraph{Strong form $\to$ weak form $\to$ energy.} The route is the one of
 Chapter~\ref{ch:var}. Multiply by a test function $v$ vanishing on $S_u$ and
 integrate by parts with Theorem~\ref{thm:ibp-matrix}:
@@ -99,7 +151,7 @@ bilinear form is symmetric, so the problem is the minimization of
 If $|S_u|>0$, the Poincar\'e--Friedrichs inequality holds on $V_0$, the form
 is coercive, and Lax--Milgram gives a unique solution depending continuously
 on the data: the problem is well posed. If $S_u=\emptyset$, a solution exists
-only if $\int_\Omega f+\int_{\partial\Omega}\pD=0$, and it is unique up to a
+only if $\displaystyle \int_\Omega f+\int_{\partial\Omega}\pD=0$, and it is unique up to a
 constant (Exercise~\ref{exo:neumann}).
 
 \paragraph{Remarks.}
@@ -380,19 +432,21 @@ and $\bbC$ that of $\mat{C}$. Substituting, the displacement solves the
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[node distance=1.2cm and 1.3cm]
-  \node[smallbox,minimum width=3.6cm] (u) {$\vu$\\ \footnotesize displacement};
-  \node[smallbox,minimum width=3.6cm,right=5.2cm of u] (f) {$\vfD$, $\vtD$\\ \footnotesize forces};
-  \node[smallbox,minimum width=3.6cm,below=of u] (e) {$\eps=\tfrac12(\nabla+\nabla\T)\vu$\\ \footnotesize strain};
-  \node[smallbox,minimum width=3.6cm,below=of f] (s) {$\sig=\bbC:\eps$\\ \footnotesize stress};
+  \node[smallbox,kin,minimum width=4.3cm] (u) {$\vu$, \quad $\vu=\vuD$ on $S_u$\\ \footnotesize displacement};
+  \node[smallbox,stat,minimum width=4.3cm,right=3.6cm of u] (f) {$\dive\sig+\vfD=\vzero$ in $\Omega$,\ \ $\sig\vn=\vtD$ on $S_t$\\ \footnotesize body forces and tractions};
+  \node[smallbox,kin,minimum width=4.3cm,below=of u] (e) {$\eps=\tfrac12(\nabla+\nabla\T)\vu$\\ \footnotesize strain};
+  \node[smallbox,stat,minimum width=4.3cm,below=of f] (s) {$\sig=\bbC:\eps$\\ \footnotesize stress};
   \draw[arr] (u) -- (e) node[midway,left,font=\small]{$\eps[\cdot]$};
   \draw[arr] (e) -- (s) node[midway,below,font=\small]{$\bbC$};
-  \draw[arr] (s) -- (f) node[midway,right,font=\small]{$-\dive$};
-  \node[below=0.25cm of e,font=\small,align=center,cu] {$\vu=\vuD$ on $S_u$\\[2pt]$\Kad(\vuD,S_u)$\\ \scriptsize\sffamily kinematically admissible};
-  \node[below=0.25cm of s,font=\small,align=center,cphi] {$\dive\sig+\vfD=\vzero$, \ $\sig\vn=\vtD$ on $S_t$\\[2pt]$\Sad(\vfD,\vtD,S_t)$\\ \scriptsize\sffamily statically admissible};
+  \draw[arr] (s) -- (f) node[midway,right,font=\small]{$-\dive$, \ $\cdot\,\vn$};
+  \node[below=0.15cm of e,kinlab] {kinematically admissible: $\Kad(\vuD,S_u)$};
+  \node[below=0.15cm of s,statlab] {statically admissible: $\Sad(\vfD,\vtD,S_t)$};
 \end{tikzpicture}
-\caption{Tonti diagram of linear elasticity. Left column: kinematic
-quantities; right column: static quantities; they are joined by the
-constitutive law. Compare with Figure~\ref{fig:tonti-discrete}.}
+\caption{Tonti diagram of linear elasticity. Left column (blue): kinematic
+quantities, with the displacement prescribed on $S_u$; right column (green):
+static quantities, with the balance equation and the prescribed tractions;
+they are joined by the constitutive law. Compare with
+Figures~\ref{fig:tonti-discrete} and~\ref{fig:tonti-diff}.}
 \label{fig:tonti-el}
 \end{figure}
 
@@ -432,9 +486,28 @@ and the symmetry of $\sig$,
   +\int_{\partial\Omega}(\sig\vn)\cdot\vv\dd s ,
 \]
 and~\eqref{eq:pvp} for all $\vv$ is
-$\int_\Omega(\dive\sig+\vf)\cdot\vv+\int_{\partial\Omega}(\vt-\sig\vn)\cdot\vv=0$.
+$\displaystyle \int_\Omega(\dive\sig+\vf)\cdot\vv+\int_{\partial\Omega}(\vt-\sig\vn)\cdot\vv=0$.
 This is the continuum version of $\vect{\sigma}\T\mat{B}\vu=\vf\T\vu$: the
-divergence is the adjoint of the symmetric gradient. Rigid motions do no
+divergence is the adjoint of the symmetric gradient.
+
+\begin{gbox}{Adjoint and transpose}
+\index{adjoint operator!of the gradient}\index{adjoint operator!boundary trace}%
+The adjoint of the kinematic operator is a \emph{pair}: an operator in the
+volume and a trace on the boundary,
+\begin{align*}
+  \int_\Omega\sig:\eps[\vv]\dd x&=\int_\Omega(-\dive\sig)\cdot\vv\dd x
+  +\int_{S_t}(\sig\vn)\cdot\vv\dd s,\\
+  \int_\Omega\vp\cdot\nabla v\dd x&=\int_\Omega(-\dive\vp)\,v\dd x
+  +\int_{S_\varphi}(\vp\cdot\vn)\,v\dd s,
+\end{align*}
+for all $\vv$, $v$ vanishing on $S_u$. The adjoint of $\eps[\cdot]$ is $-\dive$
+in $\Omega$ together with the traction $\sig\vn$ on $S_t$; the adjoint of
+$\nabla$ is $-\dive$ in $\Omega$ together with the flux $\vp\cdot\vn$ on
+$S_\varphi$. In the discrete setting both are contained in the single matrix
+$\mat{B}\T$: interior rows give the balance of the internal nodes, rows of
+boundary nodes give the nodal forces. On $S_u$ the test functions vanish,
+and the trace there is the unknown reaction.
+\end{gbox} Rigid motions do no
 internal work; for a body without displacement constraints, choosing rigid
 $\vv$ in~\eqref{eq:pvp} gives the global balance of forces and moments.
 
@@ -508,7 +581,7 @@ i.e.\ $\vv-\vu$ is a rigid motion vanishing on $S_u$; if $S_u$ prevents rigid
 motions, $\vv=\vu$. The maximum principle is proved in the same way with the
 positive definiteness of $\bbS$; the equality of potentials follows from the
 virtual work identity
-$\int_\Omega\sig:\eps[\vu]=\int_\Omega\vfD\cdot\vu+\int_{S_t}\vtD\cdot\vu+\int_{S_u}(\sig\vn)\cdot\vuD$
+$\displaystyle \int_\Omega\sig:\eps[\vu]=\int_\Omega\vfD\cdot\vu+\int_{S_t}\vtD\cdot\vu+\int_{S_u}(\sig\vn)\cdot\vuD$
 (Exercise~\ref{exo:equality}).
 
 \begin{figure}[h]
@@ -533,6 +606,61 @@ $\mathcal U_p^\ast[\tens{s}]$ (a concave cap over statically admissible
 fields) touch at the solution.}
 \label{fig:energy-scheme}
 \end{figure}
+
+\subsection{The Lagrangian of the potential energy}\label{ssec:el-lagrangian}
+\index{Lagrangian!potential energy}\index{Lagrange multiplier!reaction force}\index{thermoelasticity!Lagrangian}%
+The minimum principle is posed on the constrained set $\Kad(\vuD,S_u)$.
+Following~\cite{BonnetFrangi2007}, the constraint can be relaxed with a
+Lagrange multiplier on $S_u$, which yields all the equations, including the
+boundary conditions and the reactions, from a single stationarity condition.
+
+\begin{gbox}{Lagrangian of thermoelasticity}
+For unconstrained fields $\vv$ and multipliers $\vlambda$ on $S_u$,
+\begin{multline}\label{eq:L-el}
+  \mathcal L(\vv,\vlambda)=\int_\Omega\Bigl(\sig_0:\eps[\vv]
+  +\tfrac12\bigl(\eps[\vv]-\talpha\theta^D\bigr):\bbC:\bigl(\eps[\vv]-\talpha\theta^D\bigr)\Bigr)\dd x\\
+  -\int_\Omega\vfD\cdot\vv\dd x-\int_{S_t}\vtD\cdot\vv\dd s
+  -\int_{S_u}\vlambda\cdot(\vv-\vuD)\dd s .
+\end{multline}
+The solution $(\vu,\vlambda)$ is a saddle point of $\mathcal L$: a minimum in
+$\vv$ and a maximum in $\vlambda$.
+\end{gbox}
+\paragraph{Derivation of the equations.} Write
+$\sig=\sig_0+\bbC:(\eps[\vu]-\talpha\theta^D)$. Stationarity with respect to
+$\vlambda$ gives $\vu=\vuD$ on $S_u$. Stationarity with respect to $\vv$, in
+every direction $\vw$, gives
+\[
+  \int_\Omega\sig:\eps[\vw]\dd x-\int_\Omega\vfD\cdot\vw\dd x
+  -\int_{S_t}\vtD\cdot\vw\dd s-\int_{S_u}\vlambda\cdot\vw\dd s=0 .
+\]
+Integrating by parts with Theorem~\ref{thm:ibp-tensor},
+\[
+  \int_\Omega(-\dive\sig-\vfD)\cdot\vw\dd x+\int_{S_t}(\sig\vn-\vtD)\cdot\vw\dd s
+  +\int_{S_u}(\sig\vn-\vlambda)\cdot\vw\dd s=0\qquad\forall\vw,
+\]
+hence the balance $\dive\sig+\vfD=\vzero$ in $\Omega$, the traction condition
+$\sig\vn=\vtD$ on $S_t$, and $\vlambda=\sig\vn$ on $S_u$: the multiplier is
+the traction exerted by the support, the reaction. The constitutive law,
+with its thermal and initial-stress terms, is contained in the definition of
+the energy density.
+
+\paragraph{Diffusion.} In the same way, for the diffusion
+problem~\eqref{eq:diffusion} (temperature $u$, heat source $f$, prescribed
+heat flux $\pD$),
+\[
+  \mathcal L(v,\mu)=\int_\Omega\tfrac12\nabla v\cdot\tk\nabla v\dd x-\int_\Omega fv\dd x
+  -\int_{S_\varphi}\pD v\dd s-\int_{S_u}\mu\,(v-\uD)\dd s .
+\]
+Stationarity gives $u=\uD$ on $S_u$, $\dive(\tk\nabla u)+f=0$ in $\Omega$,
+$\tk\nabla u\cdot\vn=\pD$ on $S_\varphi$, and $\mu=\tk\nabla u\cdot\vn$ on $S_u$:
+the multiplier is the heat flux through the boundary where the temperature is
+imposed, for instance the current through an electrode in electrostatics.
+
+\paragraph{Remark: two-field Lagrangians.} Relaxing also the constitutive law,
+with the stress as an independent field, gives the Hellinger--Reissner
+functional, and relaxing the compatibility $\eps=\eps[\vu]$ the Hu--Washizu
+functional~\cite{BonnetFrangi2007}. They are the basis of mixed finite
+elements, used for incompressible materials.
 
 %======================================================================
 \section{Approximate solutions: from Ritz--Galerkin to finite elements}\label{sec:el-ritz}
@@ -615,6 +743,16 @@ particular domains, and $\mat{K}$ is still full.
 \item \emph{Finite elements}: piecewise polynomials on a partition of the
 domain, continuous across the subdomains. The matrix is sparse and well
 conditioned.
+\item \emph{Isogeometric analysis}~\cite{HughesCottrellBazilevs2005,CottrellHughesBazilevs2009}:
+\index{isogeometric analysis}\index{NURBS}%
+the trial functions are the B-splines or NURBS (non-uniform rational
+B-splines) used in computer-aided design to describe the geometry. The same
+functions represent the exact geometry and the displacement, without a mesh
+approximation of curved boundaries, and they are smoother than standard
+elements ($C^{p-1}$ for degree $p$ instead of $C^0$), which suits plates,
+shells and contact. Being defined from control points rather than nodal
+values, they are not interpolating, and essential boundary conditions are
+imposed with more care, for instance by Lagrange multipliers.
 \end{itemize}
 
 \subsection{Finite elements}
@@ -663,6 +801,35 @@ mid-edges (Figure~\ref{fig:shape}).
 \label{fig:shape}
 \end{figure}
 
+\paragraph{Numerical integration with Gauss points.}
+\index{finite element method!Gauss points}\index{Gauss quadrature}%
+The stiffness matrix is the sum of element contributions,
+$\mat{K}=\sum_e\mat{K}_e$, each assembled at the rows and columns of the nodes
+of element $e$. Each element is the image of a reference element
+$\hat\Omega$ (the segment $[-1,1]$, the square $[-1,1]^2$, the unit triangle) by
+a map $\vx(\vxi)$ with Jacobian matrix $\mat{J}=\partial\vx/\partial\vxi$, and
+the integral is computed on the reference element by a quadrature rule:
+\[
+  \mat{K}_e=\int_{\Omega_e}\mat{B}\T\mat{C}\mat{B}\dd x
+  =\int_{\hat\Omega}\mat{B}\T\mat{C}\mat{B}\,\det\mat{J}\dd\xi
+  \approx\sum_{g=1}^{n_g}w_g\,\mat{B}\T(\vxi_g)\,\mat{C}\,\mat{B}(\vxi_g)\,\det\mat{J}(\vxi_g).
+\]
+The points $\vxi_g$ and weights $w_g$ of Gauss--Legendre quadrature are chosen
+so that $n$ points integrate exactly the polynomials of degree $2n-1$ on
+$[-1,1]$: one point $\xi=0$, $w=2$ (degree 1); two points
+$\xi=\pm1/\sqrt3$, $w=1$ (degree 3); three points $0,\pm\sqrt{3/5}$ with
+weights $\tfrac89,\tfrac59$ (degree 5). On quadrilaterals the rule is the
+tensor product, $2\times2$ points for bilinear elements. On triangles, one
+point at the centroid integrates linear functions, and the three points of
+Figure~\ref{fig:gauss}, $(\tfrac16,\tfrac16)$, $(\tfrac23,\tfrac16)$,
+$(\tfrac16,\tfrac23)$ with weights $\tfrac16$, integrate quadratics. The rule is
+chosen to integrate the stiffness exactly for affine elements; fewer points
+(reduced integration) soften the element, and too few produce spurious
+zero-energy modes. The Gauss points are where the strains and stresses are
+computed; for nonlinear materials they are also where the internal variables
+(plastic strain, damage) are stored and the constitutive law is integrated,
+which is the subject of the next part of the course.
+
 \paragraph{Matrix structure.} The discrete equations reproduce the Tonti
 \index{Tonti diagram!finite elements}\index{finite element method!Gauss points}%
 diagram (Figure~\ref{fig:tonti-fem}):
@@ -677,14 +844,15 @@ evaluated numerically (Figure~\ref{fig:gauss}).
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[node distance=1.0cm and 1.1cm]
-  \node[tinybox] (u) {$\mat{u}$\\ \scriptsize nodal displacements};
-  \node[tinybox,right=4.2cm of u] (f) {$\mat{F}$\\ \scriptsize nodal forces};
-  \node[tinybox,below=of u] (e) {$\mat{e}=\mat{B}\mat{u}$\\ \scriptsize strains at Gauss points};
-  \node[tinybox,below=of f] (s) {$\mat{s}=\mat{C}\mat{e}$\\ \scriptsize stresses at Gauss points};
+  \node[tinybox,kin,text width=3.2cm,minimum width=3.5cm] (u) {$\mat{u}$, \ $\mat{P}\mat{u}=\mat{u}^D$\\ \scriptsize nodal displacements};
+  \node[tinybox,stat,text width=3.2cm,minimum width=3.5cm,right=4.2cm of u] (f) {$\mat{F}$\\ \scriptsize nodal forces};
+  \node[tinybox,kin,text width=3.2cm,minimum width=3.5cm,below=of u] (e) {$\mat{e}=\mat{B}\mat{u}$\\ \scriptsize strains at Gauss points};
+  \node[tinybox,stat,text width=3.2cm,minimum width=3.5cm,below=of f] (s) {$\mat{s}=\mat{C}\mat{e}$\\ \scriptsize stresses at Gauss points};
   \draw[arr] (u) -- (e) node[midway,left,font=\small]{$\mat{B}$};
   \draw[arr] (e) -- (s) node[midway,below,font=\small]{$\mat{C}$};
   \draw[arr] (s) -- (f) node[midway,right,font=\small]{$\mat{B}\T$};
-  \node[below=0.2cm of e,font=\small,cu] {$\mat{P}\mat{u}=\mat{u}^D$};
+  \node[below=0.15cm of e,kinlab] {kinematic};
+  \node[below=0.15cm of s,statlab] {static};
 \end{tikzpicture}
 \caption{The discrete Tonti diagram of the finite element method; compare
 with Figures~\ref{fig:tonti-discrete} and~\ref{fig:tonti-el}.}
@@ -705,10 +873,17 @@ $[\sig]\to\mat{B}\T\to[\vf]$.}
 \begin{itemize}
   \item \textbf{The same structure} appears in all frameworks: discrete
   springs, diffusion, elasticity, finite elements (Table~\ref{tab:diff-el},
-  Figures~\ref{fig:tonti-el} and~\ref{fig:tonti-fem}).
-  \item \textbf{Adjoint and transpose.} The adjoint differential operator
-  ($-\dive$ of $\nabla$ or of $\eps$) corresponds to the transpose matrix
-  ($\mat{B}\T$ of $\mat{B}$); virtual work expresses this duality.
+  Figures~\ref{fig:tonti-diff}, \ref{fig:tonti-el} and~\ref{fig:tonti-fem}):
+  kinematic quantities and data (blue), static quantities and data (green),
+  joined by the material law $\tk$ or $\bbC$.
+  \item \textbf{Adjoint and transpose.} The adjoint of $\nabla$ and of
+  $\eps[\cdot]$ is the pair formed by $-\dive$ in $\Omega$ and the boundary
+  trace $\cdot\,\vn$ on $S_\varphi$ or $S_t$, the flux or the traction on the
+  boundary. It corresponds to the transpose matrix $\mat{B}\T$; virtual work
+  expresses this duality.
+  \item \textbf{The Lagrangian} of the potential energy, with a multiplier
+  for the imposed displacements or potentials, yields all the equations at
+  once; the multiplier is the reaction (traction or flux) on $S_u$.
   \item \textbf{Elastic moduli.} $\bbC$ has minor and major symmetries
   ($21$ moduli in general, $2$ for isotropy) and must be positive definite:
   $K>0$, $\mu>0$, i.e.\ $E>0$ and $-1<\nu<\tfrac12$.
@@ -732,15 +907,15 @@ terms of $\lambda,\mu$. (b) Derive the bulk modulus $K$ from a hydrostatic
 stress $\sig=-p\tI$. (c) Invert the law and check the expression of $\bbS$.
 \begin{solution}
 (a) Taking the trace, $\tr\sig=(3\lambda+2\mu)\tr\eps$, so
-$\eps=\frac{1}{2\mu}\bigl(\sig-\frac{\lambda}{3\lambda+2\mu}(\tr\sig)\tI\bigr)$.
-For uniaxial stress, $\varepsilon_{11}=\frac{\lambda+\mu}{\mu(3\lambda+2\mu)}\sigma$
-and $\varepsilon_{22}=-\frac{\lambda}{2\mu(3\lambda+2\mu)}\sigma$, so
+$\displaystyle \eps=\frac{1}{2\mu}\bigl(\sig-\frac{\lambda}{3\lambda+2\mu}(\tr\sig)\tI\bigr)$.
+For uniaxial stress, $\displaystyle \varepsilon_{11}=\frac{\lambda+\mu}{\mu(3\lambda+2\mu)}\sigma$
+and $\displaystyle \varepsilon_{22}=-\frac{\lambda}{2\mu(3\lambda+2\mu)}\sigma$, so
 $E=\sigma/\varepsilon_{11}=\mu(3\lambda+2\mu)/(\lambda+\mu)$ and
 $\nu=-\varepsilon_{22}/\varepsilon_{11}=\lambda/(2(\lambda+\mu))$.
 (b) $\tr\eps=-3p/(3\lambda+2\mu)$, so $K=-p/\tr\eps=\lambda+\tfrac23\mu$.
-(c) Substituting $\frac1{2\mu}=\frac{1+\nu}{E}$ and
-$\frac{\lambda}{2\mu(3\lambda+2\mu)}=\frac{\nu}{E}$ in (a) gives
-$\eps=\frac{1+\nu}{E}\sig-\frac{\nu}{E}(\tr\sig)\tI$, i.e.\ the expression of
+(c) Substituting $\displaystyle \frac1{2\mu}=\frac{1+\nu}{E}$ and
+$\displaystyle \frac{\lambda}{2\mu(3\lambda+2\mu)}=\frac{\nu}{E}$ in (a) gives
+$\displaystyle \eps=\frac{1+\nu}{E}\sig-\frac{\nu}{E}(\tr\sig)\tI$, i.e.\ the expression of
 $\bbS$ in the box.
 \end{solution}
 
@@ -768,10 +943,10 @@ Derive the strong form of the minimum of $\mathcal U_p$~\eqref{eq:Up} (with
 $\sig_0=\vzero$, $\theta^D=0$), including the natural boundary condition, and
 write it for isotropic elasticity.
 \begin{solution}
-$D\mathcal U_p(\vu)[\vv]=\int_\Omega\eps[\vu]:\bbC:\eps[\vv]-\int_\Omega\vfD\cdot\vv-\int_{S_t}\vtD\cdot\vv=0$
+$\displaystyle D\mathcal U_p(\vu)[\vv]=\int_\Omega\eps[\vu]:\bbC:\eps[\vv]-\int_\Omega\vfD\cdot\vv-\int_{S_t}\vtD\cdot\vv=0$
 for all $\vv$ vanishing on $S_u$. With $\sig=\bbC:\eps[\vu]$ symmetric and
 Theorem~\ref{thm:ibp-tensor},
-$\int_\Omega(\dive\sig+\vfD)\cdot\vv+\int_{S_t}(\vtD-\sig\vn)\cdot\vv=0$, so
+$\displaystyle \int_\Omega(\dive\sig+\vfD)\cdot\vv+\int_{S_t}(\vtD-\sig\vn)\cdot\vv=0$, so
 $\dive\sig+\vfD=\vzero$ in $\Omega$ and $\sig\vn=\vtD$ on $S_t$ (natural). For
 isotropy, $\dive\bigl(\lambda(\dive\vu)\tI+\mu(\nabla\vu+\nabla\vu\T)\bigr)
 =\lambda\nabla\dive\vu+\mu\Delta\vu+\mu\nabla\dive\vu$, giving
@@ -780,15 +955,15 @@ $(\lambda+\mu)\nabla(\dive\vu)+\mu\Delta\vu+\vfD=\vzero$.
 
 \exercise{Equality of the potentials}\label{exo:equality}
 With $\sig_0=\vzero$ and $\theta^D=0$, show that
-$\mathcal U_p(\vu)=\mathcal U_p^\ast(\sig)=-\tfrac12\int_\Omega\sig:\eps[\vu]+\int_{S_u}\vuD\cdot\sig\vn$.
+$\displaystyle \mathcal U_p(\vu)=\mathcal U_p^\ast(\sig)=-\tfrac12\int_\Omega\sig:\eps[\vu]+\int_{S_u}\vuD\cdot\sig\vn$.
 \begin{solution}
 Virtual work with $\vv=\vu$ gives
-$\int_\Omega\sig:\eps=\int_\Omega\vfD\cdot\vu+\int_{S_t}\vtD\cdot\vu+\int_{S_u}(\sig\vn)\cdot\vuD$.
+$\displaystyle \int_\Omega\sig:\eps=\int_\Omega\vfD\cdot\vu+\int_{S_t}\vtD\cdot\vu+\int_{S_u}(\sig\vn)\cdot\vuD$.
 Hence
-$\mathcal U_p(\vu)=\tfrac12\int\sig:\eps-\int\vfD\cdot\vu-\int_{S_t}\vtD\cdot\vu=-\tfrac12\int\sig:\eps+\int_{S_u}\vuD\cdot\sig\vn$.
+$\displaystyle \mathcal U_p(\vu)=\tfrac12\int\sig:\eps-\int\vfD\cdot\vu-\int_{S_t}\vtD\cdot\vu=-\tfrac12\int\sig:\eps+\int_{S_u}\vuD\cdot\sig\vn$.
 On the other hand $\sig:\bbS:\sig=\sig:\eps$, so $\mathcal U_p^\ast(\sig)$ has
 the same value. Without imposed displacements ($\vuD=\vzero$) the common
-value is $-\tfrac12\int\sig:\eps$, minus the stored energy, as for the springs
+value is $\displaystyle -\tfrac12\int\sig:\eps$, minus the stored energy, as for the springs
 ($W_{\min}=-\tfrac12\vf\T\mat{K}^{-1}\vf$).
 \end{solution}
 
@@ -799,7 +974,7 @@ in~\eqref{eq:diffusion-energy}--\eqref{eq:diffusion-comp}, with equality at
 the solution.
 \begin{solution}
 For $v\in\uD+V_0$ and $\vp$ statically admissible, integrate by parts:
-$\int_\Omega\vp\cdot\nabla v=-\int_\Omega(\dive\vp)v+\int_{\partial\Omega}(\vp\cdot\vn)v
+$\displaystyle \int_\Omega\vp\cdot\nabla v=-\int_\Omega(\dive\vp)v+\int_{\partial\Omega}(\vp\cdot\vn)v
 =\int_\Omega fv+\int_{S_\varphi}\pD v+\int_{S_u}\uD\,\vp\cdot\vn$. Then
 \[
   J(v)-J^\ast(\vp)=\tfrac12\int_\Omega(\tk\nabla v-\vp)\cdot\tk^{-1}(\tk\nabla v-\vp)\dd x\ge0 ,
@@ -810,22 +985,40 @@ the basis of a posteriori error estimation by constitutive relation error.
 \end{solution}
 
 \exercise{Imposed displacements with Lagrange multipliers}\label{exo:lagrange-el}
-(a) For the continuous problem, write the Lagrangian
-$\mathcal L(\vv,\vlambda)=\mathcal U_p(\vv)+\int_{S_u}\vlambda\cdot(\vv-\vuD)\dd s$
-over unconstrained fields $\vv$, and compute the complete system of
-variational equations. Interpret $\vlambda$. (b) Do the same for the discrete
-Ritz problem and obtain~\eqref{eq:saddle}.
+(a) With the Lagrangian~\eqref{eq:L-el} and $\sig_0=\vzero$, $\theta^D=0$,
+choose a rigid translation $\vw=\vect{a}$ in the stationarity condition and
+show that the reactions balance the applied loads,
+$\displaystyle \int_{S_u}\vlambda+\int_{S_t}\vtD+\int_\Omega\vfD=\vzero$. (b) Do the same for
+the discrete Ritz problem and obtain~\eqref{eq:saddle}.
 \begin{solution}
-(a) Stationarity in $\vlambda$ gives $\vv=\vuD$ on $S_u$. Stationarity in
-$\vv$: $\int_\Omega\sig:\eps[\vw]-\int_\Omega\vfD\cdot\vw-\int_{S_t}\vtD\cdot\vw
-+\int_{S_u}\vlambda\cdot\vw=0$ for all $\vw$, now without restriction on
-$S_u$. Integrating by parts: $\dive\sig+\vfD=\vzero$ in $\Omega$,
-$\sig\vn=\vtD$ on $S_t$, and $\sig\vn=-\vlambda$ on $S_u$. The multiplier is
-minus the reaction traction exerted by the support.
+(a) For $\vw=\vect{a}$ constant, $\eps[\vw]=\vzero$ and the stationarity
+condition reduces to
+$\displaystyle -\vect{a}\cdot\bigl(\int_\Omega\vfD+\int_{S_t}\vtD+\int_{S_u}\vlambda\bigr)=0$
+for all $\vect{a}$: the global balance of forces, in which the multipliers are
+the support reactions. A rigid rotation $\vw=\vect{b}\times\vx$ gives the
+balance of moments.
 (b) With $\mathcal U_p=\tfrac12\vu\T\mat{K}\vu-\mat{F}\T\vu$,
 $\partial_{\vu}\mathcal L=\mat{K}\vu-\mat{F}+\mat{P}\T\vlambda=\vzero$ and
 $\partial_{\vlambda}\mathcal L=\mat{P}\vu-\vuD=\vzero$, which
-is~\eqref{eq:saddle}; $-\mat{P}\T\vlambda$ are the nodal reactions.
+is~\eqref{eq:saddle}; $-\mat{P}\T\vlambda$ are the nodal reactions (the
+sign follows the convention of~\eqref{eq:saddle}, where the constraint
+enters with a $+$ sign).
+\end{solution}
+
+\exercise{Gauss points}\label{exo:gauss}
+\index{Gauss quadrature!exercise}%
+(a) Check that the two-point rule $\displaystyle \int_{-1}^1g\approx g(-1/\sqrt3)+g(1/\sqrt3)$
+is exact for $g=1,\xi,\xi^2,\xi^3$ and not for $\xi^4$. (b) A bar element of
+length $h$ with quadratic shape functions has $\mat{B}$ linear in $\xi$: how
+many Gauss points integrate its stiffness exactly? (c) What happens if a
+four-node square element is integrated with one point only?
+\begin{solution}
+(a) The odd powers vanish on both sides; $\displaystyle \int\xi^2=\tfrac23=2\cdot\tfrac13$;
+$\displaystyle \int\xi^4=\tfrac25\neq2\cdot\tfrac19$. (b) $\mat{B}\T\mat{C}\mat{B}$ is quadratic in
+$\xi$, so two points suffice (one point would not). (c) One point evaluates
+the strains only at the centre; the ``hourglass'' displacement modes, which
+have zero strain at the centre but not elsewhere, then cost no energy: the
+stiffness matrix has spurious zero eigenvalues.
 \end{solution}
 
 \exercise{A bar in tension by the Ritz method}\label{exo:bar}
@@ -834,24 +1027,33 @@ a uniform axial force $f$ per unit length and by a force $F$ at $x=L$. (a) Write
 the potential energy and the exact solution. (b) Ritz with $w_1=x$. (c) Ritz
 with $w_1=x$, $w_2=x^2$. Compare the end displacements and the energies.
 \begin{solution}
-(a) $\mathcal U_p(v)=\int_0^L\tfrac12EA(v')^2-\int_0^Lfv-Fv(L)$, $v(0)=0$;
+(a) $\displaystyle \mathcal U_p(v)=\int_0^L\tfrac12EA(v')^2-\int_0^Lfv-Fv(L)$, $v(0)=0$;
 Euler--Lagrange: $-EAu''=f$, $EAu'(L)=F$, so
-$u=\frac{(F+fL)x-fx^2/2}{EA}$, $u(L)=\frac{FL+fL^2/2}{EA}$.
+$\displaystyle u=\frac{(F+fL)x-fx^2/2}{EA}$, $\displaystyle u(L)=\frac{FL+fL^2/2}{EA}$.
 (b) $v=\alpha x$: $\mathcal U_p=\tfrac12EAL\alpha^2-\alpha(fL^2/2+FL)$, so
 $\alpha=(F+fL/2)/EA$ and $v(L)=u(L)$ exactly, but the strain $\alpha$ is
 constant: the stress is the average of the exact one. The energy is higher
-than the exact one by $\frac{f^2L^3}{24EA}$.
+than the exact one by $\displaystyle \frac{f^2L^3}{24EA}$.
 (c) The exact solution belongs to the trial space, so the Ritz method
 returns it: the Ritz solution is the best approximation in energy norm.
 \end{solution}
 
 \exercise{Why not polynomials?}\label{exo:conditioning}
 For the bar of Exercise~\ref{exo:bar} with $EA=L=1$, use the monomials
-$w_m=x^m$, $m=1,\dots,n$. Compute $K_{m\ell}=\int_0^1w_m'w_\ell'$ and its
+$w_m=x^m$, $m=1,\dots,n$. Compute $\displaystyle K_{m\ell}=\int_0^1w_m'w_\ell'$ and its
 condition number for $n=3,5,7,9$. Compare with $n$ hat functions.
 \begin{solution}
-$K_{m\ell}=m\ell/(m+\ell-1)$, a Hilbert-like matrix.
-\lstinputlisting[firstline=4]{python/examples/ch2/exo_conditioning.py}
+$K_{m\ell}=m\ell/(m+\ell-1)$, a Hilbert-like matrix. Its condition numbers are
+\begin{center}\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcccc}
+\toprule
+$n$ & 3 & 5 & 7 & 9\\
+\midrule
+monomials $x^m$ & $2.8\times10^2$ & $1.9\times10^5$ & $1.7\times10^8$ & $1.6\times10^{11}$\\
+hat functions & $5.8$ & $13.9$ & $25.3$ & $39.9$\\
+\bottomrule
+\end{tabular}
+\end{center}
 The condition number of the monomial basis grows geometrically; that of the
 finite element basis like $1/h^2$.
 \end{solution}
@@ -877,7 +1079,9 @@ scalar problem with an insulating crack studied in Chapter~\ref{ch:rg}.
 \bibitem{Chadwick2001} P.~Chadwick, M.~Vianello, S.~C.~Cowin, A new proof that the number of linear elastic symmetries is eight, \emph{J. Mech. Phys. Solids} 49 (2001) 2471--2492.
 \bibitem{Coirier1997} J.~Coirier, \emph{M\'ecanique des milieux continus}, Dunod, 1997.
 \bibitem{ConstantinescuKorsunsky2007} A.~Constantinescu, A.~Korsunsky, \emph{Elasticity with Mathematica}, Cambridge University Press, 2007.
+\bibitem{CottrellHughesBazilevs2009} J.~A.~Cottrell, T.~J.~R.~Hughes, Y.~Bazilevs, \emph{Isogeometric Analysis: Toward Integration of CAD and FEA}, Wiley, 2009.
 \bibitem{Germain1983} P.~Germain, \emph{M\'ecanique des milieux continus}, Masson, 1983.
+\bibitem{HughesCottrellBazilevs2005} T.~J.~R.~Hughes, J.~A.~Cottrell, Y.~Bazilevs, Isogeometric analysis: CAD, finite elements, NURBS, exact geometry and mesh refinement, \emph{Comput. Methods Appl. Mech. Engrg.} 194 (2005) 4135--4195.
 \bibitem{Hughes1987} T.~J.~R.~Hughes, \emph{The Finite Element Method}, Prentice Hall, 1987.
 \bibitem{Salencon2001} J.~Salen\c{c}on, \emph{Handbook of Continuum Mechanics: General Concepts, Thermoelasticity}, Springer, 2001.
 \bibitem{SoutasLittle1973} R.~W.~Soutas-Little, \emph{Elasticity}, Dover, 1973.

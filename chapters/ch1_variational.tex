@@ -196,22 +196,22 @@ the finite element stiffness matrix in Section~\ref{sec:var-fem}.
 \centering
 \begin{tikzpicture}[node distance=1.4cm and 2.4cm,
   tb/.style={smallbox,minimum width=3.3cm}]
-  \node[tb] (x) {$\vu$ \\ \footnotesize displacement};
-  \node[tb, right=2.4cm of x] (f) {$\vf=\mat{B}\T\vect{\sigma}$ \\ \footnotesize force};
-  \node[tb, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
-  \node[tb, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
+  \node[tb,kin] (x) {$\vu$ \\ \footnotesize displacement};
+  \node[tb,stat, right=2.4cm of x] (f) {$\vf=\mat{B}\T\vect{\sigma}$ \\ \footnotesize force};
+  \node[tb,kin, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
+  \node[tb,stat, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
   \node[tb, right=1.6cm of f, minimum width=2.4cm] (wf) {$\vf\T\vu$ \\ \footnotesize external work};
   \node[tb, right=1.6cm of s, minimum width=2.4cm] (ws) {$\vect{\sigma}\T\ve$ \\ \footnotesize internal work};
   \draw[arr] (x) -- (e) node[midway,left]{$\mat{B}$};
   \draw[arr] (e) -- (s) node[midway,below]{$\mat{C}$};
   \draw[arr] (s) -- (f) node[midway,right]{$\mat{B}\T$};
   \node at ($(wf)!0.5!(ws)$) {\Large $\Vert$};
-  \node[below=0.15cm of e,font=\small\sffamily] {kinematic};
-  \node[below=0.15cm of s,font=\small\sffamily] {static};
+  \node[below=0.15cm of e,kinlab] {kinematic};
+  \node[below=0.15cm of s,statlab] {static};
   \node[below=0.15cm of ws,font=\small\sffamily] {mechanical work};
 \end{tikzpicture}
-\caption{Tonti diagram of the spring chain. Left column: kinematic
-quantities; middle column: static quantities, joined by the material law
+\caption{Tonti diagram of the spring chain. Left column (blue): kinematic
+quantities; middle column (green): static quantities, joined by the material law
 $\mat{C}$. The right column is the mechanical work: the external work
 $\vf\T\vu$ equals the internal work $\vect{\sigma}\T\ve$ for every $\vu$
 because the equilibrium operator is the transpose of the compatibility
@@ -435,7 +435,7 @@ $\vect{r}=-\mat{P}\T\lambda$: the multiplier is the force that the support
 must exert to impose the displacement. With unit stiffnesses, $\vf=\vzero$ and
 $\uD=1$: $\vu=(\tfrac13,\tfrac23,1)\T$ and $\lambda=-\tfrac43$. The support
 pushes the third mass with the force $r_3=\tfrac43$, the stiffness of the
-three left springs in series ($\tfrac13$) plus that of the right spring ($1$). The computation is in \texttt{python/examples/ch1/springs\_constraint.py}.
+three left springs in series ($\tfrac13$) plus that of the right spring ($1$).
 The Tonti diagram keeps its structure (Figure~\ref{fig:tonti-constraint}):
 the constraint enters the kinematic column, its multiplier the static one.
 The same construction imposes displacements in a finite element code
@@ -445,15 +445,15 @@ The same construction imposes displacements in a finite element code
 \centering
 \begin{tikzpicture}[node distance=1.4cm and 2.6cm,
   tb/.style={smallbox,minimum width=4.1cm}]
-  \node[tb] (x) {$\vu$, \quad $\mat{P}\vu=\uD$ \\ \footnotesize displacement, constraint};
-  \node[tb, right=2.6cm of x] (f) {$\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, \ $\vect{r}=-\mat{P}\T\lambda$ \\ \footnotesize forces and reaction};
-  \node[tb, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
-  \node[tb, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
+  \node[tb,kin] (x) {$\vu$, \quad $\mat{P}\vu=\uD$ \\ \footnotesize displacement, constraint};
+  \node[tb,stat, right=2.6cm of x] (f) {$\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, \ $\vect{r}=-\mat{P}\T\lambda$ \\ \footnotesize forces and reaction};
+  \node[tb,kin, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
+  \node[tb,stat, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
   \draw[arr] (x) -- (e) node[midway,left]{$\mat{B}$};
   \draw[arr] (e) -- (s) node[midway,below]{$\mat{C}$};
   \draw[arr] (s) -- (f) node[midway,right]{$\mat{B}\T$};
-  \node[below=0.15cm of e,font=\small\sffamily] {kinematic};
-  \node[below=0.15cm of s,font=\small\sffamily] {static};
+  \node[below=0.15cm of e,kinlab] {kinematic};
+  \node[below=0.15cm of s,statlab] {static};
 \end{tikzpicture}
 \caption{Tonti diagram of the spring chain with an imposed displacement. The
 constraint $\mat{P}\vu=\uD$ restricts the kinematic column; its Lagrange
@@ -475,19 +475,19 @@ in Appendix~\ref{app:spaces}.
 
 \paragraph{$L^2(\Omega)$: finite mean square.}
 \index{function space!L2@$L^2$}%
-$v\in L^2(\Omega)$ if $\norm{v}_{L^2}^2=\int_\Omega v^2\dd x<\infty$. It is the
+$v\in L^2(\Omega)$ if $\displaystyle \norm{v}_{L^2}^2=\int_\Omega v^2\dd x<\infty$. It is the
 continuum version of the Euclidean norm $|\vu|^2=\sum u_i^2$. A function may be
 discontinuous or even unbounded and still belong to $L^2$:
 $x^{-1/4}\in L^2(0,1)$, but $x^{-1/2}\notin L^2(0,1)$ since
-$\int_0^1x^{-1}\dd x=\infty$.
+$\displaystyle \int_0^1x^{-1}\dd x=\infty$.
 
 \paragraph{$H^1(\Omega)$: finite energy.}
 \index{function space!H1@$H^1$}%
 $v\in H^1(\Omega)$ if $v$ and its gradient are in $L^2$:
-$\norm{v}_{H^1}^2=\int_\Omega\bigl(v^2+|\nabla v|^2\bigr)\dd x<\infty$. This is
+$\displaystyle \norm{v}_{H^1}^2=\int_\Omega\bigl(v^2+|\nabla v|^2\bigr)\dd x<\infty$. This is
 exactly the condition for the Dirichlet energy~\eqref{eq:poisson-energy} to be
 finite. The gradient is the continuum version of $\mat{B}$, and
-$\int|\nabla v|^2$ that of $|\mat{B}\vu|^2$.
+$\displaystyle \int|\nabla v|^2$ that of $|\mat{B}\vu|^2$.
 
 \paragraph{$H^1_0(\Omega)$: finite energy and zero boundary values.}
 \index{function space!H10@$H^1_0$}\index{trace}%
@@ -556,7 +556,7 @@ extends by density to all $v\in H^1_0(\Omega)$; there is no longer any need
 for $u\in H^2$.
 
 The weak form is also the first variation of the energy~\eqref{eq:poisson-energy}:
-$\frac{\dd}{\dd t}J(u+tv)\big|_{t=0}=\int_\Omega\nabla u\cdot\nabla v-\int_\Omega fv$.
+$\displaystyle \frac{\dd}{\dd t}J(u+tv)\big|_{t=0}=\int_\Omega\nabla u\cdot\nabla v-\int_\Omega fv$.
 The three settings
 \begin{center}
 \begin{tabular}{lll}
@@ -630,8 +630,8 @@ such that
 and $\norm{u}\le\norm{L}_{V^\ast}/\alpha$. The form $a$ need not be symmetric.
 \end{gbox}
 
-For the model problem, $a(u,v)=\int_\Omega\nabla u\cdot\nabla v$ and
-$L(v)=\int_\Omega fv$ on $H^1_0(\Omega)$:
+For the model problem, $\displaystyle a(u,v)=\int_\Omega\nabla u\cdot\nabla v$ and
+$\displaystyle L(v)=\int_\Omega fv$ on $H^1_0(\Omega)$:
 \begin{itemize}
   \item \emph{bounded:} $|a(u,v)|\le\norm{\nabla u}_{L^2}\norm{\nabla v}_{L^2}$
   (Cauchy--Schwarz);
@@ -662,12 +662,12 @@ show what breaks.
 \]
 corresponding to $-u''-\pi^2u=f$, $u(0)=u(1)=0$. The form is bounded,
 $|a(u,v)|\le(1+\pi^2)\norm{u}_{H^1_0}\norm{v}_{H^1_0}$, but not coercive: the
-sharp Poincar\'e (Wirtinger) inequality $\int_0^1(u')^2\ge\pi^2\int_0^1u^2$ is
+sharp Poincar\'e (Wirtinger) inequality $\displaystyle \int_0^1(u')^2\ge\pi^2\int_0^1u^2$ is
 an equality at $u=\sin\pi x$, so $a(\sin\pi x,\sin\pi x)=0$. This is not an
 artefact of the proof: $\pi^2$ is the first Dirichlet eigenvalue of
 $-\dd^2/\dd x^2$ on $(0,1)$, the problem is at resonance, and the Fredholm
 alternative (Section~\ref{sec:var-elliptic}) takes over. Solvability requires
-$f\perp\sin\pi x$ in $L^2$. For $f=1$, $\int_0^1\sin\pi x\dd x=2/\pi\neq0$:
+$f\perp\sin\pi x$ in $L^2$. For $f=1$, $\displaystyle \int_0^1\sin\pi x\dd x=2/\pi\neq0$:
 \textbf{no solution}. For $f=\sin2\pi x$ the condition holds, and
 $u_c=\sin(2\pi x)/(3\pi^2)+c\sin\pi x$ solves the problem for every
 $c\in\R$: \textbf{infinitely many solutions} (Figure~\ref{fig:resonance}).
@@ -680,8 +680,8 @@ Two classical situations lead exactly to this equation.
 tension $T$, linear density $\rho$ and length $L$, fixed at both ends and
 loaded by $p(x)\cos\omega t$, vibrates as $w(x)\cos\omega t$ with
 $-Tw''-\rho\omega^2w=p$. On the unit interval, $\rho\omega^2/T=\pi^2$ means
-$\omega=\omega_1=\frac{\pi}{L}\sqrt{T/\rho}$, the fundamental frequency. Without
-damping, a load that excites the first mode ($\int p\sin\pi x\neq0$) has no
+$\displaystyle \omega=\omega_1=\frac{\pi}{L}\sqrt{T/\rho}$, the fundamental frequency. Without
+damping, a load that excites the first mode ($\displaystyle \int p\sin\pi x\neq0$) has no
 periodic response: the amplitude grows without bound. A load orthogonal to
 the mode produces a response defined up to a free oscillation in the mode.
 \item \emph{A column at the Euler load.} A pinned column of length $L$ and
@@ -732,8 +732,8 @@ subject of the last part of the course.
 \begin{itemize}
 \item \emph{The buckled column.} Beyond the Euler load, write the deflection
 of the pinned column as $w=a\sin(\pi x/L)$. The bending energy
-$\tfrac12EI\int(w'')^2$ minus the work of $P$ on the shortening
-$\tfrac12\int(w')^2$ gives, to leading orders,
+$\displaystyle \tfrac12EI\int(w'')^2$ minus the work of $P$ on the shortening
+$\displaystyle \tfrac12\int(w')^2$ gives, to leading orders,
 \[
   \Pi(a)=\frac{\pi^2}{4L}\,(P_E-P)\,a^2+\beta\,a^4,\qquad\beta>0,
 \]
@@ -769,7 +769,7 @@ The Poisson problem uses the simplest elliptic operator. The Lax--Milgram
 framework is built for the general second-order case, where the minimization
 approach does not always apply~\cite{GilbargTrudinger2001,Evans2010}.
 
-\paragraph{The operator.} Consider
+\begin{gbox}{The elliptic operator and its bilinear form}
 \begin{equation}\label{eq:general-elliptic}
   -\dive(\tA(\vx)\nabla u)+\vb(\vx)\cdot\nabla u+c(\vx)u=f
   \ \text{in } \Omega,\qquad u=0 \ \text{on } \partial\Omega,
@@ -778,24 +778,23 @@ with $\tA(\vx)$ a second-order tensor field (conductivity, diffusivity),
 $\vb$ a drift (convection) field and $c$ a reaction coefficient. The operator
 is \emph{uniformly elliptic} if
 $\vxi\cdot\tA(\vx)\vxi\ge\alpha|\vxi|^2$ for all $\vxi\in\R^n$, $\vx\in\Omega$,
-some $\alpha>0$.
-
-\paragraph{The bilinear form.} Integrating by parts with
-Theorem~\ref{thm:ibp-matrix},
+some $\alpha>0$. Integrating by parts with Theorem~\ref{thm:ibp-matrix} gives
+the bilinear form on $H^1_0(\Omega)$
 \[
   a(u,v)=\int_\Omega\tA\nabla u\cdot\nabla v\dd x
   +\int_\Omega(\vb\cdot\nabla u)\,v\dd x+\int_\Omega c\,uv\dd x .
 \]
+\end{gbox}
 
 \paragraph{The hypotheses.} If $\tA,\vb,c\in L^\infty(\Omega)$, $a$ is bounded.
-Ellipticity gives $\int\tA\nabla u\cdot\nabla u\ge\alpha\norm{\nabla u}^2_{L^2}$,
+Ellipticity gives $\displaystyle \int\tA\nabla u\cdot\nabla u\ge\alpha\norm{\nabla u}^2_{L^2}$,
 and Poincar\'e controls the full norm; but the lower-order terms can spoil
 coercivity. G\aa rding's inequality~\cite{Garding1953},
 \[
   a(u,u)\ge\alpha\norm{u}_{H^1_0}^2-\lambda\norm{u}_{L^2}^2,\qquad\lambda\ge0,
 \]
 states coercivity up to a compact perturbation. Either one shifts the form,
-$a_\lambda(u,v)=a(u,v)+\lambda\int uv$, which is coercive, or one invokes the
+$\displaystyle a_\lambda(u,v)=a(u,v)+\lambda\int uv$, which is coercive, or one invokes the
 \emph{Fredholm alternative}: the problem is solvable for all $f$ except on a
 finite-dimensional exceptional set related to the eigenvalues of the operator.
 
@@ -804,7 +803,7 @@ finite-dimensional exceptional set related to the eigenvalues of the operator.
 does not require $a$ to be symmetric; minimization does. A quadratic energy
 $J(u)=\tfrac12a(u,u)-L(u)$ has $\delta J(u)[v]=a(u,v)-L(v)$ only when $a$ is
 symmetric (Section~\ref{ssec:symmetry}). The convection term
-$\int(\vb\cdot\nabla u)v$ is not symmetric, so convection--diffusion has no
+$\displaystyle \int(\vb\cdot\nabla u)v$ is not symmetric, so convection--diffusion has no
 natural energy, yet Lax--Milgram applies. Dirichlet, Neumann or Robin
 conditions are handled by changing the space ($H^1_0$ or $H^1$) and adding
 boundary terms to $a$ (Exercises~\ref{exo:neumann} and~\ref{exo:robin}).
@@ -872,13 +871,13 @@ $\Lambda=\nabla$:
 \]
 \begin{enumerate}[label=\emph{Step \arabic*.},leftmargin=*,itemsep=3pt]
 \item \emph{Conjugate of $F$.} A quadratic form on a Hilbert space is
-self-conjugate: $F^\ast(\vp)=\tfrac12\int_\Omega|\vp|^2\dd x$.
+self-conjugate: $\displaystyle F^\ast(\vp)=\tfrac12\int_\Omega|\vp|^2\dd x$.
 \item \emph{Conjugate of $G$.} $G$ is linear, so its conjugate is an
 indicator function:
-$G^\ast(w)=\sup_u\int_\Omega(w+f)u\dd x$ equals $0$ if $w=-f$ and $+\infty$
+$\displaystyle G^\ast(w)=\sup_u\int_\Omega(w+f)u\dd x$ equals $0$ if $w=-f$ and $+\infty$
 otherwise.
 \item \emph{The adjoint $\Lambda^\ast$.} Integrating by parts (the boundary
-term vanishes in $H^1_0$), $\int_\Omega\vp\cdot\nabla u=-\int_\Omega(\dive\vp)\,u$,
+term vanishes in $H^1_0$), $\displaystyle \int_\Omega\vp\cdot\nabla u=-\int_\Omega(\dive\vp)\,u$,
 so $\Lambda^\ast\vp=-\dive\vp$.
 \item \emph{Assemble.} Fenchel--Rockafellar duality states
 \[
@@ -896,7 +895,7 @@ $+\infty$ otherwise: it becomes a constraint.
   \;=\;
   \max_{\vp:\ \dive\vp+f=0}\Bigl(-\tfrac12\int_\Omega|\vp|^2\Bigr).
 \]
-At the optimum $\vp=\nabla u$, and both values equal $-\tfrac12\int_\Omega|\nabla u|^2$.
+At the optimum $\vp=\nabla u$, and both values equal $\displaystyle -\tfrac12\int_\Omega|\nabla u|^2$.
 \end{gbox}
 There is no duality gap because $F$ is continuous and finite everywhere and
 $\Lambda$ is bounded, the standard qualification condition. This is the
@@ -923,15 +922,15 @@ and control the error with C\'ea's lemma~\cite{Cea1964}
 \end{tikzpicture}
 \end{center}
 Take the one-dimensional problem $-u''=f$ on $(0,1)$, $u(0)=u(1)=0$, with weak
-form $\int_0^1u'v'=\int_0^1fv$.
+form $\displaystyle \int_0^1u'v'=\int_0^1fv$.
 \begin{itemize}
   \item Partition $[0,1]$ into $n$ intervals of size $h=1/n$ and let
   $V_h\subset H^1_0$ be spanned by the piecewise-linear ``hat'' functions
   $\varphi_1,\dots,\varphi_{n-1}$.
   \item Write $u_h=\sum_jc_j\varphi_j$ and require
-  $\int u_h'\varphi_i'=\int f\varphi_i$ for each $i$: this is the linear
+  $\displaystyle \int u_h'\varphi_i'=\int f\varphi_i$ for each $i$: this is the linear
   system $\mat{K}\mat{c}=\mat{F}$ with the tridiagonal stiffness matrix
-  $K_{ij}=\int\varphi_i'\varphi_j'=h^{-1}\operatorname{tridiag}(-1,2,-1)$,
+  $\displaystyle K_{ij}=\int\varphi_i'\varphi_j'=h^{-1}\operatorname{tridiag}(-1,2,-1)$,
   the matrix of the spring chain.
   \item C\'ea's lemma gives $\norm{u-u_h}_{H^1_0}\le C\inf_{v_h}\norm{u-v_h}_{H^1_0}=O(h)$
   for smooth $u$; nodal values converge faster (Exercise~\ref{exo:conv}).
@@ -967,7 +966,7 @@ The area of the graph of $u$ over $\Omega$ is
   A[u]=\int_\Omega\sqrt{1+|\nabla u|^2}\dd x .
 \]
 A soap film spanning a wire frame (the boundary data) minimizes it. The first
-variation $\frac{\dd}{\dd t}A[u+t\varphi]\big|_{t=0}=0$ for all test functions
+variation $\displaystyle \frac{\dd}{\dd t}A[u+t\varphi]\big|_{t=0}=0$ for all test functions
 $\varphi$ gives, after integration by parts (Theorem~\ref{thm:ibp}),
 \[
   \dive\!\left(\frac{\nabla u}{\sqrt{1+|\nabla u|^2}}\right)=0,
@@ -1001,7 +1000,32 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
   \item \textbf{Not every weak form has an energy.} A symmetric form has
   $J(u)=\tfrac12a(u,u)-L(u)$; a non-symmetric one (convection) has none,
   yet Lax--Milgram still applies.
+  \item \textbf{Adjoint operators.} Every problem of the chapter has the
+  structure of the Tonti diagram below: a kinematic operator $D$ (the matrix
+  $\mat{B}$, the gradient $\nabla$), a material law $C$, and an equilibrium
+  operator which is the adjoint $D^\ast$ (the transpose $\mat{B}\T$, the pair
+  $-\dive$ in $\Omega$ and $\cdot\,\vn$ on the part $S_\varphi$ of the
+  boundary where the flux is prescribed). The adjoint is
+  defined by the equality of internal and external work,
+  $\scal{\vect{\sigma}}{D\vv}=\scal{D^\ast\vect{\sigma}}{\vv}$ for all $\vv$,
+  and the stiffness operator is always $K=D^\ast CD$: symmetric, and positive
+  definite when $C$ is and $D$ has no kernel (no rigid motion).
 \end{itemize}
+\begin{center}
+\begin{tikzpicture}[node distance=0.9cm and 2.2cm,
+  tb/.style={smallbox,minimum width=3.4cm,minimum height=1.05cm}]
+  \node[tb,kin] (x) {$\vu$ \ $\mid$ \ $u$\\ \footnotesize displacement, potential};
+  \node[tb,stat, right=2.6cm of x] (f) {$\vf$ \ $\mid$ \ $f$, $\pD$\\ \footnotesize forces, sources};
+  \node[tb,kin, below=of x] (e) {$\ve=\mat{B}\vu$ \ $\mid$ \ $\nabla u$};
+  \node[tb,stat, below=of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \ $\mid$ \ $\tk\nabla u$};
+  \draw[arr] (x) -- (e) node[midway,left,font=\small]{$D$: \ $\mat{B}$ \ $\mid$ \ $\nabla$};
+  \draw[arr] (e) -- (s) node[midway,below,font=\small]{$C$: \ $\mat{C}$ \ $\mid$ \ $\tk$};
+  \draw[arr] (s) -- (f) node[midway,right,font=\small,align=left]{$D^\ast$: \ $\mat{B}\T$ \ $\mid$ \ $-\dive$ in $\Omega$,\\ \hspace{2.2em}$\cdot\,\vn$ on $S_\varphi$};
+  \node[below=0.1cm of e,kinlab] {kinematic};
+  \node[below=0.1cm of s,statlab] {static};
+\end{tikzpicture}
+\end{center}
+{\small In each box and label: discrete (spring chain) \ $\mid$ \ continuum (diffusion).}
 \end{gbox*}
 \begin{table}[h]
 \centering\small
@@ -1039,10 +1063,8 @@ energy minimization.
 
 %======================================================================
 \framepart{Exercises}\label{sec:var-exo}
-Part~I checks results numerically or symbolically: every script was run
-(\texttt{numpy}/\texttt{scipy} for numerical checks, \texttt{sympy} for
-symbolic ones) and its output is quoted in the comments. The scripts are the
-files of \texttt{python/examples/ch1/}, printed verbatim. Part~II is
+Part~I checks results numerically or symbolically, with a few lines of
+code in the language of your choice. Part~II is
 paper-and-pencil practice with variational calculus. Part~III treats
 constraints and convex conjugates. Solutions are given in small type after
 each exercise.
@@ -1056,8 +1078,8 @@ $\vf=(1,1,1)\T$), minimize $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu$ by
 gradient descent and compare with the direct solution of $\mat{K}\vu=\vf$.
 What is the convergence rate?
 \begin{solution}
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_gd.py}
-The error is multiplied at each step by $\mat{I}-\text{step}\,\mat{K}$, so it
+With the step $0.2$ and $500$ iterations, $\vu_n\to(1.5,\,2,\,1.5)\T$, the
+direct solution, to machine precision. The error is multiplied at each step by $\mat{I}-\text{step}\,\mat{K}$, so it
 contracts at the rate $\rho=\max_i|1-\text{step}\,\lambda_i(\mat{K})|$
 (Figure~\ref{fig:gd}); the eigenvalues are those of Exercise~\ref{exo:lm-constants}.
 \end{solution}
@@ -1071,10 +1093,12 @@ follows the predicted rate $\rho=\max_i|1-\text{step}\,\lambda_i(\mat{K})|$.}
 \end{figure}
 
 \exercise{Integration by parts, checked numerically}\label{exo:ibp-num}
-Verify $\int_0^1u'v'\dd x=-\int_0^1u''v\dd x+[u'v]_0^1$ for $u=\sin\pi x$,
+Verify $\displaystyle \int_0^1u'v'\dd x=-\int_0^1u''v\dd x+[u'v]_0^1$ for $u=\sin\pi x$,
 $v=x(1-x)$.
 \begin{solution}
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_ibp_num.py}
+$u'v'=\pi\cos(\pi x)(1-2x)$ and $-u''v=\pi^2\sin(\pi x)\,x(1-x)$; the
+boundary term vanishes since $v(0)=v(1)=0$. Both integrals equal
+$4/\pi\approx1.27324$, by quadrature or by hand (integrate by parts twice).
 \end{solution}
 
 \exercise{Lax--Milgram constants from eigenvalues}\label{exo:lm-constants}
@@ -1092,7 +1116,6 @@ $M=\lambda_{\max}$. Both bounds are sharp: equality at $\vu=\ve_1$ and
 $\vu=\ve_3$ (Figure~\ref{fig:coercivity}).
 (d) The lower line is coercivity, the upper line boundedness: the two
 hypotheses of Lax--Milgram, here for the bilinear form $a(\vu,\vv)=\vu\T\mat{K}\vv$.
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_lm_constants.py}
 \end{solution}
 
 \begin{figure}[h]
@@ -1109,8 +1132,8 @@ With $\ve=\mat{B}\vu$ and unit stiffnesses, check that the potential energy
 $W(\vu^\ast)$ equals the complementary energy $-\tfrac12|\vect{\sigma}^\ast|^2$
 at $\vect{\sigma}^\ast=\mat{B}\vu^\ast$.
 \begin{solution}
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_primal_dual.py}
-Analytically: $W(\vu^\ast)=\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast-\vf\T\vu^\ast=-\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast=-\tfrac12|\mat{B}\vu^\ast|^2$,
+$\vu^\ast=(1.5,2,1.5)\T$, $\vect{\sigma}^\ast=\mat{B}\vu^\ast=(1.5,0.5,-0.5,-1.5)\T$,
+and both energies equal $-2.5$. Analytically: $W(\vu^\ast)=\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast-\vf\T\vu^\ast=-\tfrac12\vu^{\ast\top}\mat{K}\vu^\ast=-\tfrac12|\mat{B}\vu^\ast|^2$,
 the value $W_{\min}$ of Theorem~\ref{thm:min-discrete}.
 \end{solution}
 
@@ -1120,8 +1143,8 @@ Solve $-u''=\sin\pi x$ on $(0,1)$, $u(0)=u(1)=0$ (exact solution
 $\sin(\pi x)/\pi^2$) with the chain matrix for increasing $n$ and measure the
 convergence rate.
 \begin{solution}
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_conv.py}
-The nodal error is $O(h^2)$ (Figure~\ref{fig:conv}), better than the general
+For $n=3,7,15,31,63$ interior nodes the maximal nodal error is divided by
+about $4$ each time $h$ is halved. The nodal error is $O(h^2)$ (Figure~\ref{fig:conv}), better than the general
 $O(h)$ energy-norm bound of C\'ea's lemma, thanks to the smoothness of the
 solution.
 \end{solution}
@@ -1138,10 +1161,9 @@ Verify Green's first identity (Theorem~\ref{thm:green1}) on $\Omega=(0,1)^3$
 for $u=xy$, $v=yz$, computing both sides exactly.
 \begin{solution}
 $\nabla u\cdot\nabla v=(y,x,0)\cdot(0,z,y)=xz$, so the left-hand side is
-$\int xz=\tfrac14$. Since $\Delta v=0$, the right-hand side is the boundary
-term $\int_{\partial\Omega}u\,\partial_nv$: the faces $z=0$ and $z=1$ give
-$\mp\tfrac16$ and cancel, the face $y=1$ gives $\int_0^1\!\!\int_0^1xz\dd x\dd z=\tfrac14$, the others $0$.
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_green_cube.py}
+$\displaystyle \int xz=\tfrac14$. Since $\Delta v=0$, the right-hand side is the boundary
+term $\displaystyle \int_{\partial\Omega}u\,\partial_nv$: the faces $z=0$ and $z=1$ give
+$\mp\tfrac16$ and cancel, the face $y=1$ gives $\displaystyle \int_0^1\!\!\int_0^1xz\dd x\dd z=\tfrac14$, the others $0$.
 \end{solution}
 
 \exercise{A non-symmetric bilinear form is still solvable}\label{exo:skew}
@@ -1150,8 +1172,10 @@ $\mat{K}$. Check that $\vu\T(\mat{K}+b\mat{S})\vu=\vu\T\mat{K}\vu$, that
 $\mat{K}+b\mat{S}$ is non-symmetric for $b\neq0$, and that the system remains
 uniquely solvable.
 \begin{solution}
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_skew.py}
-The skew part vanishes on the diagonal $\vu\T\mat{S}\vu=0$, so coercivity is
+With the centred-difference matrix $\mat{S}=(\delta_{i+1,j}-\delta_{i-1,j})/(2h)$,
+$\mat{S}\T=-\mat{S}$, so $\mat{K}+b\mat{S}$ is non-symmetric for $b\neq0$, while
+$\vu\T(\mat{K}+b\mat{S})\vu=\vu\T\mat{K}\vu$ for every $\vu$; the system is
+solvable for $b=0,5,50$. The skew part vanishes on the diagonal $\vu\T\mat{S}\vu=0$, so coercivity is
 unaffected: this is why Lax--Milgram applies without symmetry
 (Section~\ref{sec:var-elliptic}).
 \end{solution}
@@ -1193,9 +1217,9 @@ Derive the weak form, then the strong form and the boundary conditions. What
 happens at $x=0$, where $E$ has no boundary term? Is the problem well posed?
 \begin{solution}
 The first variation is
-$\delta E(u)[\varphi]=\int_0^1u'\varphi'-\int_0^1f\varphi-g\varphi(1)=0$ for
+$\displaystyle \delta E(u)[\varphi]=\int_0^1u'\varphi'-\int_0^1f\varphi-g\varphi(1)=0$ for
 all $\varphi\in H^1(0,1)$: this is the weak form. Integrating by parts,
-$\int_0^1u'\varphi'=-\int_0^1u''\varphi+u'(1)\varphi(1)-u'(0)\varphi(0)$, so
+$\displaystyle \int_0^1u'\varphi'=-\int_0^1u''\varphi+u'(1)\varphi(1)-u'(0)\varphi(0)$, so
 \[
   \int_0^1(-u''-f)\varphi\dd x+\bigl(u'(1)-g\bigr)\varphi(1)-u'(0)\varphi(0)=0
   \quad\forall\varphi .
@@ -1207,22 +1231,23 @@ conditions come \emph{for free} from the variational principle: they are
 model problem, which is built into the space $H^1_0$.
 
 Integrating $-u''=f$ and using both conditions gives the compatibility
-condition $g=-\int_0^1f\dd x$: a pure Neumann problem is solvable only if the
+condition $\displaystyle g=-\int_0^1f\dd x$: a pure Neumann problem is solvable only if the
 data satisfy it (Fredholm alternative), and the solution is unique up to a
 constant, on which $E$ does not depend (Figure~\ref{fig:profiles}, left). A
-Ritz check with $u=a_0+a_1x+a_2x^2$, $f=1$, $g=-1$:
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_neumann.py}
+Ritz check with $u=a_0+a_1x+a_2x^2$, $f=1$, $g=-1$: $\partial E/\partial a_0=0$
+identically ($a_0$ is free), and the other two conditions give $a_1=0$,
+$a_2=-\tfrac12$, i.e.\ $u'=-x$, the exact solution.
 \end{solution}
 
 \exercise{A reaction term}\label{exo:reaction}
 \index{reaction--diffusion}%
 Derive the strong form of
-$E[u]=\int_\Omega\bigl(\tfrac12|\nabla u|^2+\tfrac12c\,u^2-fu\bigr)\dd x$ over
+$\displaystyle E[u]=\int_\Omega\bigl(\tfrac12|\nabla u|^2+\tfrac12c\,u^2-fu\bigr)\dd x$ over
 $H^1_0(\Omega)$, $c>0$ constant.
 \begin{solution}
-$\delta E(u)[\varphi]=\int_\Omega(\nabla u\cdot\nabla\varphi+cu\varphi-f\varphi)=0$.
+$\displaystyle \delta E(u)[\varphi]=\int_\Omega(\nabla u\cdot\nabla\varphi+cu\varphi-f\varphi)=0$.
 Green's first identity on the first term (no boundary term in $H^1_0$) gives
-$\int_\Omega(-\Delta u+cu-f)\varphi=0$ for all $\varphi$, hence
+$\displaystyle \int_\Omega(-\Delta u+cu-f)\varphi=0$ for all $\varphi$, hence
 $-\Delta u+cu=f$ in $\Omega$, $u=0$ on $\partial\Omega$. Zeroth-order terms in
 the energy become zeroth-order terms in the PDE without integration by
 parts. In 1D with $c=2$, $f=x$: $u=x/2-\sinh(\sqrt2x)/(2\sinh\sqrt2)$
@@ -1231,12 +1256,12 @@ parts. In 1D with $c=2$, $f=x$: $u=x/2-\sinh(\sqrt2x)/(2\sinh\sqrt2)$
 
 \exercise{A nonlinear energy}\label{exo:plaplace}
 \index{p-Laplacian@$p$-Laplacian}\index{energy!nonlinear}%
-Derive the strong form of $E[u]=\int_0^1\tfrac14(u')^4\dd x-\int_0^1fu\dd x$
+Derive the strong form of $\displaystyle E[u]=\int_0^1\tfrac14(u')^4\dd x-\int_0^1fu\dd x$
 over $H^1_0(0,1)$.
 \begin{solution}
 The density is nonlinear in $u'$; differentiate directly:
-$\frac{\dd}{\dd t}\tfrac14(u'+t\varphi')^4\big|_{t=0}=(u')^3\varphi'$. Hence
-$\delta E(u)[\varphi]=\int_0^1(u')^3\varphi'-\int_0^1f\varphi=0$, and an
+$\displaystyle \frac{\dd}{\dd t}\tfrac14(u'+t\varphi')^4\big|_{t=0}=(u')^3\varphi'$. Hence
+$\displaystyle \delta E(u)[\varphi]=\int_0^1(u')^3\varphi'-\int_0^1f\varphi=0$, and an
 integration by parts gives
 \[
   -\bigl((u')^3\bigr)'=f\ \text{in }(0,1),\qquad u(0)=u(1)=0 .
@@ -1280,14 +1305,14 @@ Here $a$ is symmetric, so
 \exercise{When no energy exists}\label{exo:no-energy}
 \index{energy!non-existence}%
 For the convection--diffusion weak form
-$\int_\Omega\nabla u\cdot\nabla v+\int_\Omega(\vb\cdot\nabla u)v=\int_\Omega fv$
+$\displaystyle \int_\Omega\nabla u\cdot\nabla v+\int_\Omega(\vb\cdot\nabla u)v=\int_\Omega fv$
 on $H^1_0(\Omega)$, $\vb\neq\vzero$ constant, is there an energy $J$ with
 $\delta J(u)[v]=a(u,v)-L(v)$?
 \begin{solution}
 If $J$ existed, its second derivative $a$ would be symmetric (Schwarz's
 theorem on mixed derivatives). But for $u,v\in H^1_0$ and constant $\vb$,
 integration by parts gives
-$\int_\Omega(\vb\cdot\nabla u)v=-\int_\Omega(\vb\cdot\nabla v)u$: the convection
+$\displaystyle \int_\Omega(\vb\cdot\nabla u)v=-\int_\Omega(\vb\cdot\nabla v)u$: the convection
 part is \emph{anti}symmetric, so $a(u,v)\neq a(v,u)$ in general. No energy
 exists, while Lax--Milgram applies (Section~\ref{sec:var-elliptic}). In 1D
 with $b=3$, $u=\sin\pi x$, $v=\sin2\pi x$: $a(u,v)=4$, $a(v,u)=-4$. The skew
@@ -1299,10 +1324,10 @@ part vanishes only on the diagonal $a(u,u)$ (Exercise~\ref{exo:skew}).
 \exercise{Self-adjointness}\label{exo:selfadj}
 \index{self-adjointness}%
 Let $u,v\in H^2(\Omega)\cap H^1_0(\Omega)$. Use Green's second identity to show
-$\int_\Omega u\Delta v=\int_\Omega v\Delta u$.
+$\displaystyle \int_\Omega u\Delta v=\int_\Omega v\Delta u$.
 \begin{solution}
 Theorem~\ref{thm:green2} gives
-$\int_\Omega(u\Delta v-v\Delta u)=\int_{\partial\Omega}(u\partial_nv-v\partial_nu)$,
+$\displaystyle \int_\Omega(u\Delta v-v\Delta u)=\int_{\partial\Omega}(u\partial_nv-v\partial_nu)$,
 and every boundary term contains a vanishing factor $u$ or $v$. This
 self-adjointness of the Dirichlet Laplacian is what makes $a(u,v)$ symmetric
 and the minimization approach possible.
@@ -1315,28 +1340,28 @@ $\partial\Omega$ ($\alpha>0$), and its energy.
 \begin{solution}
 Multiply by $v\in H^1(\Omega)$ (Robin, like Neumann, is natural) and use
 Green's first identity:
-$\int_\Omega\nabla u\cdot\nabla v-\int_{\partial\Omega}\partial_nu\,v=\int_\Omega fv$.
+$\displaystyle \int_\Omega\nabla u\cdot\nabla v-\int_{\partial\Omega}\partial_nu\,v=\int_\Omega fv$.
 Substituting $\partial_nu=g-\alpha u$:
 \[
   \int_\Omega\nabla u\cdot\nabla v+\alpha\int_{\partial\Omega}uv
   =\int_\Omega fv+\int_{\partial\Omega}gv\qquad\forall v\in H^1(\Omega).
 \]
 The form is symmetric, so
-$J(u)=\tfrac12\int_\Omega|\nabla u|^2+\tfrac\alpha2\int_{\partial\Omega}u^2-\int_\Omega fu-\int_{\partial\Omega}gu$.
+$\displaystyle J(u)=\tfrac12\int_\Omega|\nabla u|^2+\tfrac\alpha2\int_{\partial\Omega}u^2-\int_\Omega fu-\int_{\partial\Omega}gu$.
 The Robin condition adds a boundary ``spring'' term, between Dirichlet
 ($\alpha\to\infty$) and Neumann ($\alpha=0$).
 \end{solution}
 
 \exercise{Dirichlet energy from boundary data}\label{exo:dirichlet-energy}
 Let $\Delta u=0$ in $\Omega$. Show that
-$\int_\Omega|\nabla u|^2=\int_{\partial\Omega}u\,\partial_nu$, and check it on
+$\displaystyle \int_\Omega|\nabla u|^2=\int_{\partial\Omega}u\,\partial_nu$, and check it on
 $(0,1)^3$ for $u=x^2+y^2-2z^2$.
 \begin{solution}
-Take $v=u$ in Green's first identity; the volume term $\int u\Delta u$
+Take $v=u$ in Green's first identity; the volume term $\displaystyle \int u\Delta u$
 vanishes. The energy of a harmonic field is determined by its boundary data:
 this identity is used to compute capacities, and in Chapter~\ref{ch:rg} the
 same idea turns boundary measurements into information on a crack. For
-$u=x^2+y^2-2z^2$: $\int|\nabla u|^2=\int(4x^2+4y^2+16z^2)=8$; on the boundary, the faces
+$u=x^2+y^2-2z^2$: $\displaystyle \int|\nabla u|^2=\int(4x^2+4y^2+16z^2)=8$; on the boundary, the faces
 $x=1$, $y=1$, $z=1$ give $\tfrac43$, $\tfrac43$, $\tfrac{16}3$ and the others $0$: total $8$.
 \end{solution}
 

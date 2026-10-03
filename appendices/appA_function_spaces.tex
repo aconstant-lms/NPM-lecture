@@ -31,7 +31,7 @@ $\Omega$, sums become integrals:
 $L^2(\Omega)$ and $H^1(\Omega)$ are the functions for which these norms are
 finite; $H^1_0(\Omega)$ is the subspace of $H^1$ of functions vanishing on
 $\partial\Omega$. Derivatives are taken in the weak sense: $g=v'$ if
-$\int g\varphi=-\int v\varphi'$ for all smooth $\varphi$ vanishing at the ends,
+$\displaystyle \int g\varphi=-\int v\varphi'$ for all smooth $\varphi$ vanishing at the ends,
 which is integration by parts used as a definition. A hat function has the
 weak derivative $\pm1/h$, piecewise constant; a step function has none in
 $L^2$ (its derivative is a Dirac mass).
@@ -100,20 +100,20 @@ On an interval of length $L$ the best constant is $C_P=L/\pi$.
 \end{theorem}
 \begin{proof}[Proof on an interval]
 Let $v\in H^1_0(0,L)$. Since $v(0)=0$,
-$v(x)=\int_0^xv'(t)\dd t$, and by Cauchy--Schwarz
-$v(x)^2\le x\int_0^Lv'^2$. Integrating over $(0,L)$ gives
-$\int_0^Lv^2\le\frac{L^2}{2}\int_0^Lv'^2$, i.e.\ the inequality with
+$\displaystyle v(x)=\int_0^xv'(t)\dd t$, and by Cauchy--Schwarz
+$\displaystyle v(x)^2\le x\int_0^Lv'^2$. Integrating over $(0,L)$ gives
+$\displaystyle \int_0^Lv^2\le\frac{L^2}{2}\int_0^Lv'^2$, i.e.\ the inequality with
 $C_P=L/\sqrt2$. For the best constant expand $v$ in the sine series
 $v=\sum_kb_k\sin(k\pi x/L)$, which satisfies the boundary conditions:
-$\int v^2=\frac L2\sum b_k^2$ and
-$\int v'^2=\frac L2\sum(k\pi/L)^2b_k^2\ge(\pi/L)^2\int v^2$, with equality
+$\displaystyle \int v^2=\frac L2\sum b_k^2$ and
+$\displaystyle \int v'^2=\frac L2\sum(k\pi/L)^2b_k^2\ge(\pi/L)^2\int v^2$, with equality
 for $v=\sin(\pi x/L)$.
 \end{proof}
 
 \paragraph{What it means.} A function pinned to zero on the boundary cannot be
 large without slopes. The best constant is the inverse square root of the
 smallest eigenvalue of $-\Delta$ with Dirichlet conditions,
-$1/C_P^2=\lambda_1=\min_v\int|\nabla v|^2/\int v^2$, the Rayleigh quotient of
+$\displaystyle 1/C_P^2=\lambda_1=\min_v\int|\nabla v|^2/\int v^2$, the Rayleigh quotient of
 \eqref{eq:rayleigh}. Physically $\lambda_1$ fixes the fundamental frequency of
 a membrane or a string, and the Euler load of a column
 (Section~\ref{sec:var-lm}).
@@ -189,9 +189,9 @@ order $h$ in energy, and at order $h^2$ in $L^2$ (Exercise~\ref{exo:conv}).
 For which $\alpha>0$ is $x^\alpha$ in $L^2(0,1)$? In $H^1(0,1)$? In
 $H^2(0,1)$?
 \begin{solution}
-$\int_0^1x^{2\alpha}<\infty$ for all $\alpha>-\tfrac12$, so always in $L^2$;
-$\int_0^1\alpha^2x^{2\alpha-2}<\infty$ iff $\alpha>\tfrac12$;
-$\int_0^1x^{2\alpha-4}<\infty$ iff $\alpha>\tfrac32$ (or $\alpha=1$, where the
+$\displaystyle \int_0^1x^{2\alpha}<\infty$ for all $\alpha>-\tfrac12$, so always in $L^2$;
+$\displaystyle \int_0^1\alpha^2x^{2\alpha-2}<\infty$ iff $\alpha>\tfrac12$;
+$\displaystyle \int_0^1x^{2\alpha-4}<\infty$ iff $\alpha>\tfrac32$ (or $\alpha=1$, where the
 second derivative vanishes).
 \end{solution}
 
@@ -200,20 +200,20 @@ In the disc $r<\tfrac12$ of $\R^2$, show that $v=\ln|\ln r|$ belongs to $H^1$
 but is unbounded.
 \begin{solution}
 $|\nabla v|=1/(r|\ln r|)$, so
-$\int|\nabla v|^2=2\pi\int_0^{1/2}\frac{\dd r}{r\ln^2r}=\frac{2\pi}{\ln2}<\infty$
+$\displaystyle \int|\nabla v|^2=2\pi\int_0^{1/2}\frac{\dd r}{r\ln^2r}=\frac{2\pi}{\ln2}<\infty$
 (substitute $s=\ln r$). The function itself is square integrable and tends to
 $+\infty$ as $r\to0$.
 \end{solution}
 
 \exercise{A point force on a membrane}\label{exo:sp-point}
 A membrane of tension $T$ occupies the disc $r<R$, is fixed on $r=R$ and
-loaded by a point force $F$ at its centre. (a) Show that $u=\frac{F}{2\pi T}\ln(R/r)$
+loaded by a point force $F$ at its centre. (a) Show that $\displaystyle u=\frac{F}{2\pi T}\ln(R/r)$
 satisfies the equilibrium $-T\Delta u=0$ for $r>0$ and carries the total
 force $F$. (b) Compute the energy in the annulus $\epsilon<r<R$ and let
 $\epsilon\to0$. (c) Compare with a string loaded at one point.
 \begin{solution}
 (a) $\Delta\ln r=0$ for $r>0$, and the flux through a circle is
-$-2\pi rT\,u'(r)=F$. (b) $\tfrac T2\int|\nabla u|^2=\frac{F^2}{4\pi T}\ln(R/\epsilon)\to\infty$:
+$-2\pi rT\,u'(r)=F$. (b) $\displaystyle \tfrac T2\int|\nabla u|^2=\frac{F^2}{4\pi T}\ln(R/\epsilon)\to\infty$:
 infinite energy, and infinite displacement at the load point. (c) A string
 loaded at one point takes a triangular shape of finite energy: in 1D point
 values are continuous on $H^1$ and point forces are admissible. In 2D a
@@ -222,10 +222,10 @@ force must be spread over an area, however small.
 
 \exercise{The Poincar\'e constant by the Rayleigh quotient}\label{exo:sp-rayleigh}
 Use the trial function $v=x(1-x)$ in the Rayleigh quotient
-$\int_0^1v'^2/\int_0^1v^2$ to bound $\lambda_1$ on $(0,1)$ from above, and
+$\displaystyle \int_0^1v'^2/\int_0^1v^2$ to bound $\lambda_1$ on $(0,1)$ from above, and
 compare with $\pi^2$.
 \begin{solution}
-$\int_0^1(1-2x)^2=\tfrac13$ and $\int_0^1x^2(1-x)^2=\tfrac1{30}$, so the
+$\displaystyle \int_0^1(1-2x)^2=\tfrac13$ and $\displaystyle \int_0^1x^2(1-x)^2=\tfrac1{30}$, so the
 quotient is $10\ge\pi^2\approx9.87$: an error of $1.3\%$ with a single
 parabola. This is the Rayleigh--Ritz method for eigenvalues, used later for
 buckling loads.
@@ -236,9 +236,9 @@ For $-u''=f$ on $(0,1)$, $u(0)=u(1)=0$, show that the linear finite element
 solution $u_h$ equals the exact solution at the nodes, so that $u_h=I_hu$
 and the error is exactly the interpolation error of C\'ea's lemma.
 \begin{solution}
-Galerkin orthogonality reads $\int_0^1(u-u_h)'\varphi_i'=0$ for every hat
+Galerkin orthogonality reads $\displaystyle \int_0^1(u-u_h)'\varphi_i'=0$ for every hat
 function. Since $\varphi_i'=\pm1/h$ on the two elements of node $i$, this is
-$\frac1h\bigl[(e(x_i)-e(x_{i-1}))-(e(x_{i+1})-e(x_i))\bigr]=0$ for the error
+$\displaystyle \frac1h\bigl[(e(x_i)-e(x_{i-1}))-(e(x_{i+1})-e(x_i))\bigr]=0$ for the error
 $e=u-u_h$, with $e(0)=e(1)=0$: the nodal errors satisfy the discrete Laplace
 equation with zero end values, hence vanish. This special property of 1D
 explains the high nodal accuracy observed in Exercise~\ref{exo:conv}.

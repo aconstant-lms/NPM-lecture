@@ -5,8 +5,8 @@
     examples/ch1/  computational exercises of Chapter 1 and the constrained spring chain
     examples/ch2/  computational exercises of Chapter 2
 
-The exercise files are included verbatim in the book with `\lstinputlisting`,
-so editing a file here changes the printed solution. Each file runs on its own:
+For the moment the book prints no code: the solutions quote the results of
+these scripts. Each file runs on its own:
 
     pip install numpy scipy sympy matplotlib
     python3 python/examples/ch1/exo_gd.py

@@ -15,6 +15,10 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
 - Index concepts with `\index{concept}` or `\index{concept!subconcept}` on the line after a section label,
   `\paragraph`, `gbox` title or exercise label (never inside captions or math). Reuse existing top-level
   entries (see the printed index) instead of creating near-duplicates; use `sortkey@Display` for accents/math.
+- In running text, inline integrals and fractions are written with `\displaystyle` (`$\displaystyle \int...$`,
+  `$\displaystyle \frac...$`); `\tfrac` stays small. Not in tables, captions or headings.
+- Tonti diagrams: kinematic boxes `kin` (blue), static boxes `stat` (green), labels `kinlab`/`statlab`
+  under the boxes; the data (essential conditions, balance and natural conditions) go in the upper row.
 - Each chapter ends with its own `chapterbib`; bibitem keys must be unique across the whole book.
 - Labels are prefixed per chapter: ch1 `sec:var-*`, ch2 `sec:el-*`/`sec:diff`, ch3 `*:rg-*`, appendices `app:*`.
 - Author comments in the sources look like `%% AC: ...`; process them when asked, then delete them.
@@ -26,8 +30,8 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   no undefined references, no multiply-defined labels and no overfull boxes.
 - Python lives in `python/` (see python/README.md): figure scripts in `python/figures/<chapter>/`
   (`cd python/figures/ch1 && python3 <script>.py`, outputs into figures/ch1), exercise code in
-  `python/examples/<chapter>/`, included in the book with `\lstinputlisting[firstline=4]{...}`.
-  Never paste code inline in the .tex: create or edit the file, run it, quote its output in comments.
+  `python/examples/<chapter>/`. For the moment the book prints no code (author's decision, 3 Oct 2026):
+  solutions state the results in words and numbers; the scripts stay in the repository to check them.
 - Commit with a clear message per round of corrections (e.g. "ch2: fix Voigt table, add exercise on ...")
   and push to `main`. The commit message becomes the release note, so make it readable for the author.
 - Every push to `main` triggers `.github/workflows/build-pdf.yml`, which compiles the book and publishes

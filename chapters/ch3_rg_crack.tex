@@ -103,7 +103,7 @@ To see this, let $V=\{v\in H^1(\OG):\ v=0\text{ on }S_u\}$, and let $U\in H^1(\O
 \]
 The zero-flux conditions on the lips and the flux on $S_\varphi$ are natural conditions of this form. $\OG$ is connected and is the union of two Lipschitz subdomains, obtained by cutting $\Omega$ along a surface that extends $\Gamma$ to $\partial\Omega$. The Poincaré--Friedrichs inequality therefore holds on $V$ because $|S_u|>0$, so the bilinear form is coercive. The Lax--Milgram lemma (Section~\ref{sec:var-lm}) gives existence, uniqueness and~\eqref{eq:rg-stab-direct}, exactly as for the diffusion problem of Section~\ref{sec:diff}.
 
-\paragraph{Pure flux data.} If $S_u=\emptyset$, a solution exists if and only if $\int_{\partial\Omega}\pD\,ds=0$, and it is unique up to an additive constant; \eqref{eq:rg-stab-direct} holds in $H^1(\OG)/\R$.
+\paragraph{Pure flux data.} If $S_u=\emptyset$, a solution exists if and only if $\displaystyle \int_{\partial\Omega}\pD\,ds=0$, and it is unique up to an additive constant; \eqref{eq:rg-stab-direct} holds in $H^1(\OG)/\R$.
 
 \paragraph{Behaviour at the crack front.} Near $\partial\Gamma$, $u$ behaves like $r^{1/2}\cos(\theta/2)$ in polar coordinates in the plane normal to the front. The opening $\jump u=u^+-u^-$ therefore vanishes like the square root of the distance to the front, and its extension by zero to $\Pi$ belongs to $H^{1/2}(\Pi)$: $\jump u\in\tilde H^{1/2}(\Gamma)$.
 \index{crack!front singularity}%
@@ -167,7 +167,7 @@ $\eta,\ s_i\eta,\ s_is_j\eta-\tfrac13\delta_{ij}\eta^3$ & $1,\ s_i,\ s_is_j$ & $
 \bottomrule
 \end{tabular}
 \end{center}
-where $m_0=\int_\Gamma w$, $m_i=\int_\Gamma w\,s_i$ and $m_{ij}=\int_\Gamma w\,s_is_j$ are the moments of the opening.
+where $\displaystyle m_0=\int_\Gamma w$, $\displaystyle m_i=\int_\Gamma w\,s_i$ and $\displaystyle m_{ij}=\int_\Gamma w\,s_is_j$ are the moments of the opening.
 \end{gbox}
 
 \begin{figure}[t]
@@ -223,7 +223,7 @@ where $m_0=\int_\Gamma w$, $m_i=\int_\Gamma w\,s_i$ and $m_{ij}=\int_\Gamma w\,s
 \label{fig:rg-rg}
 \end{figure}
 
-\paragraph{Derivation of~\eqref{eq:rg-rg}.} Apply Green's second identity in $\OG$: $\int_{\OG}(v\Delta u-u\Delta v)=\int_{\partial\OG}(v\,\partial_{\nu'}u-u\,\partial_{\nu'}v)$, where $\nu'$ is the outward normal of $\OG$. The left-hand side vanishes. The boundary $\partial\OG$ consists of $\partial\Omega$ ($\nu'=\vnu$), $\Gamma^+$ ($\nu'=-\vn$) and $\Gamma^-$ ($\nu'=+\vn$). On the lips $\partial_{\nu'}u=0$, while $v$ and $\partial_nv$ are single-valued because $v$ is smooth across $\Gamma$. Hence $0=\int_{\partial\Omega}(v\varphi-u\,\partial_\nu v)\,ds+\int_\Gamma(u^+-u^-)\,\partial_nv\,ds$, which is~\eqref{eq:rg-rg}. If there is no crack, $\RG(v)=0$ for all $v$: this is Betti--Maxwell reciprocity, the continuum form of Proposition~\ref{prop:reciprocity}. The reciprocity gap measures how far the data are from those of an uncracked body.
+\paragraph{Derivation of~\eqref{eq:rg-rg}.} Apply Green's second identity in $\OG$: $\displaystyle \int_{\OG}(v\Delta u-u\Delta v)=\int_{\partial\OG}(v\,\partial_{\nu'}u-u\,\partial_{\nu'}v)$, where $\nu'$ is the outward normal of $\OG$. The left-hand side vanishes. The boundary $\partial\OG$ consists of $\partial\Omega$ ($\nu'=\vnu$), $\Gamma^+$ ($\nu'=-\vn$) and $\Gamma^-$ ($\nu'=+\vn$). On the lips $\partial_{\nu'}u=0$, while $v$ and $\partial_nv$ are single-valued because $v$ is smooth across $\Gamma$. Hence $\displaystyle 0=\int_{\partial\Omega}(v\varphi-u\,\partial_\nu v)\,ds+\int_\Gamma(u^+-u^-)\,\partial_nv\,ds$, which is~\eqref{eq:rg-rg}. If there is no crack, $\RG(v)=0$ for all $v$: this is Betti--Maxwell reciprocity, the continuum form of Proposition~\ref{prop:reciprocity}. The reciprocity gap measures how far the data are from those of an uncracked body.
 
 \paragraph{Properties.}
 \begin{enumerate}[label=(\roman*),itemsep=1pt]
@@ -231,7 +231,7 @@ where $m_0=\int_\Gamma w$, $m_i=\int_\Gamma w\,s_i$ and $m_{ij}=\int_\Gamma w\,s
 \item $\RG$ is linear in $v$, and linear in the data $(u,\varphi)$. Linearity in the data is the basis of Section~\ref{sec:rg-multi}.
 \item $|\RG(v)|\le\|u\|_{H^{1/2}(\partial\Omega)}\|\partial_\nu v\|_{H^{-1/2}(\partial\Omega)}+\|\varphi\|_{H^{-1/2}(\partial\Omega)}\|v\|_{H^{1/2}(\partial\Omega)}$. Data errors are amplified by the size of $v$ on $\partial\Omega$, which matters for the extension step.
 \item As a distribution, $v\mapsto\RG(v)$ is the double layer of density $\jump u$ on $\Gamma$, tested on harmonic functions. Identifying the crack means identifying the support of this double layer.
-\item Some implementations, such as the Cast3M files, compute $\int_{\partial\Omega}(\varphi v-u\,\partial_\nu v)=-\RG(v)$; the sign cancels in all the ratios below.
+\item Some implementations, such as the Cast3M files, compute $\displaystyle \int_{\partial\Omega}(\varphi v-u\,\partial_\nu v)=-\RG(v)$; the sign cancels in all the ratios below.
 \end{enumerate}
 
 %======================================================================
@@ -318,7 +318,7 @@ Instead of oscillating functions of $\vs$, one can use polynomials. For a polyno
 \begin{equation}\label{eq:rg-ck}
 v_P=\sum_{k\ge0}\frac{(-1)^k\,\eta^{2k+1}}{(2k+1)!}\,\Delta_s^kP(\vs),
 \end{equation}
-where $\Delta_s$ is the Laplacian in the plane. The sum is finite because $P$ is a polynomial, and $\Delta v_P=0$ because the terms cancel in pairs. Then $\RG(v_P)=\int_\Gamma wP$. For $P=1,\ s_i,\ s_is_j$ this gives the fields of the box in Section~\ref{sec:rg-gap}, and the moments
+where $\Delta_s$ is the Laplacian in the plane. The sum is finite because $P$ is a polynomial, and $\Delta v_P=0$ because the terms cancel in pairs. Then $\displaystyle \RG(v_P)=\int_\Gamma wP$. For $P=1,\ s_i,\ s_is_j$ this gives the fields of the box in Section~\ref{sec:rg-gap}, and the moments
 \[
 m_0=\int_\Gamma w,\qquad \vm_1=\Bigl(\int_\Gamma w\,s_i\Bigr)_i,\qquad
 \tmu=\frac1{m_0}\int_\Gamma w\,(\vs-\vs_0)\otimes(\vs-\vs_0).
@@ -402,7 +402,7 @@ The crack perturbs the field of the uncracked body by a double layer of density 
 u(\vx)-u_0(\vx)=\underbrace{m_0\,\vn\cdot\nabla_yG(\vx,\vy_c)}_{\text{dipole}}
 +\underbrace{\textstyle\sum_i m_i\,\partial_{y_i}\bigl(\vn\cdot\nabla_yG\bigr)(\vx,\vy_c)}_{\text{quadrupole}}+\cdots
 \end{equation}
-with $m_i=\int_\Gamma\jump u\,(\vy-\vy_c)\cdot\vt_i$. The leading term is a point dipole of moment $\vp=m_0\vn$; the next terms are multipoles whose coefficients are the higher moments of the opening. The moments $m_0,\ \vm_1,\ \tmu$ of Section~\ref{ssec:rg-poly} are therefore exactly the multipole coefficients of the crack. The reciprocity gap reads them without approximation, since~\eqref{eq:rg-rg} is exact.
+with $\displaystyle m_i=\int_\Gamma\jump u\,(\vy-\vy_c)\cdot\vt_i$. The leading term is a point dipole of moment $\vp=m_0\vn$; the next terms are multipoles whose coefficients are the higher moments of the opening. The moments $m_0,\ \vm_1,\ \tmu$ of Section~\ref{ssec:rg-poly} are therefore exactly the multipole coefficients of the crack. The reciprocity gap reads them without approximation, since~\eqref{eq:rg-rg} is exact.
 
 \paragraph{The dipole and the polarization tensor.} For a small inhomogeneity in a smooth background field $\nabla u_0$, the dipole moment is linear in the field at the inhomogeneity: $\vp=-\tM\nabla u_0(\vy_c)$, where $\tM$ is the polarization tensor (Pólya--Szegő), which depends only on the shape and conductivity of the inhomogeneity~\cite{AK04}. For a crack, only the normal component of the field opens the crack, so $\tM$ has rank one:
 \[
@@ -484,8 +484,8 @@ The signals $\vm=R\vn$ are available after Step 1. For orthogonal uniform loads,
   \item \textbf{The inverse problem} uses overdetermined (Cauchy) data on the
   boundary. It is nonlinear and ill-posed; a single experiment may be blind,
   and stability is in general only logarithmic.
-  \item \textbf{The reciprocity gap} $\RG(v)=\int_{\partial\Omega}(u\,\partial_\nu v-v\varphi)$,
-  computed from boundary data only, equals $\int_\Gamma\jump u\,\partial_nv$:
+  \item \textbf{The reciprocity gap} $\displaystyle \RG(v)=\int_{\partial\Omega}(u\,\partial_\nu v-v\varphi)$,
+  computed from boundary data only, equals $\displaystyle \int_\Gamma\jump u\,\partial_nv$:
   it vanishes without crack (Maxwell--Betti) and turns the data into linear
   functionals of the opening.
   \item \textbf{A planar crack} is found in three explicit steps: the normal
@@ -512,15 +512,15 @@ The following exercises review the main steps. Most can be done by hand; the las
 \begin{solution}
 (a) $\Delta(\vn\cdot\vx)^2=2|\vn|^2=2$ and $\Delta(\vt_i\cdot\vx)^2=2$, so $\Delta v_2=2-\tfrac12(2+2)=0$. Since $\vt_i\cdot\vn=0$, $\partial_nv_2=\vn\cdot\nabla v_2=2\,\vn\cdot\vx=2c$ on $\Pi$.
 (b) A quadratic form $\vx\cdot A\vx$ ($A$ symmetric, 6 parameters) has Laplacian $2\operatorname{tr}A$; harmonicity is one linear condition, hence dimension $5$. Basis: $x_1x_2,\ x_1x_3,\ x_2x_3,\ x_1^2-x_2^2,\ x_2^2-x_3^2$.
-(c) $\Delta v=2\neq0$. Green's identity then gives $\RG(v)=\int_\Gamma\jump u\,\partial_nv+2\int_{\OG}u\,d\vx$: the volume term depends on the unknown field inside the body.
+(c) $\Delta v=2\neq0$. Green's identity then gives $\displaystyle \RG(v)=\int_\Gamma\jump u\,\partial_nv+2\int_{\OG}u\,d\vx$: the volume term depends on the unknown field inside the body.
 \end{solution}
 
 \exercise{Invariances of the reciprocity gap}\label{exo:rg-invariances}
 (a) Show that $\RG(1)=0$. (b) Show that $\RG$ does not change if $u$ is replaced by $u+C$. (c) Show that $\RG(v)=0$ for every adjoint field when there is no crack.
 \begin{solution}
-(a) $\RG(1)=-\int_{\partial\Omega}\varphi\,ds$. Integrating $\Delta u=0$ over $\OG$ with zero flux on the lips gives $\int_{\partial\Omega}\partial_\nu u=0$.
-(b) The change is $C\int_{\partial\Omega}\partial_\nu v\,ds=C\int_\Omega\Delta v\,d\vx=0$.
-(c) Without crack, $u$ and $v$ are harmonic in $\Omega$, and Green's second identity gives $\int_{\partial\Omega}(u\,\partial_\nu v-v\,\partial_\nu u)=0$.
+(a) $\displaystyle \RG(1)=-\int_{\partial\Omega}\varphi\,ds$. Integrating $\Delta u=0$ over $\OG$ with zero flux on the lips gives $\displaystyle \int_{\partial\Omega}\partial_\nu u=0$.
+(b) The change is $\displaystyle C\int_{\partial\Omega}\partial_\nu v\,ds=C\int_\Omega\Delta v\,d\vx=0$.
+(c) Without crack, $u$ and $v$ are harmonic in $\Omega$, and Green's second identity gives $\displaystyle \int_{\partial\Omega}(u\,\partial_\nu v-v\,\partial_\nu u)=0$.
 \end{solution}
 
 \exercise{Steps 1 and 2 by hand (2D)}
@@ -530,14 +530,14 @@ $m_0=\sqrt{0.3^2+0.4^2}=0.5$ and $\vn=(-0.6,\,0.8)$; with $(\vt,\vn)$ direct, $\
 \end{solution}
 
 \exercise{Moments of a semi-elliptic opening (2D)}
-Let $w(s)=A\sqrt{a^2-(s-s_0)^2}$ on $[s_0-a,s_0+a]$. Compute $m_0=\int w$, $m_1=\int ws$ and the central moment $\mu_2=\frac1{m_0}\int w(s-s_0)^2$. How are $s_0$ and $a$ recovered from the moments?
+Let $w(s)=A\sqrt{a^2-(s-s_0)^2}$ on $[s_0-a,s_0+a]$. Compute $\displaystyle m_0=\int w$, $\displaystyle m_1=\int ws$ and the central moment $\displaystyle \mu_2=\frac1{m_0}\int w(s-s_0)^2$. How are $s_0$ and $a$ recovered from the moments?
 \begin{solution}
-With $s=s_0+a\sin\theta$: $m_0=Aa^2\int_{-\pi/2}^{\pi/2}\cos^2\theta\,d\theta=\pi Aa^2/2$; by symmetry $m_1=s_0m_0$; $\int w(s-s_0)^2=Aa^4\int\sin^2\theta\cos^2\theta\,d\theta=\pi Aa^4/8$, so $\mu_2=a^2/4$. Hence $s_0=m_1/m_0$ and $a=2\sqrt{\mu_2}$.
+With $s=s_0+a\sin\theta$: $\displaystyle m_0=Aa^2\int_{-\pi/2}^{\pi/2}\cos^2\theta\,d\theta=\pi Aa^2/2$; by symmetry $m_1=s_0m_0$; $\displaystyle \int w(s-s_0)^2=Aa^4\int\sin^2\theta\cos^2\theta\,d\theta=\pi Aa^4/8$, so $\mu_2=a^2/4$. Hence $s_0=m_1/m_0$ and $a=2\sqrt{\mu_2}$.
 \end{solution}
 
 \exercise{A crack in a uniform field (2D)}
 The crack is $\{|x_1|\le a,\ x_2=0\}$ in the plane, in a uniform field $\vE=(E_t,E_n)$ at infinity. Let $u=\operatorname{Re}f(z)$, $f(z)=E_tz-\mathrm iE_n\sqrt{z^2-a^2}$, with the branch $\sqrt{z^2-a^2}\sim z$ at infinity.
-(a) Show that $\partial_{x_2}u=0$ on both lips. (b) Compute $\jump u$ and $m_0$. (c) Show that far away $u-\vE\cdot\vx\approx E_na^2x_2/(2r^2)$, and that this is the field of the dipole $m_0\vn$ with $G=-\frac1{2\pi}\ln|\vx-\vy|$. (d) What happens when $E_n=0$?
+(a) Show that $\partial_{x_2}u=0$ on both lips. (b) Compute $\jump u$ and $m_0$. (c) Show that far away $u-\vE\cdot\vx\approx E_na^2x_2/(2r^2)$, and that this is the field of the dipole $m_0\vn$ with $\displaystyle G=-\frac1{2\pi}\ln|\vx-\vy|$. (d) What happens when $E_n=0$?
 \begin{solution}
 (a) On the lips $z=x_1$ and $\sqrt{z^2-a^2}=\pm\mathrm i\sqrt{a^2-x_1^2}$, so $f'(z)=E_t\mp E_nx_1/\sqrt{a^2-x_1^2}$ is real, and $\partial_{x_2}u=-\operatorname{Im}f'=0$.
 (b) $u^\pm=E_tx_1\pm E_n\sqrt{a^2-x_1^2}$, so $\jump u=2E_n\sqrt{a^2-x_1^2}$ and $m_0=\pi a^2E_n$.
@@ -571,23 +571,23 @@ The line of the crack lies at most at distance $H=1$ from the boundary, $L=\pi$,
 \exercise{Polynomial adjoint fields in 3D}
 Use~\eqref{eq:rg-ck} to construct the adjoint field for $P(\vs)=s_1^2s_2$. Check that it is harmonic. Which quantity of the opening does it measure?
 \begin{solution}
-$\Delta_sP=2s_2$ and $\Delta_s^2P=0$, so $v_P=s_1^2s_2\,\eta-\tfrac13\eta^3s_2$. Then $\Delta v_P=2s_2\eta-2s_2\eta=0$, and $\partial_\eta v_P=s_1^2s_2$ on $\Pi$. $\RG(v_P)=\int_\Gamma w\,s_1^2s_2$ is a third-order moment, which measures the asymmetry of the opening.
+$\Delta_sP=2s_2$ and $\Delta_s^2P=0$, so $v_P=s_1^2s_2\,\eta-\tfrac13\eta^3s_2$. Then $\Delta v_P=2s_2\eta-2s_2\eta=0$, and $\partial_\eta v_P=s_1^2s_2$ on $\Pi$. $\displaystyle \RG(v_P)=\int_\Gamma w\,s_1^2s_2$ is a third-order moment, which measures the asymmetry of the opening.
 \end{solution}
 
 \exercise{Penny-shaped crack}
-In a uniform field, a penny-shaped crack of radius $a$ has the opening $\jump u=\frac4\pi E_n\sqrt{a^2-r^2}$.
+In a uniform field, a penny-shaped crack of radius $a$ has the opening $\displaystyle \jump u=\frac4\pi E_n\sqrt{a^2-r^2}$.
 (a) Compute $m_0$. (b) The identification gives $m_0=0.012$ with $E_n=1$: find $a$. (c) A relative error of $10\%$ on $m_0$ gives which relative error on $a$? Compare with 2D.
 \begin{solution}
-(a) $\int_{r<a}\sqrt{a^2-r^2}\,dA=2\pi\int_0^ar\sqrt{a^2-r^2}\,dr=\tfrac23\pi a^3$, so $m_0=\tfrac83a^3E_n$.
+(a) $\displaystyle \int_{r<a}\sqrt{a^2-r^2}\,dA=2\pi\int_0^ar\sqrt{a^2-r^2}\,dr=\tfrac23\pi a^3$, so $m_0=\tfrac83a^3E_n$.
 (b) $a=(3\times0.012/8)^{1/3}=0.165$.
 (c) $a\propto m_0^{1/3}$, so $\delta a/a=\tfrac13\,\delta m_0/m_0\approx3.3\%$. In 2D, $a\propto m_0^{1/2}$ gives $5\%$. The dipole estimate damps the errors on $m_0$.
 \end{solution}
 
 \exercise{Pure flux data}
-Take $S_u=\emptyset$ in the direct problem. (a) Show that a solution exists only if $\int_{\partial\Omega}\pD=0$. (b) Show that it is unique only up to a constant. Which hypothesis of the Lax--Milgram argument fails, and how is it restored? (c) Does the constant matter for the reciprocity gap?
+Take $S_u=\emptyset$ in the direct problem. (a) Show that a solution exists only if $\displaystyle \int_{\partial\Omega}\pD=0$. (b) Show that it is unique only up to a constant. Which hypothesis of the Lax--Milgram argument fails, and how is it restored? (c) Does the constant matter for the reciprocity gap?
 \begin{solution}
-(a) Integrate $\Delta u=0$ over $\OG$; the lips carry no flux, so $\int_{\partial\Omega}\pD=0$.
-(b) Constants solve the homogeneous problem. The bilinear form $\int\nabla u\cdot\nabla v$ is not coercive on $H^1(\OG)$ (it vanishes on constants). Coercivity is restored on $H^1(\OG)/\R$, or on $\{v:\int_{\OG}v=0\}$, by the Poincaré--Wirtinger inequality.
+(a) Integrate $\Delta u=0$ over $\OG$; the lips carry no flux, so $\displaystyle \int_{\partial\Omega}\pD=0$.
+(b) Constants solve the homogeneous problem. The bilinear form $\displaystyle \int\nabla u\cdot\nabla v$ is not coercive on $H^1(\OG)$ (it vanishes on constants). Coercivity is restored on $H^1(\OG)/\R$, or on $\displaystyle \{v:\int_{\OG}v=0\}$, by the Poincaré--Wirtinger inequality.
 (c) No (Exercise~\ref{exo:rg-invariances}(b)).
 \end{solution}
 

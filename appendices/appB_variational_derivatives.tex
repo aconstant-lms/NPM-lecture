@@ -115,7 +115,7 @@ regularity of $u_0$.
 
 %======================================================================
 \section{Integral functionals and the Euler--Lagrange equations}
-Let $\mathcal W(u)=\int_\Omega\mathcal F(\vx,u,\nabla u)\dd x$, with
+Let $\displaystyle \mathcal W(u)=\int_\Omega\mathcal F(\vx,u,\nabla u)\dd x$, with
 $\mathcal F$ smooth. Differentiating under the integral,
 \[
   \delta\mathcal W(u)[v]=\int_\Omega\Bigl(\frac{\partial\mathcal F}{\partial u}\,v
@@ -141,7 +141,7 @@ there is no condition.
 
 \paragraph{General first-order operators.} More generally, let
 \index{adjoint operator!formal}\index{beam!Euler--Bernoulli}%
-$\mathcal W(u)=\int_\Omega\mathcal F(Du)\dd x$ with $D$ a linear differential
+$\displaystyle \mathcal W(u)=\int_\Omega\mathcal F(Du)\dd x$ with $D$ a linear differential
 operator (components $D_i$). Then
 \[
   \delta\mathcal W(u)[v]=\int_\Omega\frac{\partial\mathcal F}{\partial(D_iu)}\,D_iv\dd x=0
@@ -150,7 +150,7 @@ operator (components $D_i$). Then
   D_i^\ast\frac{\partial\mathcal F}{\partial(D_iu)}=0,
 \]
 where $D^\ast$ is the formal adjoint of $D$, defined by
-$\int_\Omega(Du)\cdot w=\int_\Omega u\,D^\ast w$ for fields vanishing on the
+$\displaystyle \int_\Omega(Du)\cdot w=\int_\Omega u\,D^\ast w$ for fields vanishing on the
 boundary. The pairs used in this book are:
 \begin{center}
 \renewcommand{\arraystretch}{1.25}
@@ -174,7 +174,7 @@ transpose of a matrix.
 \section{Second variation and convexity}
 \index{second variation}\index{convexity}%
 The second G\^ateaux derivative,
-$\delta^2\mathcal W(u)[v,w]=\frac{\partial^2}{\partial\alpha\,\partial\beta}\mathcal W(u+\alpha v+\beta w)\big|_{0}$,
+$\displaystyle \delta^2\mathcal W(u)[v,w]=\frac{\partial^2}{\partial\alpha\,\partial\beta}\mathcal W(u+\alpha v+\beta w)\big|_{0}$,
 is symmetric in $(v,w)$ when it exists and is continuous (Schwarz). This is
 why a non-symmetric bilinear form cannot be the second variation of an energy
 (Exercise~\ref{exo:no-energy}). If $\delta^2\mathcal W(u)[v,v]\ge0$ for all
@@ -188,14 +188,14 @@ unstable (the double well of Section~\ref{sec:var-lm}).
 \begin{gbox*}
 \begin{itemize}
   \item The \textbf{G\^ateaux derivative} is the derivative along straight
-  lines, $\frac{\dd}{\dd\alpha}\mathcal W(u_0+\alpha v)|_{\alpha=0}$; the
+  lines, $\displaystyle \frac{\dd}{\dd\alpha}\mathcal W(u_0+\alpha v)|_{\alpha=0}$; the
   \textbf{Fr\'echet derivative} is a uniform linear approximation. Fr\'echet
   implies G\^ateaux, not conversely.
   \item An energy problem has three settings: \textbf{minimization},
   \textbf{weak form} ($\delta\mathcal W(u)[v]=0$ for all $v$) and
   \textbf{strong form} ($\delta\mathcal W/\delta u=0$, the Euler--Lagrange
   equations, with natural boundary conditions).
-  \item For $\mathcal W=\int\mathcal F(Du)$ the Euler--Lagrange operator is
+  \item For $\displaystyle \mathcal W=\int\mathcal F(Du)$ the Euler--Lagrange operator is
   $D^\ast\,\partial\mathcal F/\partial(Du)$: the formal adjoint of a
   differential operator plays the role of the transpose of a matrix.
   \item The \textbf{second variation} is symmetric; its sign decides
@@ -215,7 +215,7 @@ Find the three problem settings for
 Give a physical interpretation of the fields.
 \begin{solution}
 Minimization of $\mathcal W$ over $u$ (with $u$ given on part of the boundary).
-Weak form: $\int_\Omega(c\nabla u\cdot\nabla v-fv)=0$ for all admissible $v$.
+Weak form: $\displaystyle \int_\Omega(c\nabla u\cdot\nabla v-fv)=0$ for all admissible $v$.
 Strong form: $-c\Delta u=f$ in $\Omega$, $c\,\partial_nu=0$ where $u$ is free.
 Interpretations: transverse deflection $u$ of a membrane of tension $c$ under
 a pressure $f$; temperature $u$ in a plate of conductivity $c$ with heat
@@ -226,13 +226,13 @@ source $f$; Prandtl stress function of a twisted bar ($f=2\mu\theta$).
 The strong formulation of a problem is $-u''+\sin u=0$,
 $u:\R\to\R$. Find its weak formulation and its energy functional.
 \begin{solution}
-Weak form: $\int(u'v'+\sin u\,v)\dd x=0$ for all $v$ with compact support.
-Since $\sin u=\frac{\dd}{\dd u}(-\cos u)$, the energy is
-$\mathcal W(u)=\int\bigl(\tfrac12(u')^2-\cos u\bigr)\dd x$ (up to a constant).
+Weak form: $\displaystyle \int(u'v'+\sin u\,v)\dd x=0$ for all $v$ with compact support.
+Since $\displaystyle \sin u=\frac{\dd}{\dd u}(-\cos u)$, the energy is
+$\displaystyle \mathcal W(u)=\int\bigl(\tfrac12(u')^2-\cos u\bigr)\dd x$ (up to a constant).
 With $x$ read as time it is the action of a pendulum,
-$\int(\text{kinetic}-\text{potential})$ with potential $\cos u$, i.e.\ an inverted
+$\displaystyle \int(\text{kinetic}-\text{potential})$ with potential $\cos u$, i.e.\ an inverted
 pendulum; it is also the static sine-Gordon equation for a chain of torsion
-springs. The energy is not convex: $\delta^2\mathcal W(u)[v,v]=\int((v')^2+\cos u\,v^2)$
+springs. The energy is not convex: $\displaystyle \delta^2\mathcal W(u)[v,v]=\int((v')^2+\cos u\,v^2)$
 can be negative.
 \end{solution}
 
@@ -244,28 +244,28 @@ Find the three problem settings for
   \qquad u=u_0\ \text{on }\partial\Omega .
 \]
 Give a physical interpretation. Hint:
-$(1+a+b)^{1/2}=(1+a)^{1/2}+\frac{b}{2(1+a)^{1/2}}+O(b^2)$.
+$\displaystyle (1+a+b)^{1/2}=(1+a)^{1/2}+\frac{b}{2(1+a)^{1/2}}+O(b^2)$.
 \begin{solution}
 $\mathcal W$ is the area of the graph of $u$. With
 $a=|\nabla u|^2$ and $b=2\alpha\nabla u\cdot\nabla v+\alpha^2|\nabla v|^2$, the hint
 gives
-$\delta\mathcal W(u)[v]=\int_\Omega\frac{\nabla u\cdot\nabla v}{\sqrt{1+|\nabla u|^2}}=0$
+$\displaystyle \delta\mathcal W(u)[v]=\int_\Omega\frac{\nabla u\cdot\nabla v}{\sqrt{1+|\nabla u|^2}}=0$
 for all $v$ vanishing on $\partial\Omega$ (weak form), and
 $\dive\bigl(\nabla u/\sqrt{1+|\nabla u|^2}\bigr)=0$ (strong form, the minimal
 surface equation). The left-hand side is twice the mean curvature of the
 graph: a soap film spanning the wire $u_0$ has zero mean curvature
-(Section~\ref{sec:var-phys}). For small slopes, $\mathcal W\approx|\Omega|+\tfrac12\int|\nabla u|^2$
+(Section~\ref{sec:var-phys}). For small slopes, $\displaystyle \mathcal W\approx|\Omega|+\tfrac12\int|\nabla u|^2$
 and the equation linearizes to $\Delta u=0$.
 \end{solution}
 
 \exercise{Derivative of the elastic energy}\label{exo:A-elastic}
 Compute the G\^ateaux derivative of
-$\mathcal U(\vu)=\int_\Omega\tfrac12\eps[\vu]:\bbC:\eps[\vu]\dd x$ and show that
+$\displaystyle \mathcal U(\vu)=\int_\Omega\tfrac12\eps[\vu]:\bbC:\eps[\vu]\dd x$ and show that
 it is a Fr\'echet derivative on $H^1(\Omega)^3$.
 \begin{solution}
-$\mathcal U(\vu+\alpha\vv)=\mathcal U(\vu)+\alpha\int\eps[\vu]:\bbC:\eps[\vv]+\alpha^2\mathcal U(\vv)$
+$\displaystyle \mathcal U(\vu+\alpha\vv)=\mathcal U(\vu)+\alpha\int\eps[\vu]:\bbC:\eps[\vv]+\alpha^2\mathcal U(\vv)$
 by the major symmetry of $\bbC$, so
-$\delta\mathcal U(\vu)[\vv]=\int_\Omega\eps[\vu]:\bbC:\eps[\vv]$, linear and bounded
+$\displaystyle \delta\mathcal U(\vu)[\vv]=\int_\Omega\eps[\vu]:\bbC:\eps[\vv]$, linear and bounded
 in $\vv$. The remainder is $\mathcal U(\vv)\le\tfrac12|\bbC|\,\norm{\vv}_{H^1}^2=o(\norm{\vv})$:
 the derivative is Fr\'echet.
 \end{solution}
