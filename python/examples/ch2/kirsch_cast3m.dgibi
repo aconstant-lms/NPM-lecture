@@ -1,0 +1,84 @@
+*
+* Plate with a hole (Kirsch problem), Chapter 2
+* exercise "A plate with a hole: Kirsch against finite elements"
+*
+* STATUS: provided as a starting point; NOT RUN when the notes were
+* prepared (Cast3M was not available). Reference values from
+* python/examples/ch2/kirsch_fem.py (linear triangles, plate 20a x 20a):
+* sigma_xx(0, a) = 3.02, Kirsch (infinite plate): 3.
+*
+* Quarter of a square plate [0, L]^2 with a hole of radius a, plane
+* stress, remote tension s along x applied on the edge x = L, symmetry
+* conditions UX = 0 on x = 0 and UY = 0 on y = 0. Dimensionless units.
+* NB: Cast3M evaluates arithmetic from left to right, without
+* precedence: keep the parentheses.
+*
+* STEP 1  options: plane stress, linear triangles
+*
+  opti dime 2 mode plan cont elem tri3 echo 1;
+*
+* STEP 2  mesh: two blocks separated by the diagonal, graded from the hole
+*
+  a = 1.; ll = 20.; s = 1.;
+  nt = 24;  nt2 = nt / 2;  nr = 48;
+  dh = (a * 3.14159) / (2. * nt);
+  o  = 0. 0.;
+  p1 = a 0.;  p2 = ll 0.;  p3 = ll ll;  p4 = 0. ll;  p5 = 0. a;
+  pm = (a * (cos 45.)) (a * (sin 45.));
+  l12 = droi nr p1 p2 'DINI' dh 'DFIN' (ll / nt2);
+  l23 = droi nt2 p2 p3;
+  l3m = droi nr p3 pm 'DINI' (ll / nt2) 'DFIN' dh;
+  c1m = cerc nt2 p1 o pm;
+  l34 = droi nt2 p3 p4;
+  l45 = droi nr p4 p5 'DINI' (ll / nt2) 'DFIN' dh;
+  c5m = cerc nt2 p5 o pm;
+  dom1 = dall l12 l23 l3m (inve c1m);
+  dom2 = dall (inve l3m) l34 l45 c5m;
+  dom  = dom1 et dom2;
+  elim dom 1.e-6;
+  trac dom;
+*
+* STEP 3  model, material, stiffness
+*
+  mo = mode dom mecanique elastique isotrope;
+  ma = mate mo 'YOUN' 1. 'NU' 0.3;
+  kk = rigi mo ma;
+*
+* STEP 4  boundary conditions (Lagrange multipliers) and load:
+*         a negative pressure on x = L is a tension s
+*
+  bc = (bloq uy l12) et (bloq ux l45);
+  ff = pres mass mo (-1. * s) l23;
+*
+* STEP 5  solution, stresses at the Gauss points, nodal stresses
+*
+  u   = reso (kk et bc) ff;
+  sig = sigm mo ma u;
+  sgn = chan 'CHPO' mo sig;
+  trac sig mo dom;
+  sa  = extr sgn 'SMXX' p5;
+  mess 'sigma_xx(0, a) =' sa '   Kirsch: 3';
+*
+* STEP 6  hoop stress on the hole against Kirsch, s (1 - 2 cos 2 theta)
+*
+  hole = chan poi1 (c1m et c5m);
+  lth = prog;  lfe = prog;  lki = prog;
+  repe bou (nbno hole);
+    pp  = poin hole &bou;
+    xx  = coor 1 pp;  yy = coor 2 pp;
+    th  = atg yy xx;
+    cc  = cos th;  ss = sin th;
+    sx  = extr sgn 'SMXX' pp;
+    sy  = extr sgn 'SMYY' pp;
+    sxy = extr sgn 'SMXY' pp;
+    stt = ((sx * ss) * ss) + ((sy * cc) * cc) - (((2. * sxy) * ss) * cc);
+    lth = lth et (prog th);
+    lfe = lfe et (prog stt);
+    lki = lki et (prog (s * (1. - (2. * (cos (2. * th))))));
+  fin bou;
+  evfe = evol rouge manu 'THETA' lth 'SIGTT' lfe;
+  evki = evol bleu  manu 'THETA' lth 'SIGTT' lki;
+  dess (evfe et evki);
+*
+  opti donn 5;
+fin;

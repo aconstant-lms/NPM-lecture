@@ -306,9 +306,9 @@ Integrating by parts with Theorem~\ref{thm:ibp-matrix},
 \]
 hence the balance $\dive\vp+f=0$ in $\Omega$, the flux condition
 $\vp\cdot\vn=\pD$ on $S_\varphi$, and $\mu=\vp\cdot\vn$ on $S_u$: the multiplier
-is the flux through the boundary where the potential is imposed, for
-instance the heat extracted by a thermostat or the current through an
-electrode. The constitutive law, with its initial flux and imposed gradient,
+is the incoming flux through the boundary where the potential is imposed, the
+``reaction'' of diffusion, for instance the heat supplied by a thermostat or
+the current through an electrode. The constitutive law, with its initial flux and imposed gradient,
 is contained in the definition of the energy density.
 
 \paragraph{Remarks.}
@@ -330,10 +330,35 @@ is contained in the definition of the energy density.
 \index{elasticity!equations}\index{strain}\index{stress}\index{Hooke's law}%
 \begin{figure}[h]
 \centering
-\includegraphics[width=5.5cm]{figures/ch2/3D_body.pdf}
-\caption{A three-dimensional body $\Omega$ with body forces $\vf$, tractions
-$\vt$ prescribed on $S_t$ and displacements prescribed on $S_u$ (marked
-$S^t$ and $S^d$ in the figure).}
+\begin{tikzpicture}[scale=1.0,>={Latex[length=2mm]},
+  hatch/.style={postaction={decorate},decoration={markings,
+    mark=between positions 0.02 and 0.98 step 5pt with {\draw[cu!70,thin] (0,0) -- (-3pt,-5pt);}}}]
+  \coordinate (A) at (0,0.6);
+  \coordinate (B) at (2.0,-0.4);
+  \coordinate (C) at (4.4,0.5);
+  \coordinate (D) at (3.9,2.6);
+  \coordinate (E) at (1.0,2.5);
+  \fill[gray!12] (A) to[out=-70,in=180] (B) to[out=0,in=-130] (C)
+    to[out=50,in=-30] (D) to[out=150,in=10] (E) to[out=190,in=110] (A);
+  % S_u: displacement given (kinematic data, blue), hatched support
+  \draw[cu,very thick,hatch] (E) to[out=190,in=110] (A) to[out=-70,in=180] (B);
+  % S_t: traction given (static data, green), tractions and normal
+  \draw[cphi,very thick,postaction={decorate},decoration={markings,
+     mark=at position 0.16 with {\draw[->,thick,cphi] (0,0) -- (0.35,-0.75);},
+     mark=at position 0.40 with {\draw[->,thick,cphi] (0,0) -- (-0.25,-0.8);},
+     mark=at position 0.62 with {\draw[->,thick,cphi] (0,0) -- (0.3,-0.75) coordinate (T);},
+     mark=at position 0.82 with {\draw[->,thick] (0,0) -- (0,-0.8) coordinate (N);}}]
+    (B) to[out=0,in=-130] (C) to[out=50,in=-30] (D) to[out=150,in=10] (E);
+  \node[cphi,above right,inner sep=1pt] at (T) {$\vt=\vtD$};
+  \node[left] at (N) {$\vn$};
+  \draw[->,thick] (2.6,1.5) -- (2.6,0.75) node[right] {$\vf$};
+  \node at (1.6,1.3) {$\Omega$};
+  \node[cu,anchor=east,align=right,font=\small] at (-0.35,1.5) {$S_u$: displacement\\ given, $\vu=\vuD$};
+  \node[cphi,anchor=west,align=left,font=\small] at (5.0,1.2) {$S_t$: traction\\ given, $\sig\vn=\vtD$};
+\end{tikzpicture}
+\caption{A body $\Omega$ under body forces $\vf$. The displacement is given
+on $S_u$ (blue, kinematic data); the traction $\vt=\sig\vn$ is given on $S_t$
+(green, static data); $\vn$ is the outward unit normal.}
 \label{fig:3Dbody}
 \end{figure}
 A continuous body occupies $\Omega\subset\R^3$, described in Cartesian
@@ -433,64 +458,68 @@ $\R^6$ equal to $\sig:\eps$, but the matrix of $\bbS$ then carries factors
 $2$ and $4$; the orthonormal (Mandel) basis, with factors $\sqrt2$, avoids
 this asymmetry.
 
-\paragraph{Measured values.} Table~\ref{tab:compliances} gives elastic
+\paragraph{Measured values.} Table~\ref{tab:el-stiffness} gives the elastic
 \index{elastic moduli!measured values}%
-compliances of crystals at room temperature.
+stiffnesses of crystals at room temperature. They are computed from the
+compliances listed by Nye~\cite{Nye1985}: the $6\times6$ compliance matrix
+is built with the structure of the symmetry class and inverted
+(Exercise~\ref{exo:stiffness}). For cadmium the table gives the measured
+adiabatic stiffnesses.
 \begin{table}[h]
 \centering\small
 \renewcommand{\arraystretch}{1.1}
 \begin{tabular}{llrrrrrrr}
 \toprule
-\sffamily crystal & \sffamily symmetry & $s_{11}$ & $s_{12}$ & $s_{44}$ & $s_{33}$ & $s_{13}$ & $s_{14}$ & $s_{66}$\\
+\sffamily crystal & \sffamily symmetry & $c_{11}$ & $c_{12}$ & $c_{13}$ & $c_{33}$ & $c_{44}$ & $c_{66}$ & $c_{14}$\\
 \midrule
-sodium chloride & cubic      & 2.21 & $-0.45$  & 7.83 &      &        &         &      \\
-aluminium       & cubic      & 1.59 & $-0.58$  & 3.52 &      &        &         &      \\
-copper          & cubic      & 1.49 & $-0.63$  & 1.33 &      &        &         &      \\
-nickel          & cubic      & 0.799 & $-0.312$ & 0.844 &     &        &         &      \\
-tungsten        & cubic      & 0.257 & $-0.073$ & 0.660 &     &        &         &      \\
-tin             & tetragonal & 1.85 & 0.99     & 5.70 & 1.18 & $-0.25$ &        & 13.5 \\
-ADP             & tetragonal & 1.8  & 0.7      & 11.3 & 4.3  & $-1.1$  &        & 16.2 \\
-zinc            & hexagonal  & 0.84 & 0.11     & 2.64 & 2.87 & $-0.78$ &        &      \\
-cadmium         & hexagonal  & 1.23 & $-0.15$  & 5.40 & 5.55 & 0.93    &        &      \\
-quartz          & trigonal   & 1.27 & $-0.17$  & 2.01 & 0.97 & $-0.15$ & $-0.43$ &     \\
-tourmaline      & trigonal   & 0.40 & $-0.10$  & 1.51 & 0.63 & $-0.016$ & $-0.058$ &   \\
+sodium chloride & cubic      &  51 &  13   &     &     &  13 &     &    \\
+aluminium       & cubic      & 108 &  62   &     &     &  28 &     &    \\
+copper          & cubic      & 176 & 129   &     &     &  75 &     &    \\
+nickel          & cubic      & 250 & 160   &     &     & 118 &     &    \\
+tungsten        & cubic      & 502 & 199   &     &     & 152 &     &    \\
+tin             & tetragonal &  84 &  49   &  28 &  97 &  18 &   7 &    \\
+ADP             & tetragonal &  71 & $-20$ &  13 &  30 &   9 &   6 &    \\
+zinc            & hexagonal  & 164 &  27   &  52 &  63 &  38 &     &    \\
+cadmium         & hexagonal  & 115 &  40   &  40 &  51 &  20 &     &    \\
+quartz          & trigonal   &  87 &   8   &  15 & 108 &  57 &     & 17 \\
+tourmaline      & trigonal   & 268 &  66   &   8 & 159 &  67 &     &  8 \\
 \bottomrule
 \end{tabular}
-\caption{Elastic compliances $s_{IJ}$ of crystals at room temperature, Voigt
-notation, in $10^{-11}\,\mathrm{Pa}^{-1}$ ($=10^{-2}\,\mathrm{GPa}^{-1}$).
-Blank entries are zero or follow from the symmetry class.}
-\label{tab:compliances}
+\caption{Elastic stiffnesses $c_{IJ}$ of crystals at room temperature, in GPa
+(Voigt notation, axis $3$ along the main symmetry axis). Blank entries follow
+from the symmetry class: cubic, $c_{33}=c_{11}$, $c_{13}=c_{12}$,
+$c_{66}=c_{44}$; hexagonal and trigonal, $c_{66}=\tfrac12(c_{11}-c_{12})$;
+trigonal, $c_{24}=-c_{14}$, $c_{56}=c_{14}$; all other entries vanish.
+Computed from the compliances of~\cite{Nye1985}; cadmium: measured adiabatic
+values.}
+\label{tab:el-stiffness}
 \end{table}
-\draftnote{Table: units corrected from the slides ($10^{10}$\,Pa $\to$ $10^{-11}$\,Pa$^{-1}$);
-nickel read as 0.799/0.844 (slides: 7.99/8.44); duplicate NaCl row removed;
-please check cadmium $s_{33}$, $s_{13}$ against the source.}
+The inversion amplifies the rounding of the compliances. For a cubic crystal
+$c_{11}+2c_{12}=1/(s_{11}+2s_{12})=3K$, and $s_{11}+2s_{12}$ is a small
+difference of two numbers. The two-digit compliances of copper give $c_{11}$
+and $c_{12}$ about $5\%$ above the values measured directly, $168$ and
+$121$\,GPa; $c_{44}=1/s_{44}$ is not affected.
 
 \subsection{Anisotropy and isotropy}
 \index{anisotropy}\index{elasticity!anisotropic}\index{symmetry classes}%
 Depending on its symmetry group, a linear elastic material belongs to one of
-eight classes, from triclinic (21 moduli) to isotropic (2 moduli)
-(Figure~\ref{fig:anisotropy})~\cite{Chadwick2001}. The directional
-dependence of the Young's modulus, $1/E(\vd)=\vd\otimes\vd:\bbS:\vd\otimes\vd$,
-displays the anisotropy of cubic crystals such as austenite or titanium
-nitride.
-\begin{figure}[h]
-\centering
-\begin{minipage}{0.5\textwidth}\centering
-\includegraphics[angle=-90,width=\textwidth]{figures/ch2/C03_anisotropy_classes.pdf}
-\end{minipage}\hfill
-\begin{minipage}{0.22\textwidth}\centering
-\includegraphics[width=\textwidth]{figures/ch2/austenite.pdf}\\[-2pt]
-{\footnotesize\sffamily austenite}
-\end{minipage}\hfill
-\begin{minipage}{0.22\textwidth}\centering
-\includegraphics[width=\textwidth]{figures/ch2/TiN.pdf}\\[-2pt]
-{\footnotesize\sffamily TiN}
-\end{minipage}
-\caption{Left: the symmetry classes of linear elasticity, from triclinic to
-isotropic. Right: variation of the tensile modulus with direction for two
-cubic crystals.}
-\label{fig:anisotropy}
-\end{figure}
+eight classes~\cite{Chadwick2001}: triclinic ($21$ moduli), monoclinic
+($13$), orthotropic ($9$), trigonal ($6$), tetragonal ($6$), transversely
+isotropic ($5$), cubic ($3$) and isotropic ($2$). Hexagonal crystals are
+transversely isotropic.
+
+\paragraph{Directional Young's modulus.} The modulus in tension along a unit
+\index{Young's modulus!directional}\index{Zener ratio}%
+vector $\vd$ is $1/E(\vd)=\vd\otimes\vd:\bbS:\vd\otimes\vd$. For a cubic
+crystal,
+\[
+  \frac{1}{E(\vd)}=s_{11}-2\Bigl(s_{11}-s_{12}-\tfrac12s_{44}\Bigr)
+  \bigl(d_1^2d_2^2+d_2^2d_3^2+d_3^2d_1^2\bigr).
+\]
+The crystal is isotropic iff the Zener ratio $A=2c_{44}/(c_{11}-c_{12})$
+equals $1$. Tungsten is almost isotropic ($A=1.0$). Copper is strongly
+anisotropic ($A=3.2$): $E=1/s_{11}=67$\,GPa along a cube edge
+$\langle100\rangle$ and $E=192$\,GPa along a cube diagonal $\langle111\rangle$.
 
 \begin{gbox}{Isotropic elasticity}
 \index{elasticity!isotropic}\index{Lam\'e constants@Lam\'e constants}\index{Young's modulus}\index{Poisson's ratio}\index{bulk modulus}%
@@ -520,9 +549,24 @@ $C_{2323}=\mu=\tfrac12(C_{1111}-C_{1122})$.
 \index{material stability}\index{positive definiteness!of the elastic moduli}%
 \begin{figure}[h]
 \centering
-\includegraphics[height=3cm]{figures/ch2/material_stability.pdf}
-\caption{Material stability: along a stable branch, stress increases with
-strain.}
+\begin{tikzpicture}[>={Latex[length=2mm]},
+  declare function={sg(\e)=2.6*(\e/2.8)*exp(1-\e/2.8);}]
+  \draw[->] (0,0) -- (6.4,0) node[below left] {strain $\varepsilon$};
+  \draw[->] (0,0) -- (0,3.3) node[above] {stress $\sigma$};
+  \draw[cu,very thick,domain=0:2.8,samples=60] plot (\x,{sg(\x)});
+  \draw[red!70!black,very thick,dashed,domain=2.8:6.1,samples=60] plot (\x,{sg(\x)});
+  \draw[gray,densely dotted] (2.8,0) -- (2.8,2.6);
+  \fill (2.8,2.6) circle (1.5pt);
+  \node[cu,align=center,font=\small] at (1.0,3.05) {stable\\ $\dd\sigma\,\dd\varepsilon>0$};
+  \node[red!70!black,align=center,font=\small] at (4.5,3.05) {unstable\\ $\dd\sigma\,\dd\varepsilon<0$};
+  \draw[cu] (1.0,{sg(1.0)}) -- (1.5,{sg(1.0)}) node[midway,below,font=\scriptsize]{$\dd\varepsilon$}
+     -- (1.5,{sg(1.5)}) node[midway,right,font=\scriptsize]{$\dd\sigma$};
+  \draw[red!70!black] (4.5,{sg(4.5)}) -- (5.6,{sg(4.5)}) node[midway,above,font=\scriptsize]{$\dd\varepsilon$}
+     -- (5.6,{sg(5.6)}) node[midway,right,font=\scriptsize]{$\dd\sigma$};
+\end{tikzpicture}
+\caption{Material stability. On the stable branch a strain increment needs
+positive work, $\dd\sigma\,\dd\varepsilon>0$; beyond the peak the tangent
+stiffness is negative and the response is unstable.}
 \label{fig:stability}
 \end{figure}
 Positive definiteness of $\bbC$ and $\bbS$ is a condition of \emph{material
@@ -537,29 +581,53 @@ tests of Figure~\ref{fig:tests} have positive stiffness. Equivalently, $E>0$
 and $-1<\nu<\tfrac12$ (Exercise~\ref{exo:posdef}).
 \begin{figure}[h]
 \centering
-\begin{tabular}{ccc}
-\includegraphics[height=2.6cm]{figures/ch2/tensile.pdf} &
-\includegraphics[height=2.6cm]{figures/ch2/torsion.pdf} &
-\includegraphics[height=2.6cm]{figures/ch2/dilatation.pdf}\\
-{\sffamily\small tension}: $E>0$ & {\sffamily\small torsion}: $\mu>0$ &
-{\sffamily\small dilatation}: $K=\lambda+\tfrac23\mu>0$
-\end{tabular}
-\caption{The three elementary tests of isotropic elasticity.}
+\begin{tikzpicture}[>={Latex[length=2mm]}]
+ % tension: longer and thinner
+ \begin{scope}
+  \fill[gray!15] (-0.42,0) rectangle (0.42,2.6);
+  \draw (-0.42,0) rectangle (0.42,2.6);
+  \draw[cu,dashed] (-0.36,-0.15) rectangle (0.36,2.75);
+  \draw[->,thick,cphi] (0,2.75) -- (0,3.35) node[above] {$F$};
+  \draw[->,thick,cphi] (0,-0.15) -- (0,-0.75) node[below] {$F$};
+  \node[font=\small,align=center] at (0,-1.6) {\sffamily tension\\ $E>0$};
+ \end{scope}
+ % torsion: a generator turns into a helix
+ \begin{scope}[xshift=3.3cm]
+  \fill[gray!15] (-0.45,0) rectangle (0.45,2.6);
+  \draw (-0.45,0) -- (-0.45,2.6) (0.45,0) -- (0.45,2.6);
+  \draw (0,2.6) ellipse (0.45 and 0.13);
+  \draw (0.45,0) arc (0:-180:0.45 and 0.13);
+  \draw[densely dashed] (0.45,0) arc (0:180:0.45 and 0.13);
+  \draw[gray] (0,-0.13) -- (0,2.47);
+  \draw[cu,thick,dashed] (0,-0.13) .. controls (0.12,1.0) and (0.3,1.8) .. (0.38,2.53);
+  \draw[->,thick,cphi] (-0.6,3.0) arc (200:520:0.6 and 0.16);
+  \draw[->,thick,cphi] (0.6,-0.45) arc (20:340:0.6 and 0.16);
+  \node[cphi] at (0.95,3.15) {$M$};
+  \node[font=\small,align=center] at (0,-1.6) {\sffamily torsion\\ $\mu>0$};
+ \end{scope}
+ % dilatation under hydrostatic pressure: the volume decreases
+ \begin{scope}[xshift=6.8cm,yshift=1.3cm]
+  \fill[gray!15] (0,0) circle (0.8);
+  \draw (0,0) circle (0.8);
+  \draw[cu,dashed] (0,0) circle (0.66);
+  \foreach \a in {0,45,...,315}
+    \draw[<-,thick,cphi] (\a:0.85) -- (\a:1.45);
+  \node[cphi] at (1.45,1.1) {$p$};
+  \node[font=\small,align=center] at (0,-2.9) {\sffamily dilatation\\ $K=\lambda+\tfrac23\mu>0$};
+ \end{scope}
+\end{tikzpicture}
+\caption{The three elementary tests of isotropic elasticity (initial shape
+in gray, deformed shape dashed): tension, torsion and uniform pressure. The
+three stiffnesses $E$, $\mu$ and $K$ must be positive.}
 \label{fig:tests}
 \end{figure}
 
-\paragraph{Negative Poisson's ratio.} Thermodynamics allows $-1<\nu<\tfrac12$.
+\paragraph{Negative Poisson's ratio.} The range $-1<\nu<\tfrac12$ is imposed
 \index{auxetic material}\index{Poisson's ratio!negative}%
-Nothing forbids $\nu<0$: \emph{auxetic} materials expand laterally when
-stretched. Architected materials, such as the polymer beam network of
-Figure~\ref{fig:auxetic}, reach strongly negative apparent Poisson's ratios.
-\begin{figure}[h]
-\centering
-\includegraphics[height=6.5cm]{figures/ch2/auxetic_andrei.png}
-\caption{An auxetic beam network in polymer: (a) initial and (b) deformed
-configuration; (c) apparent Poisson's ratio as a function of the strain.}
-\label{fig:auxetic}
-\end{figure}
+by stability, i.e.\ the positive definiteness of $\bbC$, not by
+thermodynamics. Nothing forbids
+$\nu<0$: \emph{auxetic} materials, mostly architected lattices and foams,
+expand laterally when stretched.
 
 %======================================================================
 \section{Structure of the equations}\label{sec:el-structure}
@@ -784,7 +852,10 @@ Integrating by parts with Theorem~\ref{thm:ibp-tensor},
 \]
 hence the balance $\dive\sig+\vfD=\vzero$ in $\Omega$, the traction condition
 $\sig\vn=\vtD$ on $S_t$, and $\vlambda=\sig\vn$ on $S_u$: the multiplier is
-the traction exerted by the support, the reaction. The constitutive law,
+the traction exerted by the support, the reaction, with its sign. This is
+the reason for the minus sign in front of the constraint
+in~\eqref{eq:L-el}; the discrete system~\eqref{eq:saddle} keeps the same
+convention. The constitutive law,
 with its thermal and initial-stress terms, is contained in the definition of
 the energy density.
 
@@ -849,22 +920,27 @@ motion). By Theorem~\ref{thm:min-discrete} the minimum is the solution of
 \index{Lagrange multiplier!imposed displacements}\index{reaction forces}%
 Instead of building the boundary conditions into the trial fields, write
 them as linear constraints on the unknowns, $\mat{P}\vu=\vuD$, and minimize
-the potential energy subject to them (Section~\ref{sec:var-lagrange}). The
-solution is the saddle point of the Lagrangian
+the potential energy subject to them (Section~\ref{sec:var-lagrange}). As in
+the continuous Lagrangian~\eqref{eq:L-el}, the constraint enters with a minus
+sign. The solution is the saddle point of
 \[
-  \mathcal L(\vu,\vlambda)=\mathcal U_p(\vu)+\vlambda\T(\mat{P}\vu-\vuD),
+  \mathcal L(\vu,\vlambda)=\tfrac12\vu\T\mat{K}\vu-\mat{F}\T\vu-\vlambda\T(\mat{P}\vu-\vuD),
   \qquad
   \frac{\partial\mathcal L}{\partial\vu}=\vzero,\quad
   \frac{\partial\mathcal L}{\partial\vlambda}=\vzero,
 \]
 that is
 \begin{equation}\label{eq:saddle}
-  \begin{bmatrix}\mat{K}&\mat{P}\T\\ \mat{P}&\mat{0}\end{bmatrix}
+  \begin{bmatrix}\mat{K}&-\mat{P}\T\\ -\mat{P}&\mat{0}\end{bmatrix}
   \begin{bmatrix}\vu\\ \vlambda\end{bmatrix}=
-  \begin{bmatrix}\mat{F}\\ \vuD\end{bmatrix}.
+  \begin{bmatrix}\mat{F}\\ -\vuD\end{bmatrix}.
 \end{equation}
-The multipliers are (minus) the reaction forces at the constrained degrees of
-freedom (Exercise~\ref{exo:lagrange-el}). Cast3M, for instance, imposes
+The first line reads $\mat{K}\vu=\mat{F}+\vect{r}$ with $\vect{r}=\mat{P}\T\vlambda$:
+the multipliers are the reaction forces at the constrained degrees of freedom,
+with their sign (Exercise~\ref{exo:lagrange-el}). The matrix is symmetric but
+indefinite. $\mat{K}$ alone may be singular, since the supports are now in
+$\mat{P}$. If $\mat{K}$ is positive definite on the kernel of $\mat{P}$ and
+the constraints are independent, the solution is unique. Cast3M, for instance, imposes
 displacement conditions this way.
 
 \subsection{Which trial functions?}
@@ -942,8 +1018,16 @@ The stiffness matrix is the sum of element contributions,
 $\mat{K}=\sum_e\mat{K}_e$, each assembled at the rows and columns of the nodes
 of element $e$. Each element is the image of a reference element
 $\hat\Omega$ (the segment $[-1,1]$, the square $[-1,1]^2$, the unit triangle) by
-a map $\vx(\vxi)$ with Jacobian matrix $\mat{J}=\partial\vx/\partial\vxi$, and
-the integral is computed on the reference element by a quadrature rule:
+a map $\vx(\vxi)$ with Jacobian matrix $\mat{J}=\partial\vx/\partial\vxi$
+(Figure~\ref{fig:refmap}). In the \emph{isoparametric} map the geometry is
+\index{isoparametric element}\index{Jacobian of the element map}%
+interpolated like the displacement, $\vx(\vxi)=\sum_aN_a(\vxi)\,\vx_a$, with
+the shape functions $N_a$ of the reference element and the nodes $\vx_a$. The
+columns of $\mat{J}$ are the tangent vectors to the coordinate lines, and the
+volume element is $\dd x=\det\mat{J}\dd\xi$. The map must be one-to-one,
+$\det\mat{J}>0$ in the element: a badly distorted quadrilateral is rejected by
+the code. The integral is computed on the reference element by a quadrature
+rule:
 \[
   \mat{K}_e=\int_{\Omega_e}\mat{B}\T\mat{C}\mat{B}\dd x
   =\int_{\hat\Omega}\mat{B}\T\mat{C}\mat{B}\,\det\mat{J}\dd\xi
@@ -964,6 +1048,16 @@ zero-energy modes. The Gauss points are where the strains and stresses are
 computed; for nonlinear materials they are also where the internal variables
 (plastic strain, damage) are stored and the constitutive law is integrated,
 which is the subject of the next part of the course.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/ch2/reference_map.pdf}
+\caption{The isoparametric map $\vx(\vxi)=\sum_aN_a(\vxi)\,\vx_a$ of a
+bilinear quadrilateral. The coordinate lines of the reference square are
+mapped to straight lines of the element, no longer parallel; the columns of
+$\mat{J}=\partial\vx/\partial\vxi$ are their tangent vectors. Crosses: the
+$2\times2$ Gauss points and their images.}
+\label{fig:refmap}
+\end{figure}
 
 \paragraph{Matrix structure.} The discrete equations reproduce the Tonti
 \index{Tonti diagram!finite elements}\index{finite element method!Gauss points}%
@@ -1002,6 +1096,16 @@ $[\sig]\to\mat{B}\T\to[\vf]$.}
 \label{fig:gauss}
 \end{figure}
 
+\paragraph{A test case: the plate with a hole.} A finite element code is
+\index{Kirsch problem}\index{stress concentration}%
+checked against closed-form solutions. The classical one is the infinite
+plate with a circular hole under a remote tension $\sigma$, solved by
+Kirsch~\cite{Kirsch1898}: the hoop stress on the hole reaches $3\sigma$, a
+stress concentration factor of $3$ whatever the radius. A small program with
+linear triangles recovers it within $1\%$ with a few thousand unknowns,
+provided the mesh is refined near the hole (Exercise~\ref{exo:kirsch},
+Figure~\ref{fig:kirsch}).
+
 %======================================================================
 \framepart{Summary}
 \begin{gbox*}
@@ -1034,6 +1138,122 @@ $[\sig]\to\mat{B}\T\to[\vf]$.}
 
 %======================================================================
 \framepart{Exercises}\label{sec:el-exo}
+
+\framesub{Short questions}
+No documents, no computer: each question needs a few lines of computation.
+
+\exercise{Boundary conditions}\label{exo:q-bc}
+\index{boundary condition!elasticity}%
+A cube $[0,a]^3$ rests on a frictionless rigid table, the plane $x_3=0$. A
+uniform pressure $p$ acts on its top face; the lateral faces are free. Write
+the boundary conditions on each face. Is the solution unique?
+\begin{solution}
+Bottom face: $u_3=0$ and $\sigma_{13}=\sigma_{23}=0$ (frictionless contact). Top
+face: $\sig\vn=-p\,\ve_3$, i.e.\ $\sigma_{33}=-p$, $\sigma_{13}=\sigma_{23}=0$.
+Lateral faces: $\sig\vn=\vzero$. The stress is unique,
+$\sig=-p\,\ve_3\otimes\ve_3$. The displacement is unique up to the rigid
+motions allowed by $u_3=0$: the translations along $\ve_1$, $\ve_2$ and the
+rotation about $\ve_3$. Fixing three components at two points of the bottom
+face removes them.
+\end{solution}
+
+\exercise{Engineering constants}\label{exo:q-constants}
+A steel has $E=200$\,GPa and $\nu=0.25$. (a) Compute $\lambda$, $\mu$ and $K$.
+(b) A bar carries a uniaxial stress $\sigma=100$\,MPa. Compute
+$\varepsilon_{11}$, $\varepsilon_{22}$ and the relative change of volume.
+\begin{solution}
+(a) $\lambda=\nu E/\bigl((1+\nu)(1-2\nu)\bigr)=80$\,GPa,
+$\mu=E/\bigl(2(1+\nu)\bigr)=80$\,GPa, $K=E/\bigl(3(1-2\nu)\bigr)=133$\,GPa.
+(b) $\varepsilon_{11}=\sigma/E=5\times10^{-4}$,
+$\varepsilon_{22}=\varepsilon_{33}=-\nu\sigma/E=-1.25\times10^{-4}$, and
+$\tr\eps=(1-2\nu)\sigma/E=\sigma/(3K)=2.5\times10^{-4}$.
+\end{solution}
+
+\exercise{Is this material stable?}\label{exo:q-stable}
+\index{auxetic material}%
+A polymer foam is measured with $E=1$\,MPa and $K=0.2$\,MPa. Compute $\nu$
+and $\mu$. Is the elastic energy positive definite?
+\begin{solution}
+$K=E/\bigl(3(1-2\nu)\bigr)$ gives $1-2\nu=E/(3K)=\tfrac53$, so $\nu=-\tfrac13$.
+Then $\mu=E/\bigl(2(1+\nu)\bigr)=0.75$\,MPa. Since $K>0$ and $\mu>0$, the energy
+is positive definite~\eqref{eq:iso-energy}: the foam is stable, and auxetic.
+\end{solution}
+
+\exercise{Is this crystal isotropic?}\label{exo:q-zener}
+\index{Zener ratio}%
+With Table~\ref{tab:el-stiffness}, compute the Zener ratio
+$A=2c_{44}/(c_{11}-c_{12})$ of aluminium and of tungsten. For tungsten,
+deduce $E$ and $\nu$ from $s_{11}=0.257$ and $s_{12}=-0.073$, in
+$10^{-11}\,\mathrm{Pa}^{-1}$.
+\begin{solution}
+Aluminium: $A=56/46=1.22$, mildly anisotropic. Tungsten: $A=304/303=1.00$,
+isotropic. Then $E=1/s_{11}=389$\,GPa and $\nu=-s_{12}/s_{11}=0.28$. Check:
+$\mu=E/\bigl(2(1+\nu)\bigr)=152$\,GPa$\,=c_{44}$.
+\end{solution}
+
+\exercise{Weak form of a bar}\label{exo:q-weak}
+\index{weak form!diffusion}%
+Write the weak form of $-(ku')'=f$ on $(0,L)$, with $u(0)=u_0$ and
+$k\,u'(L)=\varphi$. Which condition is essential, which is natural? Which
+energy does $u$ minimize?
+\begin{solution}
+Multiply by $v$ with $v(0)=0$ and integrate by parts:
+$\displaystyle \int_0^Lku'v'\dd x=\int_0^Lfv\dd x+\varphi\,v(L)$ for all such $v$, with
+$u(0)=u_0$. The condition $u(0)=u_0$ is essential (it defines the space); the
+flux $\varphi$ is natural (it enters the right-hand side). The solution
+minimizes
+$\displaystyle J(v)=\int_0^L\tfrac12k(v')^2\dd x-\int_0^Lfv\dd x-\varphi\,v(L)$ over
+$v(0)=u_0$.
+\end{solution}
+
+\exercise{One spring, one multiplier}\label{exo:q-saddle}
+\index{Lagrange multiplier!reaction force}%
+A spring of stiffness $k$ joins a fixed point to a node loaded by a force $F$.
+The displacement of the node is imposed, $u=\uD$, by a Lagrange multiplier as
+in~\eqref{eq:saddle}. Write the $2\times2$ system, solve it and interpret
+$\lambda$.
+\begin{solution}
+\[
+\begin{bmatrix}k&-1\\-1&0\end{bmatrix}\begin{bmatrix}u\\ \lambda\end{bmatrix}
+=\begin{bmatrix}F\\ -\uD\end{bmatrix}.
+\]
+The second line gives $u=\uD$, the first
+$\lambda=k\uD-F$. The multiplier is the reaction $r=\lambda$: the support adds
+the force $k\uD-F$ to $F$ to balance the spring force $k\uD$. If $F=k\uD$ no
+reaction is needed.
+\end{solution}
+
+\exercise{A hole under biaxial loads}\label{exo:q-hole}
+\index{stress concentration}%
+Under a remote tension $\sigma$ along $\ve_1$, the hoop stress on a circular
+hole in an infinite plate is $\sigma_{\theta\theta}=\sigma(1-2\cos2\theta)$
+(Exercise~\ref{exo:kirsch}). By superposition, find $\sigma_{\theta\theta}$ on
+the hole under (a) an equibiaxial tension $\sigma$ along $\ve_1$ and $\ve_2$;
+(b) a pure shear, $\sigma$ along $\ve_1$ and $-\sigma$ along $\ve_2$. Give the
+stress concentration factor in each case.
+\begin{solution}
+A tension along $\ve_2$ is the tension along $\ve_1$ rotated by $\tfrac\pi2$:
+$\theta\to\theta-\tfrac\pi2$ changes $\cos2\theta$ into $-\cos2\theta$, so
+it gives $\sigma(1+2\cos2\theta)$. (a) The sum is $2\sigma$, uniform on the
+hole: factor $2$. (b) The difference is $-4\sigma\cos2\theta$: factor $4$. A
+hole is most harmful in shear.
+\end{solution}
+
+\exercise{Zero-energy modes}\label{exo:q-modes}
+\index{hourglass mode}%
+A four-node quadrilateral in plane elasticity has $8$ degrees of freedom.
+With one Gauss point, what is the largest possible rank of its stiffness
+matrix? How many zero-energy modes does it have, and how many are spurious?
+Same questions with $2\times2$ Gauss points.
+\begin{solution}
+With one point, $\mat{K}_e=w\,\mat{B}\T\mat{C}\mat{B}\det\mat{J}$ with $\mat{B}$ of
+size $3\times8$: the rank is at most $3$. At least $8-3=5$ modes have zero
+energy: $3$ rigid motions and $2$ spurious hourglass modes
+(Exercise~\ref{exo:gauss}). With $2\times2$ points the rank is $8-3=5$: only
+the rigid motions remain.
+\end{solution}
+
+\framesub{Elastic moduli and energy principles}
 
 \exercise{Lam\'e and engineering constants}\label{exo:lame}
 (a) From $\sig=\lambda(\tr\eps)\tI+2\mu\eps$, compute the response to a
@@ -1071,6 +1291,41 @@ $1+\nu>0$ and $1-2\nu>0$; $E<0$ would make both denominators negative, which is
 impossible. As $\nu\to\tfrac12$, $K\to\infty$: the material becomes
 incompressible, and $\tr\eps=0$ becomes a constraint, handled with a Lagrange
 multiplier, the pressure.
+\end{solution}
+
+\exercise{From compliances to stiffnesses}\label{exo:stiffness}
+\index{elastic moduli!matrix representation}\index{compliance tensor}%
+(a) A hexagonal crystal is transversely isotropic about $\ve_3$. Show that
+$s_{66}=2(s_{11}-s_{12})$ and $c_{66}=\tfrac12(c_{11}-c_{12})$. (b) Build the
+$6\times6$ Voigt compliance matrices of the crystals of
+Table~\ref{tab:el-stiffness} from Nye's compliances: cubic ($s_{11}$,
+$s_{12}$, $s_{44}$); tetragonal $4/mmm$ ($s_{66}$ independent); hexagonal;
+trigonal ($s_{14}$, $s_{24}=-s_{14}$, $s_{56}=2s_{14}$,
+$s_{66}=2(s_{11}-s_{12})$). Invert them and check their positive
+definiteness. (c) Invert the measured stiffnesses of cadmium,
+$c_{11}=114.5$, $c_{33}=50.85$, $c_{44}=19.85$, $c_{13}=39.9$,
+$c_{66}=37.5$\,GPa, and compare with Nye's compliances $s_{33}=3.55$ and
+$s_{13}=-0.93$, in $10^{-11}\,\mathrm{Pa}^{-1}$.
+\begin{solution}
+(a) Take the in-plane pure shear $\sigma_{11}=-\sigma_{22}=\tau$. It gives
+$\varepsilon_{11}-\varepsilon_{22}=2(s_{11}-s_{12})\tau$. In axes rotated by
+$45^\circ$ about $\ve_3$ the same state is a shear stress $\tau$ with
+engineering strain $\gamma=\varepsilon_{11}-\varepsilon_{22}$. Isotropy in the
+plane requires $\gamma=s_{66}\tau$ in every axes, hence
+$s_{66}=2(s_{11}-s_{12})$. With $\tau=c_{66}\gamma$ and
+$\tau=\tfrac12(c_{11}-c_{12})(\varepsilon_{11}-\varepsilon_{22})$ the same
+argument gives $c_{66}=\tfrac12(c_{11}-c_{12})$.
+(b) The stiffnesses are those of Table~\ref{tab:el-stiffness}; all matrices
+are positive definite. The trigonal stiffness matrix has $c_{56}=c_{14}$: the
+factor $2$ of $s_{56}$ comes from the engineering shear strains. Two-digit
+compliances give stiffnesses accurate to a few percent only (copper:
+$c_{11}=176$ instead of $168$\,GPa).
+(c) $c_{12}=c_{11}-2c_{66}=39.5$\,GPa. The inverse gives $s_{11}=1.21$,
+$s_{12}=-0.12$, $s_{13}=-0.86$, $s_{33}=3.31$, $s_{44}=5.04$ in
+$10^{-11}\,\mathrm{Pa}^{-1}$. The sign of $s_{13}$ agrees with Nye: a tension
+along the hexagonal axis contracts the basal plane. The magnitudes agree
+within $8\%$, the scatter between two sets of measurements.
+\lstinputlisting[firstline=4]{python/examples/ch2/elastic_constants.py}
 \end{solution}
 
 \exercise{The Navier equations as Euler--Lagrange equations}\label{exo:navier}
@@ -1120,6 +1375,23 @@ $J(v)-J^\ast(\vq)$ is computable and bounds the error in energy norm: this is
 the basis of a posteriori error estimation by constitutive relation error.
 \end{solution}
 
+\exercise{Anti-plane shear}\label{exo:antiplane}
+\index{anti-plane shear}%
+Let $\vu=w(x_1,x_2)\,\ve_3$ in an isotropic body. (a) Compute $\eps$ and
+$\sig$. (b) Show that, without body forces, equilibrium reduces to $\Delta w=0$.
+(c) What is the boundary condition on a traction-free crack face with normal
+$\vn$ in the $(x_1,x_2)$ plane?
+\begin{solution}
+(a) $\varepsilon_{3\alpha}=\tfrac12w_{,\alpha}$, all other components zero;
+$\tr\eps=0$, so $\sig=2\mu\eps$: $\sigma_{3\alpha}=\mu w_{,\alpha}$.
+(b) $\sigma_{3\alpha,\alpha}=\mu\Delta w=0$; the other equations are identically
+satisfied. (c) $\sig\vn=\sigma_{3\alpha}n_\alpha\ve_3=\mu\,\partial_nw\,\ve_3=\vzero$:
+$\partial_nw=0$. Anti-plane elasticity with a traction-free crack is exactly the
+scalar problem with an insulating crack studied in Chapter~\ref{ch:rg}.
+\end{solution}
+
+\framesub{Approximation and finite elements}
+
 \exercise{Imposed displacements with Lagrange multipliers}\label{exo:lagrange-el}
 (a) With the Lagrangian~\eqref{eq:L-el} and $\sig_0=\vzero$, $\theta^D=0$,
 choose a rigid translation $\vw=\vect{a}$ in the stationarity condition and
@@ -1133,16 +1405,19 @@ $\displaystyle -\vect{a}\cdot\bigl(\int_\Omega\vfD+\int_{S_t}\vtD+\int_{S_u}\vla
 for all $\vect{a}$: the global balance of forces, in which the multipliers are
 the support reactions. A rigid rotation $\vw=\vect{b}\times\vx$ gives the
 balance of moments.
-(b) With $\mathcal U_p=\tfrac12\vu\T\mat{K}\vu-\mat{F}\T\vu$,
-$\partial_{\vu}\mathcal L=\mat{K}\vu-\mat{F}+\mat{P}\T\vlambda=\vzero$ and
-$\partial_{\vlambda}\mathcal L=\mat{P}\vu-\vuD=\vzero$, which
-is~\eqref{eq:saddle}; $-\mat{P}\T\vlambda$ are the nodal reactions (the
-sign follows the convention of~\eqref{eq:saddle}, where the constraint
-enters with a $+$ sign).
+(b) With $\mathcal U_p=\tfrac12\vu\T\mat{K}\vu-\mat{F}\T\vu$ and
+$\mathcal L=\mathcal U_p-\vlambda\T(\mat{P}\vu-\vuD)$,
+$\partial_{\vu}\mathcal L=\mat{K}\vu-\mat{F}-\mat{P}\T\vlambda=\vzero$ and
+$\partial_{\vlambda}\mathcal L=-(\mat{P}\vu-\vuD)=\vzero$, which
+is~\eqref{eq:saddle}. The nodal reactions are $\vect{r}=\mat{P}\T\vlambda$ and
+$\mat{K}\vu=\mat{F}+\vect{r}$: the supports act on the structure as additional
+external forces. For the nodal values $\vect{a}$ of a rigid translation,
+$\mat{K}\vect{a}=\vzero$, and multiplying by $\vect{a}\T$ gives
+$\vect{a}\T(\mat{F}+\vect{r})=0$: the discrete form of (a).
 \end{solution}
 
 \exercise{Gauss points}\label{exo:gauss}
-\index{Gauss quadrature!exercise}%
+\index{Gauss quadrature!exercise}\index{hourglass mode}\index{reduced integration}%
 (a) Check that the two-point rule $\displaystyle \int_{-1}^1g\approx g(-1/\sqrt3)+g(1/\sqrt3)$
 is exact for $g=1,\xi,\xi^2,\xi^3$ and not for $\xi^4$. (b) A bar element of
 length $h$ with quadratic shape functions has $\mat{B}$ linear in $\xi$: how
@@ -1152,10 +1427,22 @@ four-node square element is integrated with one point only?
 (a) The odd powers vanish on both sides; $\displaystyle \int\xi^2=\tfrac23=2\cdot\tfrac13$;
 $\displaystyle \int\xi^4=\tfrac25\neq2\cdot\tfrac19$. (b) $\mat{B}\T\mat{C}\mat{B}$ is quadratic in
 $\xi$, so two points suffice (one point would not). (c) One point evaluates
-the strains only at the centre; the ``hourglass'' displacement modes, which
-have zero strain at the centre but not elsewhere, then cost no energy: the
-stiffness matrix has spurious zero eigenvalues.
+the strains only at the centre. The ``hourglass'' displacement modes, such as
+$u_1=\delta\,\xi\eta$, have zero strain at the centre but not elsewhere; they
+cost no energy, and the stiffness matrix has spurious zero eigenvalues
+(Figure~\ref{fig:hourglass}). Repeated with alternating signs, the mode
+propagates through the whole mesh without energy. Codes either use $2\times2$
+points or add a small hourglass stiffness.
 \end{solution}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/ch2/hourglass.pdf}
+\caption{Hourglass mode of a bilinear square integrated with one Gauss point
+(cross). (a) The nodal displacements $\pm\delta$ deform the element, but the
+strain vanishes at the centre. (b) The same mode with alternating signs is a
+zero-energy mode of the whole mesh.}
+\label{fig:hourglass}
+\end{figure}
 
 \exercise{A bar in tension by the Ritz method}\label{exo:bar}
 A bar of length $L$, section $A$ and modulus $E$ is clamped at $x=0$, loaded by
@@ -1172,7 +1459,19 @@ constant: the stress is the average of the exact one. The energy is higher
 than the exact one by $\displaystyle \frac{f^2L^3}{24EA}$.
 (c) The exact solution belongs to the trial space, so the Ritz method
 returns it: the Ritz solution is the best approximation in energy norm.
+Figure~\ref{fig:bar-ritz} shows the three solutions for $F=0$: the
+one-term displacement is exact only at the end, and its constant normal
+force is the average of the exact one.
 \end{solution}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/ch2/bar_ritz.pdf}
+\caption{Ritz solutions of the bar of Exercise~\ref{exo:bar} under a uniform
+load $f$, free end ($F=0$). Left: displacement. Right: normal force
+$N=EA\,u'$. One term ($w_1=x$) gives a constant force, the average of the
+exact one; two terms ($w_1=x$, $w_2=x^2$) give the exact solution.}
+\label{fig:bar-ritz}
+\end{figure}
 
 \exercise{Why not polynomials?}\label{exo:conditioning}
 For the bar of Exercise~\ref{exo:bar} with $EA=L=1$, use the monomials
@@ -1186,29 +1485,103 @@ $K_{m\ell}=m\ell/(m+\ell-1)$, a Hilbert-like matrix. Its condition numbers are
 $n$ & 3 & 5 & 7 & 9\\
 \midrule
 monomials $x^m$ & $2.8\times10^2$ & $1.9\times10^5$ & $1.7\times10^8$ & $1.6\times10^{11}$\\
-hat functions & $5.8$ & $13.9$ & $25.3$ & $39.9$\\
+hat functions & $16.4$ & $45.5$ & $87.6$ & $142.7$\\
 \bottomrule
 \end{tabular}
 \end{center}
 \lstinputlisting[firstline=4]{python/examples/ch2/exo_conditioning.py}
-The condition number of the monomial basis grows geometrically; that of the
-finite element basis like $1/h^2$.
+The condition number of the monomial basis grows geometrically, by a factor
+of about $30$ per function: from $n=12$ on it exceeds the inverse of the
+machine precision, and the computed coefficients are meaningless
+(Figure~\ref{fig:conditioning}). That of the finite element basis grows like
+$1/h^2=n^2$.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/ch2/conditioning.pdf}
+\caption{Condition number of the stiffness matrix of the bar against the
+number of trial functions: monomials (geometric growth) and hat functions
+(growth like $n^2$). Dashed: the inverse of the double-precision machine
+epsilon.}
+\label{fig:conditioning}
+\end{figure}
 \end{solution}
 
-\exercise{Anti-plane shear}\label{exo:antiplane}
-\index{anti-plane shear}%
-Let $\vu=w(x_1,x_2)\,\ve_3$ in an isotropic body. (a) Compute $\eps$ and
-$\sig$. (b) Show that, without body forces, equilibrium reduces to $\Delta w=0$.
-(c) What is the boundary condition on a traction-free crack face with normal
-$\vn$ in the $(x_1,x_2)$ plane?
+\exercise{A plate with a hole: Kirsch against finite elements}\label{exo:kirsch}
+\index{Kirsch problem}\index{stress concentration}\index{finite element method!test against a closed-form solution}%
+An infinite plate with a circular hole of radius $a$ carries a remote uniaxial
+tension $\sigma$ along $\ve_1$ (plane stress or plane strain). In polar
+coordinates $(r,\theta)$, with $\theta$ measured from $\ve_1$, the solution of
+Kirsch~\cite{Kirsch1898} is
+\begin{align*}
+  \sigma_{rr}&=\frac\sigma2\Bigl(1-\frac{a^2}{r^2}\Bigr)
+  +\frac\sigma2\Bigl(1-4\frac{a^2}{r^2}+3\frac{a^4}{r^4}\Bigr)\cos2\theta,\\
+  \sigma_{\theta\theta}&=\frac\sigma2\Bigl(1+\frac{a^2}{r^2}\Bigr)
+  -\frac\sigma2\Bigl(1+3\frac{a^4}{r^4}\Bigr)\cos2\theta,\qquad
+  \sigma_{r\theta}=-\frac\sigma2\Bigl(1+2\frac{a^2}{r^2}-3\frac{a^4}{r^4}\Bigr)\sin2\theta .
+\end{align*}
+(a) Check the boundary conditions on the hole and at infinity. Give
+$\sigma_{\theta\theta}$ on the hole and the stress concentration factor.
+(b) Give $\sigma_{11}$ on the ligament $x_1=0$. At which distance from the hole
+is it within $10\%$ of $\sigma$?
+(c) Write a finite element program with linear triangles for a quarter of a
+square plate of side $40a$: symmetry conditions $u_1=0$ on $x_1=0$ and $u_2=0$
+on $x_2=0$, traction $\sigma\ve_1$ on the edge $x_1=20a$, a mesh graded
+towards the hole. Compare with Kirsch on the hole and on the ligament, and
+refine the mesh.
+(d) Repeat the computation with a general finite element code, for instance
+Cast3M or FEniCS, with linear and quadratic triangles, and compare the
+meshes needed for a $1\%$ accuracy on the concentration factor.
 \begin{solution}
-(a) $\varepsilon_{3\alpha}=\tfrac12w_{,\alpha}$, all other components zero;
-$\tr\eps=0$, so $\sig=2\mu\eps$: $\sigma_{3\alpha}=\mu w_{,\alpha}$.
-(b) $\sigma_{3\alpha,\alpha}=\mu\Delta w=0$; the other equations are identically
-satisfied. (c) $\sig\vn=\sigma_{3\alpha}n_\alpha\ve_3=\mu\,\partial_nw\,\ve_3=\vzero$:
-$\partial_nw=0$. Anti-plane elasticity with a traction-free crack is exactly the
-scalar problem with an insulating crack studied in Chapter~\ref{ch:rg}.
+(a) At $r=a$: $\sigma_{rr}=\tfrac\sigma2(1-4+3)\cos2\theta=0$ and
+$\sigma_{r\theta}=-\tfrac\sigma2(1+2-3)\sin2\theta=0$: the hole is free. As
+$r\to\infty$: $\sigma_{rr}\to\sigma\cos^2\theta$,
+$\sigma_{\theta\theta}\to\sigma\sin^2\theta$,
+$\sigma_{r\theta}\to-\sigma\sin\theta\cos\theta$, the polar components of
+$\sigma\,\ve_1\otimes\ve_1$. On the hole
+$\sigma_{\theta\theta}=\sigma(1-2\cos2\theta)$: $-\sigma$ at $\theta=0$ and
+$3\sigma$ at $\theta=\pm\tfrac\pi2$. The concentration factor is $3$,
+independent of the radius and of the elastic constants.
+(b) On $x_1=0$, $\theta=\tfrac\pi2$ and $\sigma_{11}=\sigma_{\theta\theta}
+=\sigma\bigl(1+\tfrac12a^2/x_2^2+\tfrac32a^4/x_2^4\bigr)$. With $t=a^2/x_2^2$,
+$\tfrac12t+\tfrac32t^2=0.1$ gives $t=0.141$, $x_2=2.7a$: the perturbation
+is local (Saint-Venant).
+(c) The program below meshes the quarter plate with $n_\theta$ cells along
+the hole and cells of nearly square shape growing geometrically away from it,
+assembles the stiffness of linear triangles in plane stress, and averages the
+element stresses at the nodes. It prints
+\begin{center}\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcccc}
+\toprule
+$n_\theta$ & 12 & 24 & 48 & 96\\
+\midrule
+degrees of freedom & 624 & 2352 & 9120 & 35712\\
+$\sigma_{11}(0,a)/\sigma$ (Kirsch: $3$) & 2.970 & 3.013 & 3.020 & 3.021\\
+$\sigma_{22}(a,0)/\sigma$ (Kirsch: $-1$) & $-0.722$ & $-0.871$ & $-0.946$ & $-0.982$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The concentration factor converges to $3.02$, not $3$: the plate is finite.
+With a side of $160a$ the same mesh density gives $3.00$. The compressive
+value at $\theta=0$ converges more slowly: there the hoop stress drops from
+$-\sigma$ to $-0.6\sigma$ within $0.1a$, and the nodal average of constant
+element stresses smooths this gradient. Figure~\ref{fig:kirsch} compares the
+fields for $n_\theta=48$.
+\lstinputlisting[firstline=4]{python/examples/ch2/kirsch_fem.py}
+(d) Both codes follow the same steps: mesh, symmetry conditions, traction on
+the edge, solution, nodal stresses on the hole. Quadratic triangles represent
+the linear variation of the stress inside each element, and reach the same
+accuracy with far fewer degrees of freedom.
 \end{solution}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch2/kirsch.pdf}
+\caption{Plate with a hole under remote tension $\sigma$ (Exercise~\ref{exo:kirsch}),
+linear triangles, $48$ cells along the quarter hole. (a) The mesh near the
+hole (shown coarser). (b) Hoop stress on the hole: from $-\sigma$ to the
+concentration $3\sigma$. (c) $\sigma_{11}$ on the ligament $x_1=0$: the
+perturbation decays within a few radii.}
+\label{fig:kirsch}
+\end{figure}
 
 %======================================================================
 \begin{chapterbib}{99}
@@ -1223,6 +1596,8 @@ scalar problem with an insulating crack studied in Chapter~\ref{ch:rg}.
 \bibitem{HughesCottrellBazilevs2005} T.~J.~R.~Hughes, J.~A.~Cottrell, Y.~Bazilevs, Isogeometric analysis: CAD, finite elements, NURBS, exact geometry and mesh refinement, \emph{Comput. Methods Appl. Mech. Engrg.} 194 (2005) 4135--4195.
 \bibitem{Hughes1987} T.~J.~R.~Hughes, \emph{The Finite Element Method}, Prentice Hall, 1987.
 \bibitem{IncroperaDeWitt} F.~P.~Incropera, D.~P.~DeWitt, T.~L.~Bergman, A.~S.~Lavine, \emph{Fundamentals of Heat and Mass Transfer}, 6th ed., Wiley, 2007.
+\bibitem{Kirsch1898} E.~G.~Kirsch, Die Theorie der Elastizit\"at und die Bed\"urfnisse der Festigkeitslehre, \emph{Zeitschrift des Vereines deutscher Ingenieure} 42 (1898) 797--807.
+\bibitem{Nye1985} J.~F.~Nye, \emph{Physical Properties of Crystals: Their Representation by Tensors and Matrices}, Oxford University Press, 1957; revised edition 1985.
 \bibitem{Salencon2001} J.~Salen\c{c}on, \emph{Handbook of Continuum Mechanics: General Concepts, Thermoelasticity}, Springer, 2001.
 \bibitem{SoutasLittle1973} R.~W.~Soutas-Little, \emph{Elasticity}, Dover, 1973.
 \bibitem{StrangAM} G.~Strang, \emph{Introduction to Applied Mathematics}, Wellesley-Cambridge Press, 1986.
