@@ -32,6 +32,9 @@ constraints and finite elements.
   $-\mat{B}\T$, bilinear form and stiffness matrix;
   \item know the function spaces in which the energy is finite, with their
   examples and counterexamples;
+  \item assemble a finite element stiffness matrix, state C\'ea's lemma, and
+  explain how the B-spline bases of isogeometric analysis differ from finite
+  elements in Ciarlet's sense;
   \item derive a strong PDE from an energy, reconstruct an energy from a
   symmetric weak form, and recognize when no energy exists.
 \end{itemize}
@@ -45,9 +48,11 @@ Sections~\ref{sec:var-weak}--\ref{sec:var-elliptic} pass to the
 continuum: weak and strong forms, existence by minimization, the
 Lax--Milgram theorem and general elliptic operators.
 Section~\ref{sec:var-dual} constructs the dual problem,
-Section~\ref{sec:var-fem} discretizes by finite elements, and Section~\ref{sec:var-phys} returns to
+Section~\ref{sec:var-fem} discretizes by finite elements and by isogeometric
+analysis, and Section~\ref{sec:var-phys} returns to
 physics with minimal surfaces. A summary, exercises with solutions
-(page~\pageref{sec:var-exo}) and the references close the chapter. The technical definitions of the variational
+(page~\pageref{sec:var-exo}, starting with short exam-style questions) and the
+references close the chapter. The technical definitions of the variational
 derivatives (G\^ateaux, Fr\'echet, functional derivative) are given in
 Appendix~\ref{app:derivatives}.
 
@@ -282,7 +287,7 @@ $J(u)=\tfrac12a(u,u)-L(u)$, a non-symmetric one generally has none
 (Exercises~\ref{exo:guess-energy} and~\ref{exo:no-energy}).
 
 \subsection{Reciprocity: the Maxwell--Betti theorem}\label{ssec:reciprocity}
-\index{reciprocity!Maxwell--Betti}\index{Maxwell--Betti theorem}\index{reciprocity!rod experiment}\index{reciprocity!history}%
+\index{reciprocity!Maxwell--Betti}\index{Maxwell--Betti theorem}\index{reciprocity!elastic reciprocity for rods}\index{reciprocity!history}%
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[scale=1]
@@ -317,10 +322,11 @@ $F^{(1)}u^{(2)}_P=F^{(2)}u^{(1)}_Q$.}
 Loading a structure at $P$ and measuring the displacement at $Q$ gives the
 same cross-work as loading at $Q$ and measuring at $P$
 (Figure~\ref{fig:reciprocity}). This is the reciprocity principle. In class
-it is shown on a cantilever rod, following the presentation of
-Fung~\cite{Fung1965}.\draftnote{Name ``Faraday experiment'': please give the
-section/page of Fung where the rod experiment and its name appear; I could not
-check the book.} The theorem has a long history. Clebsch stated it for elastic
+it is shown by a demonstration called \emph{elastic reciprocity for rods}. A
+cantilever rod is loaded at $P$ and the deflection is read at $Q$; then the
+same load is moved to $Q$ and the deflection is read at $P$. The two readings
+coincide. The presentation follows Fung~\cite{Fung1965}. The theorem has a
+long history. Clebsch stated it for elastic
 bodies in his treatise of 1862~\cite{Clebsch1862}; Maxwell formulated it for
 frames, as the equality of the cross-displacements, in 1864~\cite{Maxwell1864};
 Betti proved the general reciprocal work theorem of elasticity in
@@ -370,6 +376,60 @@ tensions satisfying $\mat{B}\T\vect{\sigma}=\vf$, is the discrete
 the primal/dual pair of Section~\ref{sec:var-dual}, with $\mat{B}\T$ playing
 the role of $-\dive$ and $\mat{C}^{-1}$ that of the conjugate energy.
 
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=0.95]
+  \fill[pattern=north east lines,pattern color=gray] (-2.6,0) rectangle (2.6,0.25);
+  \draw[thick] (-2.6,0) -- (2.6,0);
+  \foreach \s/\i in {-2/1,0/2,2/3} {
+    \draw[line width=2.2pt,gray!60!black] (\s,0) -- (0,-2);
+    \filldraw[fill=white] (\s,0) circle (2.2pt);
+  }
+  \node[font=\small,fill=white,inner sep=1pt] at (-1.15,-0.85) {$1$};
+  \node[font=\small,fill=white,inner sep=1pt] at (0.22,-0.85) {$2$};
+  \node[font=\small,fill=white,inner sep=1pt] at (1.15,-0.85) {$3$};
+  \draw[-{Latex[length=2mm]},thick,cphi] (0,-2) -- (0,-3.1) node[below,font=\small] {$\vf=(0,-F)$};
+  \draw[-{Latex[length=2mm]},cu] (0,-2) -- (0.55,-2.55) node[right,font=\footnotesize] {$\vn_1$};
+  \draw[-{Latex[length=2mm]},cu] (0,-2) -- (-0.55,-2.55) node[left,font=\footnotesize] {$\vn_3$};
+  \filldraw[fill=white,thick] (0,-2) circle (2.6pt);
+  \node[font=\footnotesize,gray!60!black] at (-2,0.5) {$(-1,1)$};
+  \node[font=\footnotesize,gray!60!black] at (0,0.5) {$(0,1)$};
+  \node[font=\footnotesize,gray!60!black] at (2,0.5) {$(1,1)$};
+  \node[font=\footnotesize,gray!60!black] at (0.62,-1.85) {$(0,0)$};
+  \draw[-{Latex[length=2mm]},thick,cu] (1.6,-3.0) -- (2.3,-3.0) node[right,font=\small] {$u_1$};
+  \draw[-{Latex[length=2mm]},thick,cu] (1.6,-3.0) -- (1.6,-2.3) node[above,font=\small] {$u_2$};
+  \node[anchor=west] at (3.3,-1.2) {$\displaystyle
+    \begin{bmatrix} e_1\\ e_2\\ e_3\end{bmatrix}
+    =\underbrace{\begin{bmatrix} \tfrac1{\sqrt2} & -\tfrac1{\sqrt2}\\[2pt]
+      0 & -1\\[2pt] -\tfrac1{\sqrt2} & -\tfrac1{\sqrt2}\end{bmatrix}}_{\mat{B}}
+    \begin{bmatrix} u_1\\ u_2\end{bmatrix},
+    \qquad e_i=\vn_i\cdot\vu$};
+\end{tikzpicture}
+\caption{A three-bar truss. One free joint at $(0,0)$ hangs from supports at
+$(-1,1)$, $(0,1)$ and $(1,1)$. The elongation of bar $i$ is the projection of
+the joint displacement $\vu$ on the unit vector $\vn_i$ pointing from the
+support to the joint; the rows of $\mat{B}$ are the $\vn_i\T$ ($\vn_2=(0,-1)$
+is not drawn). The components $u_1$, $u_2$ are counted along the axes shown
+at the bottom right. Three bars and two unknown displacements: the truss is
+statically indeterminate.}
+\label{fig:truss}
+\end{figure}
+
+\paragraph{A concrete truss.}
+\index{truss!three-bar}\index{statically indeterminate structure}%
+Figure~\ref{fig:truss} gives a three-bar truss with one free joint. With
+equal bar stiffnesses $E_iA_i/L_i=c$,
+\[
+  \mat{K}=c\,\mat{B}\T\mat{B}=c\begin{bmatrix}1&0\\0&2\end{bmatrix}.
+\]
+The vertical load $\vf=(0,-F)$ gives $\vu=\bigl(0,-F/(2c)\bigr)$ and the tensions
+$\vect{\sigma}=c\mat{B}\vu=F\,(\tfrac1{2\sqrt2},\tfrac12,\tfrac1{2\sqrt2})$;
+one checks $\mat{B}\T\vect{\sigma}=\vf$. Equilibrium alone does not fix
+$\vect{\sigma}$: the self-stress $\vect{\sigma}_0=(1,-\sqrt2,1)$ satisfies
+$\mat{B}\T\vect{\sigma}_0=\vzero$ and can be added freely. The minimum of the
+complementary energy selects the actual tensions among all these
+equilibrated ones.
+
 \subsection{Constraints and Lagrange multipliers}\label{sec:var-lagrange}
 \index{constraint}\index{Lagrange multiplier}\index{Lagrangian}%
 Many problems minimize an energy under constraints: imposed displacements,
@@ -398,6 +458,21 @@ and the conditions reduce to $\nabla_{\vx}\mathcal L=\vzero$,
 $\nabla_{\vect{y}}\mathcal L=\vzero$: $(\vx,\vect{y})$ is a saddle point of
 $\mathcal L$.
 \end{gbox}
+\paragraph{Sign of the multiplier and reaction.}
+\index{Lagrange multiplier!sign convention}%
+In mechanics $C$ is the potential energy, so $\nabla C(\vx)$ is the internal
+force minus the external force, and equilibrium with a reaction $\vect{r}$
+reads $\nabla C(\vx)=\vect{r}$. The KKT conditions then give the reaction
+$\vect{r}=-\sum_iy_i\nabla A_i(\vx)$. With the standard convention of the box,
+$y_i\ge0$ is the magnitude of the reaction, which pushes against the
+constraint, opposite to $\nabla A_i$. For equality constraints we write the
+Lagrangian with a minus sign,
+\begin{equation}\label{eq:lagrangian-eq}
+  \mathcal L(\vx,\vlambda)=C(\vx)-\vlambda\cdot\bigl(\mat{P}\vx-\vb\bigr),
+\end{equation}
+so that stationarity reads $\nabla C(\vx)=\mat{P}\T\vlambda$: the multiplier is
+directly the reaction, $\vect{r}=\mat{P}\T\vlambda$. This convention is used
+in the rest of the chapter.
 
 \begin{figure}[h]
 \centering
@@ -412,30 +487,32 @@ The last condition is \emph{complementarity}: either the constraint is
 active, $A_i(\vx)=b_i$, or its multiplier vanishes. The multiplier is the
 force needed to enforce the constraint. In Chapter~\ref{ch:elliptic},
 imposed displacements in a Ritz approximation are enforced this way, and the
-multipliers are the reaction forces (Section~\ref{ssec:ritz-lagrange}).
+multipliers give the reaction forces (Section~\ref{ssec:ritz-lagrange}).
 Exercises~\ref{exo:kkt1}--\ref{exo:kkt4} work through four cases.
 
 \paragraph{Example: an imposed displacement in the spring chain.}
 \index{Lagrange multiplier!reaction force}\index{Tonti diagram!with constraints}%
 Impose the displacement of the third mass, $u_3=\uD$, instead of a force.
 The constraint is linear, $\mat{P}\vu=\uD$ with $\mat{P}=(0\ 0\ 1)$, and the
-Lagrangian of the energy~\eqref{eq:W-discrete} is
+Lagrangian~\eqref{eq:lagrangian-eq} of the energy~\eqref{eq:W-discrete} is
 \[
-  \mathcal L(\vu,\lambda)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu+\lambda\,(\mat{P}\vu-\uD).
+  \mathcal L(\vu,\lambda)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu-\lambda\,(\mat{P}\vu-\uD).
 \]
-Its stationarity conditions form the saddle-point system
+Its stationarity conditions, $\mat{K}\vu-\vf-\mat{P}\T\lambda=\vzero$ and
+$\mat{P}\vu=\uD$, form the symmetric saddle-point system
 \begin{equation}\label{eq:saddle-springs}
-  \begin{bmatrix}\mat{K}&\mat{P}\T\\ \mat{P}&0\end{bmatrix}
+  \begin{bmatrix}\mat{K}&-\mat{P}\T\\ -\mat{P}&0\end{bmatrix}
   \begin{bmatrix}\vu\\ \lambda\end{bmatrix}=
-  \begin{bmatrix}\vf\\ \uD\end{bmatrix}.
+  \begin{bmatrix}\vf\\ -\uD\end{bmatrix}.
 \end{equation}
 The first line is the equilibrium of the masses,
 $\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, with the reaction
-$\vect{r}=-\mat{P}\T\lambda$: the multiplier is the force that the support
+$\vect{r}=\mat{P}\T\lambda$: the multiplier is the force that the support
 must exert to impose the displacement. With unit stiffnesses, $\vf=\vzero$ and
-$\uD=1$: $\vu=(\tfrac13,\tfrac23,1)\T$ and $\lambda=-\tfrac43$. The support
-pushes the third mass with the force $r_3=\tfrac43$, the stiffness of the
-three left springs in series ($\tfrac13$) plus that of the right spring ($1$).
+$\uD=1$: $\vu=(\tfrac13,\tfrac23,1)\T$ and $\lambda=+\tfrac43$. The support
+pushes the third mass in the direction of $x$ with the force
+$r_3=\lambda=\tfrac43$, the stiffness of the three left springs in series
+($\tfrac13$) plus that of the right spring ($1$).
 The Tonti diagram keeps its structure (Figure~\ref{fig:tonti-constraint}):
 the constraint enters the kinematic column, its multiplier the static one.
 The same construction imposes displacements in a finite element code
@@ -446,7 +523,7 @@ The same construction imposes displacements in a finite element code
 \begin{tikzpicture}[node distance=1.4cm and 2.6cm,
   tb/.style={smallbox,minimum width=4.1cm}]
   \node[tb,kin] (x) {$\vu$, \quad $\mat{P}\vu=\uD$ \\ \footnotesize displacement, constraint};
-  \node[tb,stat, right=2.6cm of x] (f) {$\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, \ $\vect{r}=-\mat{P}\T\lambda$ \\ \footnotesize forces and reaction};
+  \node[tb,stat, right=2.6cm of x] (f) {$\mat{B}\T\vect{\sigma}=\vf+\vect{r}$, \ $\vect{r}=\mat{P}\T\lambda$ \\ \footnotesize forces and reaction};
   \node[tb,kin, below=1.4cm of x] (e) {$\ve=\mat{B}\vu$ \\ \footnotesize elongation};
   \node[tb,stat, below=1.4cm of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \\ \footnotesize spring force};
   \draw[arr] (x) -- (e) node[midway,left]{$\mat{B}$};
@@ -458,7 +535,8 @@ The same construction imposes displacements in a finite element code
 \caption{Tonti diagram of the spring chain with an imposed displacement. The
 constraint $\mat{P}\vu=\uD$ restricts the kinematic column; its Lagrange
 multiplier appears in the static column as the reaction
-$\vect{r}=-\mat{P}\T\lambda$.}
+$\vect{r}=\mat{P}\T\lambda$; with the Lagrangian $-\lambda(\mat{P}\vu-\uD)$,
+$\lambda$ is the reaction itself.}
 \label{fig:tonti-constraint}
 \end{figure}
 
@@ -515,6 +593,26 @@ $\ln r$ (2D), $1/r$ (3D) & not $H^1$ near $0$ & a point force has infinite energ
 \caption{Examples and counterexamples of finite-energy functions.}
 \label{tab:spaces}
 \end{table}
+
+Figure~\ref{fig:spaces} draws the functions of Table~\ref{tab:spaces}. The
+crack-tip field is the important one for mechanics. Its level lines crowd
+at the tip, and its gradient $|\nabla u|=1/(2\sqrt r)$ is unbounded. Yet the
+energy in a disc of radius $\rho$ is finite,
+$\displaystyle \int_0^{2\pi}\!\!\int_0^\rho\frac{1}{4r}\,r\dd r\dd\theta=\frac{\pi\rho}{2}$,
+because the area element $r\dd r$ compensates the singularity.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch1/spaces.pdf}
+\caption{The functions of Table~\ref{tab:spaces}. (a) A hat function has a
+step as derivative: $H^1$, not $H^2$. (b) A step has a Dirac mass as
+derivative: $L^2$, not $H^1$. (c) $x^\alpha$ is in $H^1(0,1)$ for
+$\alpha>\tfrac12$ only; the slope of $x^{1/2}$ and $x^{1/4}$ blows up too
+fast at $0$. (d) $\ln|\ln r|$ is unbounded but grows so slowly that it has
+finite energy in 2D; $\ln r$ does not. (e)--(f) The crack-tip field
+$r^{1/2}\cos(\theta/2)$, with the crack along $\theta=\pm\pi$ (orange): the
+gradient is singular, the energy is finite.}
+\label{fig:spaces}
+\end{figure}
 
 \paragraph{The Poincar\'e inequality.}
 \index{Poincar\'e inequality}%
@@ -611,6 +709,39 @@ a ball of $\R^n$ is compact, so a subsequence converges; and $W$ is
 continuous, so the limit is a minimizer. In infinite dimension a bounded
 sequence need not converge, and \emph{weak} convergence with \emph{lower
 semicontinuity} replaces compactness and continuity.
+
+\paragraph{When lower semicontinuity fails: the Bolza problem.}
+\index{Bolza problem}\index{minimizing sequence!non-convergent}\index{lower semicontinuity!failure}\index{convexity!and lower semicontinuity}%
+Convexity of the energy density in the gradient is what makes $J$ weakly
+lower semicontinuous. Without it the direct method can fail. Take
+\[
+  J(u)=\int_0^1\Bigl(\bigl((u')^2-1\bigr)^2+u^2\Bigr)\dd x,
+  \qquad u(0)=u(1)=0 .
+\]
+The density $\bigl((u')^2-1\bigr)^2$ is a double well in the slope, with
+minima at $u'=\pm1$. The sawtooth $u_n$ with $n$ teeth of slopes $\pm1$
+(Figure~\ref{fig:bolza}) has $\bigl((u_n')^2-1\bigr)^2=0$ almost everywhere
+and height $1/(2n)$, so
+\[
+  J(u_n)=\int_0^1u_n^2\dd x=\frac{1}{12n^2}\to0=\inf J .
+\]
+The sequence is bounded in $H^1$ and $u_n\to0$ uniformly; $u_n'$ oscillates
+between $\pm1$ and converges only weakly, to $0$. But $J(0)=1$: the infimum is
+not attained. No function has $J=0$, since this needs $|u'|=1$ and $u=0$ at
+the same time. The minimizing sequence develops finer and finer oscillations
+instead of converging: this is the mechanism of fine microstructures, such
+as twinned martensite. The direct method works for the energies of this
+chapter because they are convex in the gradient.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch1/bolza.pdf}
+\caption{A minimizing sequence that does not converge to a minimizer. (a)
+Sawtooth functions $u_n$ with slopes $\pm1$; they tend uniformly to $0$. (b)
+The energy density is a double well in the slope: $u_n'$ stays in the wells,
+its weak limit $u'=0$ sits on the hump. (c) $J(u_n)=1/(12n^2)\to0$, while the
+limit has $J(0)=1$: $J$ is not weakly lower semicontinuous.}
+\label{fig:bolza}
+\end{figure}
 
 %======================================================================
 \section{The Lax--Milgram theorem}\label{sec:var-lm}
@@ -795,8 +926,32 @@ coercivity. G\aa rding's inequality~\cite{Garding1953},
 \]
 states coercivity up to a compact perturbation. Either one shifts the form,
 $\displaystyle a_\lambda(u,v)=a(u,v)+\lambda\int uv$, which is coercive, or one invokes the
-\emph{Fredholm alternative}: the problem is solvable for all $f$ except on a
-finite-dimensional exceptional set related to the eigenvalues of the operator.
+\emph{Fredholm alternative}~\cite{Evans2010,Brezis2011}.
+
+\begin{gbox}{Fredholm alternative}
+\index{Fredholm alternative}\index{eigenvalue problem!Fredholm alternative}\index{adjoint operator!Fredholm alternative}%
+Let $a$ satisfy G\aa rding's inequality on $H^1_0(\Omega)$, $\Omega$ bounded.
+For $\mu\in\R$ consider the problem: find $u\in H^1_0(\Omega)$ with
+\[
+  a(u,v)-\mu\int_\Omega uv\dd x=\int_\Omega fv\dd x\qquad\forall v\in H^1_0(\Omega).
+\]
+\begin{itemize}
+\item The values of $\mu$ for which the homogeneous problem ($f=0$) has a
+nonzero solution form a \emph{discrete} set: the eigenvalues
+$\mu_1,\mu_2,\dots$, with no finite accumulation point.
+\item For $\mu$ \emph{outside} this set, the problem has a unique solution for
+every $f\in L^2(\Omega)$, and $\norm{u}_{H^1}\le C(\mu)\norm{f}_{L^2}$.
+\item For $\mu=\mu_k$ an eigenvalue, the kernel $N_k$ of the problem and the
+kernel $N_k^\ast$ of the adjoint problem (with $a(v,w)$ in place of
+$a(w,v)$) have the same finite dimension. The problem is solvable \emph{if
+and only if} $f$ is orthogonal in $L^2$ to $N_k^\ast$, and the solution is
+then defined up to an element of $N_k$.
+\end{itemize}
+For a symmetric form, $N_k^\ast=N_k$ is the eigenspace of $\mu_k$.
+\end{gbox}
+The resonance example of Section~\ref{sec:var-lm} is the case $\displaystyle a(u,v)=\int_0^1u'v'$,
+$\mu=\pi^2=\mu_1$, $N_1=N_1^\ast=\operatorname{span}\{\sin\pi x\}$: solvable iff
+$f\perp\sin\pi x$, and then up to $c\sin\pi x$.
 
 \paragraph{Where Lax--Milgram goes further than minimization.} Lax--Milgram
 \index{convection--diffusion}\index{symmetry!of a bilinear form}%
@@ -908,11 +1063,13 @@ Exercise~\ref{exo:primal-dual} checks it numerically.
 
 %======================================================================
 \section{Galerkin approximation and finite elements}\label{sec:var-fem}
-\index{Galerkin method}\index{C\'ea's lemma@C\'ea's lemma}\index{finite element method!one-dimensional}\index{stiffness matrix}%
+\index{Galerkin method}\index{C\'ea's lemma@C\'ea's lemma}\index{stiffness matrix}%
 The weak formulation is exactly what finite element methods discretize:
 restrict the problem to a finite-dimensional subspace, solve a linear system,
 and control the error with C\'ea's lemma~\cite{Cea1964}
-(see also~\cite{Ciarlet2002,BrennerScott2008}).
+(see also~\cite{Ciarlet2002,BrennerScott2008}). The subspace can be built
+from finite elements, or from the splines of computer-aided design: this is
+isogeometric analysis, the subject of the second half of the section.
 \begin{center}
 \begin{tikzpicture}[node distance=0.55cm]
   \node[box] (a) {Continuous problem in $V$: \ $a(u,v) = L(v)$, infinite-dimensional};
@@ -921,20 +1078,97 @@ and control the error with C\'ea's lemma~\cite{Cea1964}
   \draw[arr] (a) -- (b); \draw[arr] (b) -- (c);
 \end{tikzpicture}
 \end{center}
+
+\subsection{Linear finite elements in one dimension}\label{sec:var-fem-1d}
+\index{finite element method!one-dimensional}\index{hat function}%
 Take the one-dimensional problem $-u''=f$ on $(0,1)$, $u(0)=u(1)=0$, with weak
 form $\displaystyle \int_0^1u'v'=\int_0^1fv$.
 \begin{itemize}
   \item Partition $[0,1]$ into $n$ intervals of size $h=1/n$ and let
   $V_h\subset H^1_0$ be spanned by the piecewise-linear ``hat'' functions
-  $\varphi_1,\dots,\varphi_{n-1}$.
+  $\varphi_1,\dots,\varphi_{n-1}$ (Figure~\ref{fig:hat-assembly}, left).
   \item Write $u_h=\sum_jc_j\varphi_j$ and require
   $\displaystyle \int u_h'\varphi_i'=\int f\varphi_i$ for each $i$: this is the linear
   system $\mat{K}\mat{c}=\mat{F}$ with the tridiagonal stiffness matrix
   $\displaystyle K_{ij}=\int\varphi_i'\varphi_j'=h^{-1}\operatorname{tridiag}(-1,2,-1)$,
   the matrix of the spring chain.
   \item C\'ea's lemma gives $\norm{u-u_h}_{H^1_0}\le C\inf_{v_h}\norm{u-v_h}_{H^1_0}=O(h)$
-  for smooth $u$; nodal values converge faster (Exercise~\ref{exo:conv}).
+  for smooth $u$; the $L^2$ error and the nodal values converge faster
+  (Exercise~\ref{exo:conv}).
 \end{itemize}
+
+\paragraph{Assembly, element by element.}
+\index{finite element method!assembly}\index{element matrix}%
+The matrix is not computed entry by entry but element by element. On the
+element $[x_{e-1},x_e]$ only $\varphi_{e-1}$ and $\varphi_e$ are nonzero, with
+slopes $-1/h$ and $1/h$. The element contributes the $2\times2$ element matrix
+\[
+  \mat{k}^e=\int_{x_{e-1}}^{x_e}
+  \begin{bmatrix}\varphi_{e-1}'\\ \varphi_e'\end{bmatrix}
+  \begin{bmatrix}\varphi_{e-1}' & \varphi_e'\end{bmatrix}\dd x
+  =\frac1h\begin{bmatrix}1&-1\\-1&1\end{bmatrix}
+\]
+to the rows and columns of its two nodes. Each interior node receives $1/h$
+from each of its two elements, hence the $2/h$ on the diagonal. The rows and
+columns of the end nodes are then deleted, because $u(0)=u(1)=0$ is built
+into $V_h$ (Figure~\ref{fig:hat-assembly}, right). Each element is a spring of
+stiffness $1/h$ between two nodes, and the end nodes are the fixed walls:
+assembling finite elements is building the spring chain of
+Section~\ref{ssec:springs}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch1/hat_assembly.pdf}
+\caption{Linear finite elements on $(0,1)$ with four elements. Left: the hat
+functions; $\varphi_2$ is shaded, its slope is $\pm1/h$. Right: each
+element adds its matrix $\mat{k}^e$ (one colour per element) to the rows and
+columns of its two nodes. Deleting the rows and columns of the fixed end
+nodes (gray) leaves $h\mat{K}=\operatorname{tridiag}(-1,2,-1)$.}
+\label{fig:hat-assembly}
+\end{figure}
+
+\subsection{Galerkin orthogonality and C\'ea's lemma}\label{sec:var-cea}
+\index{Galerkin method!orthogonality}\index{energy norm}\index{C\'ea's lemma@C\'ea's lemma!as a projection}%
+Take $v=v_h\in V_h\subset V$ in the continuous problem and subtract the discrete
+one:
+\begin{equation}\label{eq:galerkin-orth}
+  a(u-u_h,v_h)=0\qquad\forall v_h\in V_h .
+\end{equation}
+This is \emph{Galerkin orthogonality}: the error is orthogonal to the
+discrete space. For a symmetric coercive form, $a$ is an inner product, the
+\emph{energy inner product}, with the energy norm $\norm{v}_a^2=a(v,v)$. Then
+$u_h$ is the orthogonal projection of $u$ onto $V_h$ for this inner product
+(Figure~\ref{fig:galerkin-proj}), and Pythagoras gives, for every $v_h\in V_h$,
+\[
+  \norm{u-v_h}_a^2=\norm{u-u_h}_a^2+\norm{u_h-v_h}_a^2\ \ge\ \norm{u-u_h}_a^2 .
+\]
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=1]
+  \fill[gray!12] (0,0) -- (7,0) -- (8.6,2.3) -- (1.6,2.3) -- cycle;
+  \node[font=\small,gray!60!black] at (2.1,1.95) {$V_h$};
+  \coordinate (O) at (1.4,0.55);
+  \coordinate (uh) at (5.0,1.2);
+  \coordinate (u) at (5.0,4.1);
+  \coordinate (vh) at (6.8,1.0);
+  \filldraw (O) circle (1.3pt) node[left,font=\small] {$0$};
+  % right angle at u_h, between u-u_h (vertical) and the plane direction v_h-u_h
+  \draw[orange!85!black,thick] (5.298,1.167) -- (5.298,1.467) -- (5.0,1.5);
+  \draw[gray!70!black] (vh) -- (uh);
+  \draw[-{Latex[length=2.3mm]},thick,cu] (O) -- (u) node[above,font=\small] {$u$};
+  \draw[-{Latex[length=2.3mm]},thick,cu!70] (O) -- (uh) node[above left,font=\small] {$u_h$};
+  \draw[-{Latex[length=2.3mm]},gray!70!black] (O) -- (vh) node[below right,font=\small] {$v_h$};
+  \draw[very thick,orange!85!black] (uh) -- (u) node[pos=0.55,left,font=\small] {$u-u_h$};
+  \draw[dashed,gray!70!black] (vh) -- (u) node[pos=0.5,right,font=\small] {$u-v_h$};
+  \node[font=\footnotesize,orange!85!black,anchor=west,align=left] at (0.9,3.5)
+    {$a(u-u_h,v_h)=0$\\ for all $v_h\in V_h$};
+\end{tikzpicture}
+\caption{Galerkin orthogonality. The Galerkin solution $u_h$ is the
+orthogonal projection of $u$ onto $V_h$ in the energy inner product $a$:
+the error $u-u_h$ makes a right angle with $V_h$, and any other $v_h\in V_h$
+is farther from $u$ in the energy norm.}
+\label{fig:galerkin-proj}
+\end{figure}
+
 \paragraph{C\'ea's lemma in words.} The Galerkin solution is, up to the factor
 $M/\alpha$, the \emph{best} approximation of $u$ that the chosen space can
 offer: the error of the method is an approximation error, not an error of
@@ -943,9 +1177,300 @@ norm, where $u_h$ is exactly the best approximation (the Ritz method
 minimizes the energy). The error is then estimated by interpolating $u$ with
 the hat functions, which gives $O(h)$. The proof takes three lines and is
 given in Appendix~\ref{app:spaces}.
+
+\paragraph{Other norms.}
+\index{Aubin--Nitsche lemma}\index{convergence rate}%
+C\'ea's lemma bounds the error in the energy norm only. In $L^2$ the error is
+one order better, $\norm{u-u_h}_{L^2}=O(h^2)$ for linear elements: this is
+the Aubin--Nitsche duality argument~\cite{Aubin1967,Nitsche1968}
+(see~\cite{Ciarlet2002,BrennerScott2008}).
+In one dimension with the exact load $\displaystyle \int f\varphi_i$, linear
+elements are even exact at the nodes (Exercise~\ref{exo:sp-nodal}).
 Finite elements for elasticity, with the matrices $\mat{B}$, $\mat{C}$ and
 $\mat{B}\T\mat{C}\mat{B}$ of Section~\ref{sec:var-discrete}, are presented in
 Chapter~\ref{ch:elliptic}.
+
+\subsection{What is a finite element?}\label{sec:var-ciarlet}
+\index{finite element method!Ciarlet's definition}\index{degrees of freedom}%
+The hat functions are one instance of a general construction. Ciarlet's
+definition~\cite{Ciarlet2002} makes precise what a finite element is.
+
+\begin{gbox}{Finite element (Ciarlet)}
+A \emph{finite element} is a triple $(K,P,\Sigma)$:
+\begin{itemize}
+\item $K\subset\R^n$ is the element domain (an interval, a triangle, a
+tetrahedron, a quadrilateral);
+\item $P$ is a finite-dimensional space of functions on $K$, usually
+polynomials;
+\item $\Sigma=\{\sigma_1,\dots,\sigma_N\}$ is a set of linear forms on $P$, the
+local \emph{degrees of freedom}, which determine each function of $P$
+uniquely: $p\mapsto\bigl(\sigma_1(p),\dots,\sigma_N(p)\bigr)$ is a bijection
+from $P$ onto $\R^N$.
+\end{itemize}
+The local basis is the \emph{nodal basis} $p_1,\dots,p_N$ with
+$\sigma_j(p_i)=\delta_{ij}$. The global space is built by gluing elements
+through shared degrees of freedom.
+\end{gbox}
+Linear elements in 1D are $K=[x_{e-1},x_e]$, $P=\mathbb P_1$ and $\Sigma$ the
+two end values. Hermite cubics (beams) are $P=\mathbb P_3$ and $\Sigma$ the end
+values and end slopes. Two features of this construction matter below. First,
+the degrees of freedom are \emph{values} (of the function or of its
+derivatives) at points of the element. Second, they are \emph{local}: each
+one belongs to an element, or is shared with its neighbours through a node,
+and each basis function lives on the elements around its node. Gluing by
+nodal values gives $C^0$ continuity across elements. Higher continuity
+requires derivative degrees of freedom, which is cumbersome beyond one
+dimension.
+
+\subsection{B-splines}\label{sec:var-bsplines}
+\index{B-spline}\index{B-spline!Cox--de Boor recursion}\index{knot vector}%
+Splines are piecewise polynomials glued with the highest possible smoothness.
+They are the basis of computer-aided design (CAD). Their standard basis is
+made of B-splines~\cite{deBoor1978,PieglTiller1997}.
+
+\begin{gbox}{B-splines: the Cox--de Boor recursion}
+A \emph{knot vector} is a nondecreasing sequence
+$\Xi=\{\xi_1\le\xi_2\le\dots\le\xi_{n+p+1}\}$ of parameter values. The $n$
+B-spline basis functions of degree $p$ are defined by recursion on the degree:
+\begin{align*}
+  N_{i,0}(\xi)&=\begin{cases}1&\text{if }\xi_i\le\xi<\xi_{i+1},\\
+  0&\text{otherwise,}\end{cases}\\
+  N_{i,p}(\xi)&=\frac{\xi-\xi_i}{\xi_{i+p}-\xi_i}\,N_{i,p-1}(\xi)
+  +\frac{\xi_{i+p+1}-\xi}{\xi_{i+p+1}-\xi_{i+1}}\,N_{i+1,p-1}(\xi),
+\end{align*}
+with the convention $0/0=0$ for repeated knots. The knot vector is
+\emph{open} if its first and last knots are repeated $p+1$ times.
+\end{gbox}
+
+\paragraph{Properties.}
+\index{B-spline!continuity}\index{partition of unity}%
+\begin{itemize}
+\item Each $N_{i,p}$ is a polynomial of degree $p$ on each \emph{knot span}
+$[\xi_j,\xi_{j+1})$, nonnegative, and the functions sum to one
+(\emph{partition of unity}).
+\item \emph{Support:} $N_{i,p}$ vanishes outside $[\xi_i,\xi_{i+p+1}]$, that
+is, outside $p+1$ consecutive knot spans.
+\item \emph{Continuity:} across a knot of multiplicity $k$, the B-splines are
+$C^{p-k}$. With simple knots they are $C^{p-1}$; a knot repeated $p$ times
+gives $C^0$, a knot repeated $p+1$ times a discontinuity.
+\item \emph{Open knot vectors:} the first and last functions are
+interpolatory at the ends, $N_{1,p}(\xi_1)=N_{n,p}(\xi_{n+p+1})=1$, and all
+others vanish there.
+\item For $p=1$ and simple interior knots, the B-splines are exactly the hat
+functions of linear finite elements.
+\end{itemize}
+Figure~\ref{fig:bsplines} shows the bases for $p=1,2,3$ on an open uniform
+knot vector with five knot spans.
+
+\paragraph{Curves and control points.}
+\index{control point}%
+A B-spline curve is a combination of the basis functions with vector
+coefficients, the \emph{control points} $\vect{P}_i$:
+\[
+  \vect{C}(\xi)=\sum_{i=1}^nN_{i,p}(\xi)\,\vect{P}_i .
+\]
+The control points generally do not lie on the curve
+(Figure~\ref{fig:bsplines}, panel~(d)). The basis is \emph{not interpolatory}:
+the coefficients are not values at points. The curve passes through the
+first and last control points only, for an open knot vector.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch1/bsplines.pdf}
+\caption{B-spline bases on the open uniform knot vector with five knot spans,
+computed with the Cox--de Boor recursion; the ticks mark the knots. (a)
+$p=1$: the hat functions of linear finite elements. (b) $p=2$ and (c) $p=3$:
+each function spans $p+1$ knot spans (shaded example) and is $C^{p-1}$; the
+end functions (orange) are interpolatory; the functions sum to one (dashed).
+(d) A quadratic B-spline curve: the control points $\vect{P}_i$ are not on the
+curve, except the first and the last.}
+\label{fig:bsplines}
+\end{figure}
+
+\paragraph{Why B-splines are not finite elements in Ciarlet's sense.}
+\index{B-spline!and Ciarlet's definition}%
+B-splines break the structure $(K,P,\Sigma)$ in two ways.
+\begin{itemize}
+\item \emph{Their coefficients are not nodal values.} The control points,
+and the solution coefficients built in the same way, are \emph{control
+variables}, not values at points.
+\item \emph{Their basis functions are not element-local.} Each $N_{i,p}$
+straddles $p+1$ knot spans, the natural ``elements''. No set of degrees of
+freedom belongs to a single element.
+\end{itemize}
+This overlap is precisely what gives the $C^{p-k}$ continuity across the
+knots, instead of the $C^0$ continuity of Lagrange elements.
+
+\subsection{Isogeometric analysis}\label{sec:var-iga}
+\index{isogeometric analysis}\index{NURBS}%
+Isogeometric analysis (IGA) was introduced by Hughes, Cottrell and
+Bazilevs in 2005~\cite{HughesIGA2005,CottrellIGA2009}. It keeps the Galerkin
+framework of finite elements and changes the basis: the solution is
+expanded on the splines that describe the geometry in CAD.
+
+\paragraph{Geometry comes directly from CAD.}
+The domain is described by a patch of non-uniform rational B-splines (NURBS),
+the standard representation of CAD.
+\begin{gbox}{NURBS geometry}
+A two-dimensional NURBS patch maps the parameter square to the domain,
+\[
+  \vx(\xi,\eta)=\sum_{i,j}R_{ij}(\xi,\eta)\,\vect{P}_{ij},
+  \qquad
+  R_{ij}(\xi,\eta)=\frac{N_i(\xi)\,M_j(\eta)\,w_{ij}}
+  {\sum_{k,l}N_k(\xi)\,M_l(\eta)\,w_{kl}},
+\]
+where $N_i$ and $M_j$ are B-splines in each direction, $\vect{P}_{ij}$ the
+control points and $w_{ij}>0$ the \emph{weights}. With all weights equal,
+$R_{ij}=N_iM_j$ are tensor-product B-splines. The rational form represents
+conics (circles, cylinders, spheres) exactly.
+\end{gbox}
+
+\paragraph{The isoparametric idea, reversed.}
+\index{isogeometric analysis!isoparametric concept}%
+In finite elements the basis chosen for the solution is also used to
+approximate the geometry (isoparametric elements). In IGA the basis that
+already describes the exact geometry is used for the solution,
+\[
+  u_h(\vx)=\sum_AR_A(\vxi)\,u_A,\qquad \vx=\vx(\vxi),
+\]
+where $A$ runs over the functions of the patch, $\vxi=(\xi,\eta)$, and the
+$u_A$ are control variables. The geometry is exact at every level of
+refinement.
+
+\paragraph{Elements are knot spans.}
+The mesh is the set of nonempty knot spans, and their tensor products in 2D
+and 3D. These elements are used only for numerical integration, not to
+define the basis.
+
+\paragraph{Weak form and assembly are the usual Galerkin ones.}
+\index{isogeometric analysis!quadrature}\index{Gauss quadrature}%
+Stiffness and load are integrated element by element. Gauss quadrature uses a
+\emph{double mapping}: the parent element $[-1,1]^d$ is mapped affinely to
+the knot span in the parameter space, which is mapped to the physical
+element by $\vx(\vxi)$. For an integrand $g$,
+\[
+  \int_{\Omega^e}g\dd x=\int_{[-1,1]^d}g\bigl(\vx(\vxi(\tilde\vxi))\bigr)
+  \,\Bigl|\det\frac{\partial\vx}{\partial\vxi}\Bigr|\,
+  \Bigl|\det\frac{\partial\vxi}{\partial\tilde\vxi}\Bigr|\dd\tilde\xi
+  \approx\sum_qw_q\,g_q\,J_q .
+\]
+A connectivity array lists the $(p+1)^d$ basis functions active on each
+element, and the element matrices are assembled as in
+Figure~\ref{fig:hat-assembly}.
+
+\paragraph{B\'ezier extraction makes IGA look like finite elements.}
+\index{Bezier extraction@B\'ezier extraction}\index{Bernstein polynomials}%
+The B-splines are not element-local, but their restrictions to one element
+are.
+\begin{gbox}{B\'ezier extraction}
+On each element, the $(p+1)^d$ active B-splines are linear combinations of the
+Bernstein polynomials of degree $p$ on the parent element, which are the same
+on every element~\cite{BordenExtraction2011}:
+\[
+  \mat{N}^e(\tilde\vxi)=\mat{C}^e\,\mat{b}(\tilde\vxi),
+\]
+with $\mat{N}^e$ the column of active B-splines, $\mat{b}$ the column of
+Bernstein polynomials (in 1D, $b_j(t)=\binom pjt^j(1-t)^{p-j}$, $t\in[0,1]$),
+and $\mat{C}^e$ the \emph{element extraction operator}, a constant matrix.
+\end{gbox}
+The code then has an element-local data structure: the Bernstein basis plays
+the role of the shape functions, and $\mat{C}^e$ carries the inter-element
+smoothness. IGA can thus be plugged into an existing finite element code;
+it is the sense in which splines become ``generalized'' finite elements. For
+the quadratic B-splines of Exercise~\ref{exo:bsplines}, on the middle element,
+$\mat{C}^e=\begin{psmallmatrix}1/2&0&0\\1/2&1&1/2\\0&0&1/2\end{psmallmatrix}$.
+
+\paragraph{Dirichlet conditions need care.}
+\index{boundary condition!essential}\index{Nitsche's method}%
+Since the basis is not interpolatory, a control variable is not a value of
+$u_h$. Homogeneous conditions are easy: with open knot vectors only the
+functions of the boundary row are nonzero on the edge of the patch, and
+setting their control variables to zero gives $u_h=0$ there. General data
+$\uD$ are imposed by one of three approaches:
+\begin{itemize}
+\item a least-squares or $L^2$ projection of $\uD$ onto the boundary control
+variables;
+\item weak imposition, for instance by Nitsche's method~\cite{Nitsche1971};
+\item Lagrange multipliers (Section~\ref{sec:var-lagrange}).
+\end{itemize}
+
+\paragraph{Refinement keeps the exact geometry.}
+\index{isogeometric analysis!refinement}\index{k-refinement@$k$-refinement}\index{knot insertion}%
+The three kinds of refinement leave the geometry and its parameterization
+unchanged.
+\begin{itemize}
+\item \emph{$h$-refinement} is \emph{knot insertion}: each new knot adds one
+function, and the new control points are convex combinations of the old
+ones.
+\item \emph{$p$-refinement} is \emph{degree elevation}; the multiplicity of
+each knot is raised by one so that the continuity $C^{p-k}$ is kept.
+\item \emph{$k$-refinement} elevates the degree first, then inserts knots.
+The new knots carry $C^{p-1}$ continuity, so one obtains high order and high
+continuity with very few added degrees of freedom. It has no finite element
+counterpart. The two operations do not commute: inserting the knots first
+and elevating the degree afterwards keeps the lower continuity at the new
+knots, with many more functions.
+\end{itemize}
+
+\subsection{Finite elements and isogeometric analysis compared}\label{sec:var-fem-iga}
+\index{isogeometric analysis!comparison with finite elements}\index{finite element method!comparison with IGA}%
+Table~\ref{tab:fem-iga} summarizes the differences.
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{>{\raggedright}p{3.3cm}>{\raggedright}p{4.9cm}>{\raggedright\arraybackslash}p{5.9cm}}
+\toprule
+\sffamily aspect & \sffamily standard FEM (Lagrange) & \sffamily IGA (B-splines, NURBS)\\
+\midrule
+geometry & approximated by the mesh & exact CAD geometry at every refinement level\\
+basis support & one element, plus the neighbours sharing a node & $p+1$ knot spans per direction\\
+degrees of freedom & nodal values, interpolatory & control variables, not interpolatory\\
+inter-element continuity & $C^0$ & up to $C^{p-1}$\\
+DOFs per direction (degree $p$, $n_{el}$ elements) & $p\,n_{el}+1$ & $n_{el}+p$ (maximal continuity)\\
+mesh generation & separate meshing step & comes from the CAD parameterization\\
+Dirichlet conditions & strong, at the nodes & projection or weak imposition\\
+local refinement & easy on unstructured meshes & hard in tensor-product form: T-splines, THB-splines, LR-splines\\
+cost per element & lower & higher: wider bandwidth, costlier quadrature\\
+\bottomrule
+\end{tabular}
+\caption{Standard finite elements and isogeometric analysis.}
+\label{tab:fem-iga}
+\end{table}
+
+\paragraph{Higher continuity is useful.}
+\index{fourth-order problems}\index{Kirchhoff--Love shell}\index{Cahn--Hilliard equation}\index{gradient elasticity}%
+A conforming method for a fourth-order problem needs $H^2$, hence $C^1$
+functions. $C^1$ or smoother splines discretize such problems directly,
+without mixed formulations: Kirchhoff--Love plates and
+shells~\cite{KiendlShells2009}, the Cahn--Hilliard phase-field
+equation~\cite{GomezCahnHilliard2008}, gradient elasticity.
+
+\paragraph{Accuracy per degree of freedom is better.}
+\index{isogeometric analysis!spectral accuracy}%
+Smooth splines avoid the ``optical branches'' of the spectrum of higher-order
+$C^0$ elements, so vibration and wave problems show much better spectral
+accuracy~\cite{CottrellVibrations2006}.
+
+\paragraph{Some difficulties are new.}
+\index{trimmed surface}\index{multipatch coupling}\index{local refinement}%
+\begin{itemize}
+\item CAD describes surfaces, while a solid needs a \emph{volumetric}
+parameterization, which must be built.
+\item CAD surfaces are often \emph{trimmed}: only part of the parameter
+square is used.
+\item Complex geometries need \emph{several patches}, which must be coupled.
+\item \emph{Local refinement} is less natural, since knot insertion acts on
+whole rows of the tensor product. It requires T-splines~\cite{SederbergTsplines2003},
+truncated hierarchical B-splines (THB-splines)~\cite{GiannelliTHB2012} or
+LR-splines~\cite{DokkenLR2013}.
+\end{itemize}
+
+\begin{gbox*}
+\textbf{IGA is a Galerkin method like FEM.} It replaces element-local,
+interpolatory polynomials by smooth, overlapping spline bases taken from
+CAD. Elements survive only as integration cells, and B\'ezier extraction
+recovers an element-by-element structure.
+\end{gbox*}
 
 %======================================================================
 \section{Physical interpretation: energies come first}\label{sec:var-phys}
@@ -982,7 +1507,8 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
 \begin{itemize}
   \item \textbf{Existence} follows from minimizing a coercive, weakly lower
   semicontinuous energy over a reflexive space
-  (Section~\ref{sec:var-direct}); more generally, and without symmetry, from
+  (Section~\ref{sec:var-direct}); without convexity in the gradient a
+  minimizing sequence may oscillate forever (Bolza problem); more generally, and without symmetry, from
   the Lax--Milgram theorem (Section~\ref{sec:var-lm}), which covers general
   elliptic operators through G\aa rding's inequality and the Fredholm
   alternative (Section~\ref{sec:var-elliptic}).
@@ -997,6 +1523,12 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
   underlies springs, circuits, trusses (Section~\ref{sec:var-discrete}) and
   finite elements (Section~\ref{sec:var-fem}): compatibility, constitutive
   law and equilibrium, with equilibrium the transpose of compatibility.
+  \item \textbf{Galerkin methods project.} The discrete solution is the
+  projection of the exact one onto $V_h$ in the energy inner product
+  (Galerkin orthogonality, C\'ea's lemma). Finite elements build $V_h$ from
+  element-local, interpolatory polynomials, $C^0$ across elements;
+  isogeometric analysis builds it from the smooth, overlapping B-splines and
+  NURBS of CAD, with the exact geometry (Section~\ref{sec:var-iga}).
   \item \textbf{Not every weak form has an energy.} A symmetric form has
   $J(u)=\tfrac12a(u,u)-L(u)$; a non-symmetric one (convection) has none,
   yet Lax--Milgram still applies.
@@ -1063,13 +1595,100 @@ energy minimization.
 
 %======================================================================
 \framepart{Exercises}\label{sec:var-exo}
+The short questions come first: they are exam-style, to be done without
+documents or computer, with a few lines of computation each.
 Part~I checks results numerically or symbolically with short Python
 scripts (\texttt{numpy}/\texttt{scipy} for numerical checks, \texttt{sympy} for
 symbolic ones); every script was run and its output is quoted in the
 comments. Part~II is
 paper-and-pencil practice with variational calculus. Part~III treats
-constraints and convex conjugates. Solutions are given in small type after
-each exercise.
+constraints and convex conjugates. Part~IV treats B-splines and isogeometric
+analysis. Solutions are given in small type after each exercise.
+
+\framesub{Short questions}
+
+\exercise{One mass, two springs}\label{exo:sq-springs}
+A mass is held between two walls by a spring of stiffness $c_1$ on the left
+and $c_2$ on the right. Write $\mat{B}$ and $\mat{K}$, and find the
+displacement and the spring forces under a force $f$.
+\begin{solution}
+$e_1=u$, $e_2=-u$, so $\mat{B}=(1,-1)\T$ and
+$\mat{K}=\mat{B}\T\mat{C}\mat{B}=c_1+c_2$. Hence $u=f/(c_1+c_2)$,
+$\sigma_1=c_1f/(c_1+c_2)$ (tension), $\sigma_2=-c_2f/(c_1+c_2)$ (compression).
+Check: $\mat{B}\T\vect{\sigma}=\sigma_1-\sigma_2=f$.
+\end{solution}
+
+\exercise{Finite energy or not?}\label{exo:sq-h1}
+For which $\alpha>0$ is $u=x^\alpha$ in $H^1(0,1)$? Compute
+$\displaystyle \int_0^1(u')^2\dd x$ for $\alpha=\tfrac34$ and discuss
+$\alpha=\tfrac13$.
+\begin{solution}
+$\displaystyle \int_0^1\alpha^2x^{2\alpha-2}\dd x=\frac{\alpha^2}{2\alpha-1}$ if
+$\alpha>\tfrac12$, and $+\infty$ otherwise. For $\alpha=\tfrac34$:
+$\tfrac{9/16}{1/2}=\tfrac98$. For $\alpha=\tfrac13$ the integral diverges: $x^{1/3}$
+is continuous and bounded, yet has infinite energy.
+\end{solution}
+
+\exercise{Essential or natural?}\label{exo:sq-bc}
+Write the weak form of $-(ku')'=f$ on $(0,1)$, $u(0)=0$, $k(1)u'(1)=g$, with
+$k>0$. In which space is it posed? Which condition is essential, which natural?
+\begin{solution}
+$V=\{v\in H^1(0,1):v(0)=0\}$, and
+$\displaystyle \int_0^1ku'v'\dd x=\int_0^1fv\dd x+g\,v(1)$ for all $v\in V$. The
+condition $u(0)=0$ is essential (built into $V$); $k(1)u'(1)=g$ is natural (it
+appears in the right-hand side, and is recovered by integrating by parts).
+\end{solution}
+
+\exercise{A coercivity threshold}\label{exo:sq-coerc}
+For which $c\in\R$ is $\displaystyle a(u,v)=\int_0^1u'v'\dd x+c\int_0^1uv\dd x$
+coercive on $H^1_0(0,1)$?
+\begin{solution}
+For $c\ge0$, $\displaystyle a(u,u)\ge\int(u')^2$. For $c<0$, Wirtinger's inequality
+$\displaystyle \int u^2\le\frac1{\pi^2}\int(u')^2$ gives
+$\displaystyle a(u,u)\ge\Bigl(1+\frac{c}{\pi^2}\Bigr)\int(u')^2$. So $a$ is coercive iff $c>-\pi^2$. At
+$c=-\pi^2$, $a(\sin\pi x,\sin\pi x)=0$: resonance (Section~\ref{sec:var-lm}).
+\end{solution}
+
+\exercise{The conjugate of a spring energy}\label{exo:sq-lf}
+Compute the Legendre--Fenchel transform of $F(e)=\tfrac12ke^2$, $k>0$, and
+interpret it.
+\begin{solution}
+$\sup_e(\sigma e-\tfrac12ke^2)$ is reached at $e=\sigma/k$, so
+$F^\ast(\sigma)=\sigma^2/(2k)$: the complementary energy of the spring. The
+Fenchel--Young inequality $F(e)+F^\ast(\sigma)\ge\sigma e$ is an equality iff
+$\sigma=ke$: Hooke's law.
+\end{solution}
+
+\exercise{A reaction from a multiplier}\label{exo:sq-reaction}
+A spring of stiffness $c$ links a wall to a mass whose displacement is
+imposed, $u=d$. From the Lagrangian $\tfrac12cu^2-\lambda(u-d)$, find $\lambda$
+and interpret it.
+\begin{solution}
+Stationarity: $cu-\lambda=0$ and $u=d$, so $\lambda=cd$. With the minus sign
+of~\eqref{eq:lagrangian-eq}, $\lambda$ is the reaction: the support pushes the
+mass with the force $cd$ in the direction of $x$, which balances the spring
+tension $cd$.
+\end{solution}
+
+\exercise{Two linear elements}\label{exo:sq-two-el}
+Solve $-u''=1$ on $(0,1)$, $u(0)=u(1)=0$, with two linear elements
+($h=\tfrac12$) and the load $\displaystyle F_1=\int_0^1\varphi_1\dd x$. Compare
+$u_h(\tfrac12)$ with the exact value.
+\begin{solution}
+One unknown: $K_{11}=2/h=4$, $F_1=h=\tfrac12$, so $u_h(\tfrac12)=\tfrac18$. The
+exact solution $u=\tfrac12x(1-x)$ gives $u(\tfrac12)=\tfrac18$: the nodal value
+is exact (Exercise~\ref{exo:sp-nodal}), the error lies between the nodes.
+\end{solution}
+
+\exercise{Galerkin orthogonality}\label{exo:sq-orth}
+Show that $a(u-u_h,v_h)=0$ for all $v_h\in V_h$. For $a$ symmetric and
+coercive, deduce $\norm{u-u_h}_a\le\norm{u-v_h}_a$ for all $v_h\in V_h$.
+\begin{solution}
+Subtract $a(u_h,v_h)=L(v_h)$ from $a(u,v_h)=L(v_h)$, valid since
+$V_h\subset V$. Then, with $w_h=u_h-v_h\in V_h$,
+$\norm{u-v_h}_a^2=\norm{u-u_h}_a^2+2a(u-u_h,w_h)+\norm{w_h}_a^2
+=\norm{u-u_h}_a^2+\norm{w_h}_a^2$ (Figure~\ref{fig:galerkin-proj}).
+\end{solution}
 
 \framesub{Part I: computational verification}
 
@@ -1143,23 +1762,45 @@ and both energies equal $-2.5$.
 the value $W_{\min}$ of Theorem~\ref{thm:min-discrete}.
 \end{solution}
 
-\exercise{Convergence rate of the discrete chain}\label{exo:conv}
-\index{convergence rate}%
+\exercise{Convergence rates: finite differences and finite elements}\label{exo:conv}
+\index{convergence rate}\index{finite differences}\index{Aubin--Nitsche lemma}%
 Solve $-u''=\sin\pi x$ on $(0,1)$, $u(0)=u(1)=0$ (exact solution
-$\sin(\pi x)/\pi^2$) with the chain matrix for increasing $n$ and measure the
-convergence rate.
+$\sin(\pi x)/\pi^2$) with the chain matrix $h^{-1}\operatorname{tridiag}(-1,2,-1)$,
+for $n=3,7,15,31,63$ interior nodes, and two load vectors.
+(a) The \emph{lumped} load $F_i=hf(x_i)$. This is the classical
+finite-difference scheme, or equivalently linear finite elements with the
+load lumped at the nodes. Measure the maximal nodal error.
+(b) The \emph{consistent} load $\displaystyle F_i=\int_0^1f\varphi_i\dd x$, computed
+exactly: this is the linear finite element method. Measure the maximal nodal
+error, the $L^2$ error and the $H^1$-seminorm error $|u-u_h|_{H^1}$.
+Which of these errors does C\'ea's lemma bound?
 \begin{solution}
-For $n=3,7,15,31,63$ interior nodes the maximal nodal error is divided by
-about $4$ each time $h$ is halved.
-\lstinputlisting[firstline=4]{python/examples/ch1/exo_conv.py} The nodal error is $O(h^2)$ (Figure~\ref{fig:conv}), better than the general
-$O(h)$ energy-norm bound of C\'ea's lemma, thanks to the smoothness of the
-solution.
+(a) The maximal nodal error is divided by $4$ each time $h$ is halved:
+$5.4\times10^{-3}$ for $h=\tfrac14$, $2.0\times10^{-5}$ for $h=\tfrac1{64}$. This
+$O(h^2)$ rate comes from the finite-difference analysis: the second
+difference approximates $u''$ to $O(h^2)$ (consistency), and the discrete
+problem is stable. It is \emph{not} a consequence of C\'ea's lemma, which
+bounds the error in the energy norm, $|u-u_h|_{H^1}$, not a maximum over the
+nodes.
+(b) The nodal error is at machine precision ($\le2\times10^{-15}$): in 1D,
+linear elements with the exact load are exact at the nodes, $u_h=I_hu$
+(Exercise~\ref{exo:sp-nodal}). The $H^1$-seminorm error is halved with $h$,
+$O(h)$: this is what C\'ea's lemma predicts, and it is optimal for
+piecewise-linear functions. The $L^2$ error is divided by $4$, $O(h^2)$: this
+extra order is the Aubin--Nitsche duality
+argument~\cite{Aubin1967,Nitsche1968,Ciarlet2002}, not C\'ea's lemma. Both
+rates are shown in Figure~\ref{fig:conv}.
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_conv.py}
 \end{solution}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.55\textwidth]{figures/ch1/ex5_convergence_loglog.pdf}
-\caption{Exercise~\ref{exo:conv}: maximal nodal error against $h$; slope $2$.}
+\includegraphics[width=0.85\textwidth]{figures/ch1/ex5_convergence_loglog.pdf}
+\caption{Exercise~\ref{exo:conv}. (a) Maximal nodal error of the
+finite-difference scheme (lumped load): slope~$2$. With the consistent load
+the nodal error is at machine precision. (b) Linear finite elements with the
+consistent load: $H^1$-seminorm error of slope~$1$ (C\'ea's lemma) and $L^2$
+error of slope~$2$ (Aubin--Nitsche).}
 \label{fig:conv}
 \end{figure}
 
@@ -1380,10 +2021,13 @@ $x=1$, $y=1$, $z=1$ give $\tfrac43$, $\tfrac43$, $\tfrac{16}3$ and the others $0
 \exercise{An equality constraint}\label{exo:kkt1}
 Minimize $C(\vx)=\tfrac12(x_1^2+x_2^2)$ subject to $x_1-x_2=1$.
 \begin{solution}
-$\mathcal L=\tfrac12(x_1^2+x_2^2)+\lambda(x_1-x_2-1)$. Stationarity:
-$x_1+\lambda=0$, $x_2-\lambda=0$; the constraint gives $-2\lambda=1$. Hence
-$\lambda=-\tfrac12$, $\vx=(\tfrac12,-\tfrac12)$, $C=\tfrac14$: the point of the
-line closest to the origin.
+With the convention~\eqref{eq:lagrangian-eq},
+$\mathcal L=\tfrac12(x_1^2+x_2^2)-\lambda(x_1-x_2-1)$. Stationarity:
+$x_1-\lambda=0$, $x_2+\lambda=0$; the constraint gives $2\lambda=1$. Hence
+$\lambda=\tfrac12$, $\vx=(\tfrac12,-\tfrac12)$, $C=\tfrac14$: the point of the
+line closest to the origin. With this sign the multiplier is also the
+sensitivity of the optimum to the data: for the constraint $x_1-x_2=b$,
+$C_{\min}(b)=b^2/4$ and $\dd C_{\min}/\dd b=\tfrac12=\lambda$ at $b=1$.
 \end{solution}
 
 \exercise{Two constraints}\label{exo:kkt2}
@@ -1392,10 +2036,11 @@ $x_2-x_3=2$.
 \begin{solution}
 Write the constraints $\mat{P}\vx=\vb$ with
 $\mat{P}=\begin{psmallmatrix}1&-1&0\\0&1&-1\end{psmallmatrix}$, $\vb=(1,2)$.
-Stationarity gives $\vx=-\mat{P}\T\vlambda$, and the constraints
-$-\mat{P}\mat{P}\T\vlambda=\vb$ with
+With $\mathcal L=\tfrac12|\vx|^2-\vlambda\cdot(\mat{P}\vx-\vb)$, stationarity
+gives $\vx=\mat{P}\T\vlambda$, and the constraints
+$\mat{P}\mat{P}\T\vlambda=\vb$ with
 $\mat{P}\mat{P}\T=\begin{psmallmatrix}2&-1\\-1&2\end{psmallmatrix}$. Hence
-$\vlambda=-(\tfrac43,\tfrac53)$ and $\vx=(\tfrac43,\tfrac13,-\tfrac53)$;
+$\vlambda=(\tfrac43,\tfrac53)$ and $\vx=(\tfrac43,\tfrac13,-\tfrac53)$;
 check: $x_1-x_2=1$, $x_2-x_3=2$.
 \end{solution}
 
@@ -1418,19 +2063,23 @@ in the course.
 Minimize $C(\vx)=\tfrac12\vx\T\mat{H}\vx-\vx\T\vf$, $\mat{H}$ symmetric
 positive definite, subject to $\mat{P}\vx=\vb$ ($\mat{P}$ of full row rank).
 \begin{solution}
-$\mathcal L=C(\vx)+\vlambda\cdot(\mat{P}\vx-\vb)$, and stationarity in
-$(\vx,\vlambda)$ gives
+$\mathcal L=C(\vx)-\vlambda\cdot(\mat{P}\vx-\vb)$, as
+in~\eqref{eq:lagrangian-eq}, and stationarity in $(\vx,\vlambda)$ gives
+$\mat{H}\vx=\vf+\mat{P}\T\vlambda$ and $\mat{P}\vx=\vb$, that is
 \[
-  \begin{bmatrix}\mat{H}&\mat{P}\T\\ \mat{P}&\mat{0}\end{bmatrix}
+  \begin{bmatrix}\mat{H}&-\mat{P}\T\\ -\mat{P}&\mat{0}\end{bmatrix}
   \begin{bmatrix}\vx\\ \vlambda\end{bmatrix}=
-  \begin{bmatrix}\vf\\ \vb\end{bmatrix},
+  \begin{bmatrix}\vf\\ -\vb\end{bmatrix},
   \qquad
-  \vlambda=(\mat{P}\mat{H}^{-1}\mat{P}\T)^{-1}(\mat{P}\mat{H}^{-1}\vf-\vb),\quad
-  \vx=\mat{H}^{-1}(\vf-\mat{P}\T\vlambda).
+  \vlambda=(\mat{P}\mat{H}^{-1}\mat{P}\T)^{-1}(\vb-\mat{P}\mat{H}^{-1}\vf),\quad
+  \vx=\mat{H}^{-1}(\vf+\mat{P}\T\vlambda).
 \]
 The matrix is symmetric but indefinite: $(\vx,\vlambda)$ is a saddle point,
-a minimum in $\vx$ and a maximum in $\vlambda$. This is the system used for
-imposed displacements in Chapter~\ref{ch:elliptic}.
+a minimum in $\vx$ and a maximum in $\vlambda$. In mechanics ($\mat{H}$ a
+stiffness, $\vf$ the loads, $\mat{P}\vx=\vb$ imposed displacements), the
+first line is equilibrium with the reactions $\vect{r}=\mat{P}\T\vlambda$, as
+in~\eqref{eq:saddle-springs}. This is the system used for imposed
+displacements in Chapter~\ref{ch:elliptic}.
 \end{solution}
 
 \exercise{Legendre--Fenchel transforms}\label{exo:lf}
@@ -1452,27 +2101,108 @@ convex-analysis form of the complementarity conditions of
 Section~\ref{sec:var-lagrange}, and reappears in plasticity.
 \end{solution}
 
+\framesub{Part IV: B-splines and isogeometric analysis}
+
+\exercise{Quadratic B-splines by hand}\label{exo:bsplines}
+\index{B-spline!exercise}\index{Bezier extraction@B\'ezier extraction!exercise}%
+Take $p=2$ and the open knot vector $\Xi=\{0,0,0,1,2,3,3,3\}$.
+(a) How many basis functions and how many elements are there?
+(b) Compute the $N_{i,2}$ with the Cox--de Boor recursion, span by span.
+(c) Check the partition of unity and the continuity at the interior knots
+$\xi=1$ and $\xi=2$: are $N_{i,2}$, $N_{i,2}'$, $N_{i,2}''$ continuous?
+(d) Which functions are interpolatory at the ends?
+(e) Find the B\'ezier extraction operator $\mat{C}^e$ of the element $[1,2]$.
+\begin{solution}
+(a) $n=8-p-1=5$ functions on $3$ elements $[0,1]$, $[1,2]$, $[2,3]$.
+(b) The only nonzero degree-0 functions are $N_{3,0}$, $N_{4,0}$, $N_{5,0}$,
+equal to $1$ on $[0,1)$, $[1,2)$, $[2,3)$. Two steps of the recursion give,
+on the three spans,
+\[
+\begin{array}{llll}
+ & [0,1] & [1,2] & [2,3]\\[2pt]
+N_1 & (1-\xi)^2 & 0 & 0\\
+N_2 & \tfrac12\xi(4-3\xi) & \tfrac12(2-\xi)^2 & 0\\
+N_3 & \tfrac12\xi^2 & \tfrac12(-2\xi^2+6\xi-3) & \tfrac12(3-\xi)^2\\
+N_4 & 0 & \tfrac12(\xi-1)^2 & \tfrac12(3-\xi)(3\xi-5)\\
+N_5 & 0 & 0 & (\xi-2)^2
+\end{array}
+\]
+(c) On each span the five pieces sum to $1$. At $\xi=1$ and $\xi=2$ the values
+and the first derivatives match (for instance $N_2(1)=\tfrac12$,
+$N_2'(1)=-1$ from both sides), while the second derivatives jump: the
+functions are $C^1=C^{p-1}$, as expected for simple knots.
+(d) $N_1(0)=1$ and $N_5(3)=1$, all others vanish at the ends: the end
+functions are interpolatory, the interior control variables are not values.
+(e) With $t=\xi-1$ and the Bernstein polynomials
+$\mat{b}=\bigl((1-t)^2,\,2t(1-t),\,t^2\bigr)$, the active functions $N_2$, $N_3$,
+$N_4$ on $[1,2]$ are
+$\mat{N}^e=\mat{C}^e\mat{b}$ with
+$\mat{C}^e=\begin{psmallmatrix}1/2&0&0\\1/2&1&1/2\\0&0&1/2\end{psmallmatrix}$.
+The same computation in \texttt{sympy}:
+\lstinputlisting[firstline=4]{python/examples/ch1/exo_bsplines.py}
+\end{solution}
+
+\exercise{Counting degrees of freedom}\label{exo:dof-count}
+\index{isogeometric analysis!degrees of freedom}%
+A cube is meshed with $n_{el}$ elements per direction. Count the unknowns of
+a scalar field, without boundary conditions, (a) for Lagrange elements of
+degree $p$, (b) for B-splines of degree $p$ with maximal continuity on an
+open knot vector. Give the numbers for $n_{el}=10$ and $p=2,3$. (c) Which knot
+vector gives back the finite element space?
+\begin{solution}
+In one direction: (a) $p$ new nodes per element plus the first one,
+$p\,n_{el}+1$; (b) the open knot vector has $2(p+1)+(n_{el}-1)$ knots, hence
+$n_{el}+p$ functions. In 3D the counts are cubed:
+\[
+\begin{array}{lcc}
+ & \text{Lagrange, }(p\,n_{el}+1)^3 & \text{B-splines, }(n_{el}+p)^3\\[2pt]
+p=2 & 21^3=9261 & 12^3=1728\\
+p=3 & 31^3=29791 & 13^3=2197
+\end{array}
+\]
+For a fine mesh the ratio tends to $p^3$: smooth splines reach a given degree
+with far fewer unknowns, but each function overlaps more elements, so the
+matrix is less sparse. (c) Repeating each interior knot $p$ times gives $C^0$
+splines and $2(p+1)+p(n_{el}-1)-p-1=p\,n_{el}+1$ functions: the space of
+continuous piecewise polynomials of degree $p$, the same space as Lagrange
+elements, in the Bernstein basis instead of the nodal one.
+\end{solution}
+
 %======================================================================
 \begin{chapterbib}{99}
 \bibitem{AdamsFournier2003} R.~A.~Adams, J.~J.~F.~Fournier, \emph{Sobolev Spaces}, 2nd ed., Academic Press, 2003.
 \bibitem{AllenCahn1979} S.~M.~Allen, J.~W.~Cahn, A microscopic theory for antiphase boundary motion and its application to antiphase domain coarsening, \emph{Acta Metall.} 27 (1979) 1085--1095.
+\bibitem{Aubin1967} J.-P.~Aubin, Behavior of the error of the approximate solutions of boundary value problems for linear elliptic operators by Galerkin's and finite difference methods, \emph{Ann. Scuola Norm. Sup. Pisa} (3) 21 (1967) 599--637.
+\bibitem{BordenExtraction2011} M.~J.~Borden, M.~A.~Scott, J.~A.~Evans, T.~J.~R.~Hughes, Isogeometric finite element data structures based on B\'ezier extraction of NURBS, \emph{Int. J. Numer. Methods Engrg.} 87 (2011) 15--47.
 \bibitem{BrennerScott2008} S.~C.~Brenner, L.~R.~Scott, \emph{The Mathematical Theory of Finite Element Methods}, 3rd ed., Springer, 2008.
 \bibitem{Betti1872} E.~Betti, Teoria della elasticit\`a, \emph{Il Nuovo Cimento} 7--8 (1872), in several parts; see 7 (1872) 158--180.
 \bibitem{Brezis2011} H.~Brezis, \emph{Functional Analysis, Sobolev Spaces and Partial Differential Equations}, Springer, 2011.
 \bibitem{Clebsch1862} A.~Clebsch, \emph{Theorie der Elasticit\"at fester K\"orper}, Teubner, Leipzig, 1862.
 \bibitem{Cea1964} J.~C\'ea, Approximation variationnelle des probl\`emes aux limites, \emph{Ann. Inst. Fourier} 14 (1964) 345--444.
 \bibitem{Ciarlet2002} P.~G.~Ciarlet, \emph{The Finite Element Method for Elliptic Problems}, SIAM Classics in Applied Mathematics 40, 2002.
+\bibitem{CottrellIGA2009} J.~A.~Cottrell, T.~J.~R.~Hughes, Y.~Bazilevs, \emph{Isogeometric Analysis: Toward Integration of CAD and FEA}, Wiley, 2009.
+\bibitem{CottrellVibrations2006} J.~A.~Cottrell, A.~Reali, Y.~Bazilevs, T.~J.~R.~Hughes, Isogeometric analysis of structural vibrations, \emph{Comput. Methods Appl. Mech. Engrg.} 195 (2006) 5257--5296.
 \bibitem{Courant1950} R.~Courant, \emph{Dirichlet's Principle, Conformal Mapping, and Minimal Surfaces}, Interscience, 1950.
 \bibitem{Dacorogna2008} B.~Dacorogna, \emph{Direct Methods in the Calculus of Variations}, 2nd ed., Springer, 2008.
+\bibitem{deBoor1978} C.~de~Boor, \emph{A Practical Guide to Splines}, Springer, 1978.
+\bibitem{DokkenLR2013} T.~Dokken, T.~Lyche, K.~F.~Pettersen, Polynomial splines over locally refined box-partitions, \emph{Comput. Aided Geom. Design} 30 (2013) 331--356.
 \bibitem{EkelandTemam1999} I.~Ekeland, R.~Temam, \emph{Convex Analysis and Variational Problems}, SIAM Classics in Applied Mathematics 28, 1999.
 \bibitem{Evans2010} L.~C.~Evans, \emph{Partial Differential Equations}, 2nd ed., AMS, 2010.
 \bibitem{Fung1965} Y.~C.~Fung, \emph{Foundations of Solid Mechanics}, Prentice-Hall, Englewood Cliffs, 1965.
 \bibitem{Garding1953} L.~G\aa rding, Dirichlet's problem for linear elliptic partial differential equations, \emph{Math. Scand.} 1 (1953) 55--72.
+\bibitem{GiannelliTHB2012} C.~Giannelli, B.~J\"uttler, H.~Speleers, THB-splines: the truncated basis for hierarchical splines, \emph{Comput. Aided Geom. Design} 29 (2012) 485--498.
 \bibitem{GilbargTrudinger2001} D.~Gilbarg, N.~S.~Trudinger, \emph{Elliptic Partial Differential Equations of Second Order}, Springer Classics in Mathematics, 2001.
+\bibitem{GomezCahnHilliard2008} H.~G\'omez, V.~M.~Calo, Y.~Bazilevs, T.~J.~R.~Hughes, Isogeometric analysis of the Cahn--Hilliard phase-field model, \emph{Comput. Methods Appl. Mech. Engrg.} 197 (2008) 4333--4352.
+\bibitem{HughesIGA2005} T.~J.~R.~Hughes, J.~A.~Cottrell, Y.~Bazilevs, Isogeometric analysis: CAD, finite elements, NURBS, exact geometry and mesh refinement, \emph{Comput. Methods Appl. Mech. Engrg.} 194 (2005) 4135--4195.
+\bibitem{KiendlShells2009} J.~Kiendl, K.-U.~Bletzinger, J.~Linhard, R.~W\"uchner, Isogeometric shell analysis with Kirchhoff--Love elements, \emph{Comput. Methods Appl. Mech. Engrg.} 198 (2009) 3902--3914.
 \bibitem{LaxMilgram1954} P.~D.~Lax, A.~N.~Milgram, Parabolic equations, in \emph{Contributions to the Theory of Partial Differential Equations}, Ann. Math. Studies 33, Princeton, 1954, 167--190.
 \bibitem{Maxwell1864} J.~C.~Maxwell, On the calculation of the equilibrium and stiffness of frames, \emph{Philos. Mag.} 27 (1864) 294--299.
+\bibitem{Nitsche1968} J.~Nitsche, Ein Kriterium f\"ur die Quasi-Optimalit\"at des Ritzschen Verfahrens, \emph{Numer. Math.} 11 (1968) 346--348.
+\bibitem{Nitsche1971} J.~Nitsche, \"Uber ein Variationsprinzip zur L\"osung von Dirichlet-Problemen bei Verwendung von Teilr\"aumen, die keinen Randbedingungen unterworfen sind, \emph{Abh. Math. Sem. Univ. Hamburg} 36 (1971) 9--15.
+\bibitem{PieglTiller1997} L.~Piegl, W.~Tiller, \emph{The NURBS Book}, 2nd ed., Springer, 1997.
 \bibitem{Rayleigh1873} Lord Rayleigh (J.~W.~Strutt), Some general theorems relating to vibrations, \emph{Proc. London Math. Soc.} 4 (1873) 357--368.
 \bibitem{Rockafellar1970} R.~T.~Rockafellar, \emph{Convex Analysis}, Princeton University Press, 1970.
+\bibitem{SederbergTsplines2003} T.~W.~Sederberg, J.~Zheng, A.~Bakenov, A.~Nasri, T-splines and T-NURCCs, \emph{ACM Trans. Graph.} 22 (2003) 477--484.
 \bibitem{Strang1986} G.~Strang, \emph{Introduction to Applied Mathematics}, Wellesley-Cambridge Press, 1986.
 \bibitem{TarnaiLengyel2007} T.~Tarnai, A.~Lengyel, Reciprocal theorems: an old subject revisited, \emph{Int. J. Mech. Eng. Educ.} 35 (2007) 138--147.
 \bibitem{TimoshenkoGere1961} S.~P.~Timoshenko, J.~M.~Gere, \emph{Theory of Elastic Stability}, 2nd ed., McGraw-Hill, 1961.
