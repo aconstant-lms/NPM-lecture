@@ -93,15 +93,54 @@ filament of Chapter~\ref{ch:pl-num} with linear kinematic hardening:
 \end{equation}
 with the normality rule of Section~\ref{ssec:pl-1d-kin} and the back stress
 $q_i=H\varepsilon^p_i$; $H=0$ is perfect plasticity and $\varepsilon^{th}_i$ a
-thermal strain. The strains derive from a few nodal unknowns $\mat{u}$ and
-the stresses balance the loads $\mat{F}(t)$:
+thermal strain.
+
+\paragraph{Three steps, and plasticity lives in the middle one.}
+\index{A^TCA@$A\T CA$ framework}%
+Strang writes every linear structure in three steps~\cite{Strang1986c}: the
+displacements give the strains, the strains give the stresses, the stresses
+balance the loads. For the fibres,
 \begin{equation}\label{eq:cy-discrete}
   \boldsymbol\varepsilon=\mat{B}\,\mat{u},\qquad
+  \boldsymbol\sigma=\mat{E}\,(\boldsymbol\varepsilon-\boldsymbol\varepsilon^p-\boldsymbol\varepsilon^{th}),\qquad
   \mat{B}\T\mat{W}\boldsymbol\sigma=\mat{F}(t),
 \end{equation}
-where $\mat{W}$ is the diagonal matrix of the fibre volumes. This is the
-finite element structure of Section~\ref{sec:pn-incr} with one Gauss point per
-fibre, small enough to be solved by hand and to be plotted completely.
+where $\mat{E}$ is the diagonal matrix of the moduli and $\mat{W}$ the
+diagonal matrix of the fibre volumes. Without plastic and thermal strains the
+three steps combine into one linear system,
+\begin{equation}\label{eq:cy-K}
+  \mat{K}\mat{u}=\mat{F},\qquad \mat{K}=\mat{B}\T\mat{W}\mat{E}\,\mat{B},
+\end{equation}
+the $A\T CA$ of Strang with $A=\mat{B}$ and $C=\mat{W}\mat{E}$
+(Figure~\ref{fig:cy-ATCA}). Plasticity changes only the middle step. The first
+and the last steps, geometry and equilibrium, stay linear; the middle step
+receives an extra strain $\boldsymbol\varepsilon^p$, decided at each fibre by
+its own flow rule. This is the split of Chapter~\ref{ch:pl} once more, now in
+matrices, and the whole chapter plays with it. The structure is the finite
+element structure of Section~\ref{sec:pn-incr} with one Gauss point per fibre:
+small enough to be solved by hand, and to be plotted completely.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=1.0cm and 1.9cm,>=Latex]
+  \node[smallbox,kin,minimum width=2.6cm] (u) {$\mat{u}$\\ \footnotesize displacements};
+  \node[smallbox,kin,minimum width=2.6cm,below=of u] (e) {$\boldsymbol\varepsilon$\\ \footnotesize strains};
+  \node[smallbox,stat,minimum width=2.6cm,right=3.2cm of e] (s) {$\boldsymbol\sigma$\\ \footnotesize stresses};
+  \node[smallbox,stat,minimum width=2.6cm,above=of s] (f) {$\mat{F}$\\ \footnotesize loads};
+  \node[smallbox,key,minimum width=2.6cm,below=0.9cm of $(e)!0.5!(s)$] (p) {$\boldsymbol\varepsilon^p$: flow rule, fibre by fibre};
+  \draw[arr] (u) -- (e) node[midway,left,font=\small] {$\mat{B}$};
+  \draw[arr] (e) -- (s) node[midway,above,font=\small] {$\mat{W}\mat{E}$};
+  \draw[arr] (s) -- (f) node[midway,right,font=\small] {$\mat{B}\T$};
+  \draw[arr] (u) -- (f) node[midway,above,font=\small] {$\mat{K}=\mat{B}\T\mat{W}\mat{E}\mat{B}$};
+  \draw[arr] (p) -- ($(e)!0.5!(s)$) node[pos=0.4,right,font=\small] {$-\boldsymbol\varepsilon^p$};
+  \draw[arr,dashed] (s.south) |- (p.east);
+\end{tikzpicture}
+\caption{The three steps of a structure, after Strang~\cite{Strang1986c}:
+geometry ($\mat{B}$), material ($\mat{W}\mat{E}$) and equilibrium
+($\mat{B}\T$). Plasticity enters the middle step only, as a strain
+$\boldsymbol\varepsilon^p$ that each fibre computes from its own stress.}
+\label{fig:cy-ATCA}
+\end{figure}
 
 \subsection{The three-bar truss}\label{ssec:cy-truss}
 \index{three-bar truss}\index{residual stress!three-bar truss}%
@@ -165,13 +204,42 @@ load. The forces are self-equilibrated, hence of the
 form~\eqref{eq:cy-truss-self}, and compatibility of the total elongations
 $\delta_i=N_il_i/(ES)+\delta^p_i$ fixes $\gamma$:
 \begin{equation}\label{eq:cy-truss-res}
-  \gamma=-\frac{ES}{(4+2\sqrt2)\,l}\,\bigl(\delta^p_1+\delta^p_2-\sqrt2\,\delta^p_3\bigr).
+  \gamma=-\frac{ES}{(2+2\sqrt2)\,l}\,\bigl(\delta^p_1+\delta^p_2-\sqrt2\,\delta^p_3\bigr).
 \end{equation}
 The residual forces see only the combination
 $\delta^p_1+\delta^p_2-\sqrt2\,\delta^p_3$, the incompatibility of the plastic
 elongations. A compatible plastic elongation, for instance $(a,-a,0)$, which
 is the elongation produced by a vertical displacement of $O$, leaves no
 residual force: it moves the node and nothing else.
+
+\paragraph{The same computation with matrices.}
+\index{residual stress!operator (truss)}%
+Take $l=1$ and $S=1$. The rows of $\mat{B}$ are the vectors $\vect t_i/l_i$, and
+the volumes are the lengths:
+\[
+  \mat{B}=\begin{bmatrix}\tfrac12&\tfrac12\\[1pt]\tfrac12&-\tfrac12\\[1pt]1&0\end{bmatrix},\qquad
+  \mat{W}=\diag(\sqrt2,\sqrt2,1),\qquad
+  \mat{K}=\mat{B}\T\mat{W}\mat{E}\mat{B}=E\begin{bmatrix}1+\tfrac1{\sqrt2}&0\\ 0&\tfrac1{\sqrt2}\end{bmatrix}.
+\]
+The stiffness is diagonal: by symmetry, the horizontal and the vertical loads
+do not interact. Now put plastic strains $\boldsymbol\varepsilon^p$ in the bars,
+at zero load. The node moves by $\mat{u}=\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}\boldsymbol\varepsilon^p$,
+the strains are $\mat{B}\mat{u}=\mat{P}\boldsymbol\varepsilon^p$, and the stresses
+$\mat{E}(\mat{P}-\mat{I})\boldsymbol\varepsilon^p=-\mat{Z}\boldsymbol\varepsilon^p$, with
+\begin{equation}\label{eq:cy-truss-PZ}
+  \mat{P}=\mat{B}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}=
+  \begin{bmatrix}a&-b&b\\-b&a&b\\c&c&1-c\end{bmatrix},\qquad
+  \mat{Z}=\mat{E}(\mat{I}-\mat{P})=E\begin{bmatrix}b\\b\\-c\end{bmatrix}\begin{bmatrix}1&1&-1\end{bmatrix},
+\end{equation}
+where $a=1/\sqrt2\approx0.707$, $b=1-a\approx0.293$ and $c=\sqrt2-1\approx0.414$.
+Two facts can be read on these matrices. $\mat{Z}$ has rank one: one
+redundancy, one way of carrying residual stresses, along $(1,1,-\sqrt2)$. And
+$\mat{Z}$ sends $(1,-1,0)$ to zero: the plastic strain of a vertical motion of
+the node is compatible, and leaves no residual stress. The matrix $\mat{P}$ keeps
+the compatible part of a plastic strain, and $\mat{Z}$ turns the rest into
+residual stress. Section~\ref{sec:cy-split} shows that this is true for every
+structure.
+
 
 \paragraph{Three loadings.}
 Three periodic loadings of period $T=2\pi$ produce the three asymptotic
@@ -197,25 +265,121 @@ plastic elongations converge, in about sixty cycles, to a state of elastic
 shakedown. This slow approach is the test case of
 Section~\ref{sec:cy-orders}.
 
-\subsection{The Bree vessel}\label{ssec:cy-bree}
+\subsection{The Bree tube and the spherical vessel}\label{ssec:cy-bree}
 \index{Bree problem}\index{ratchetting!Bree problem}%
-A thin vessel of mean radius $r_m$ and thickness $e$ contains a fluid at a
-constant pressure, and its wall is crossed by a heat flux that is switched on
-and off: the temperature varies linearly through the wall, with an amplitude
-$\tau_0\lambda(t)$, $\lambda(t)=|\sin t|$. This is the problem of
-Bree~\cite{Bree1967} for the fuel cans of fast reactors, in the form of the
-spherical vessel of Maitournam~\cite[Sec.~4.5]{Maitournam2012c}. The only
-stress is the hoop stress $\sigma(x,t)$, a function of the position
-$x=(r-r_m)/e\in[-\tfrac12,\tfrac12]$ in the wall, and the hoop strain is the
-same in all the layers:
+A thin tube, or a thin spherical vessel, of mean radius $r_m$ and thickness
+$e\ll r_m$, contains a fluid at a constant pressure $p$. A heat flux crosses
+the wall and is switched on and off, so that the temperature varies linearly
+through the wall, hot inside and cold outside, with the amplitude
+$\tau_0\lambda(t)$, $\lambda(t)=|\sin t|$ (Figure~\ref{fig:cy-vessels}). The
+tube is the problem of Bree~\cite{Bree1967} for the fuel cans of fast reactors;
+the sphere is the reactor vessel of Maitournam~\cite[Sec.~4.5]{Maitournam2012c}.
+Three observations reduce either structure to a column of layers.
+\begin{itemize}
+  \item \emph{Symmetry.} The long tube is axisymmetric: every plane through the
+  axis is a plane of symmetry, and plane sections stay plane. The sphere is
+  symmetric about its centre. Nothing depends on the position along the wall,
+  so that one element of the wall, cut by two planes of symmetry, represents
+  the whole structure.
+  \item \emph{Thin wall.} The radial displacement $u$ is the same across the
+  thickness. The hoop strain $u/r_m$ is therefore the same in every layer,
+  and the radial stress, between $-p$ and $0$, is negligible compared with the
+  hoop stress.
+  \item \emph{Equilibrium.} Cut the vessel in two halves: the pressure on the
+  half is balanced by the hoop stress on the cut. The mean hoop stress through
+  the wall is $\sigma_P=p\,r_m/e$ in the tube and $\sigma_P=p\,r_m/(2e)$ in the
+  sphere.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[>=Latex,scale=0.95]
+  % ---------------- (a) tube
+  \begin{scope}
+    \node[font=\sffamily\bfseries\small,anchor=west] at (-0.9,1.85) {(a) tube};
+    \draw[dashed,gray] (-0.9,0) -- (4.3,0) node[right,font=\small,black] {$z$};
+    \draw[thick] (0,1.2) -- (3.4,1.2);
+    \draw[thick] (0,-1.2) -- (3.4,-1.2);
+    \draw[thick] (3.4,-1.2) arc[start angle=-90,end angle=90,x radius=0.62,y radius=1.2];
+    \draw[thin,dashed,gray] (3.4,1.2) arc[start angle=90,end angle=270,x radius=0.62,y radius=1.2];
+    \fill[gray!25,even odd rule] (0,0) ellipse (0.62 and 1.2) (0,0) ellipse (0.49 and 0.95);
+    \draw[thick] (0,0) ellipse (0.62 and 1.2);
+    \draw[thick] (0,0) ellipse (0.49 and 0.95);
+    \fill[orange!70] (55:0.62 and 1.2) arc[start angle=55,end angle=78,x radius=0.62,y radius=1.2]
+      -- (78:0.49 and 0.95) arc[start angle=78,end angle=55,x radius=0.49,y radius=0.95] -- cycle;
+    \foreach \a in {0,60,120,180,240,300}{
+      \draw[->,cu,thick] ({0.49*0.35*cos(\a)},{0.95*0.35*sin(\a)}) -- ({0.49*0.9*cos(\a)},{0.95*0.9*sin(\a)});}
+    \node[cu,font=\small] at (0,0) {$p$};
+    \draw[->,red!70!black,thick,decorate,decoration={snake,amplitude=0.6pt,segment length=4pt}]
+      (-0.05,-0.75) -- (-0.05,-1.6);
+    \node[red!70!black,font=\footnotesize,anchor=north] at (-0.05,-1.6) {heat flux};
+    \node[font=\small,anchor=west] at (0.85,0.5) {$T_i(t)$ inside (hot)};
+    \node[font=\small,anchor=west] at (1.6,-1.5) {$T_e$ outside};
+    \draw[orange!70!black] (0.32,1.08) -- (1.2,1.5) node[right,font=\footnotesize] {element};
+  \end{scope}
+  % ---------------- (b) sphere
+  \begin{scope}[xshift=6.6cm]
+    \node[font=\sffamily\bfseries\small,anchor=west] at (-1.4,1.85) {(b) sphere};
+    \fill[gray!25,even odd rule] (0,0) circle (1.2) (0,0) circle (0.95);
+    \draw[thick] (0,0) circle (1.2);
+    \draw[thick] (0,0) circle (0.95);
+    \draw[gray,dashed] (0,0) ellipse (1.2 and 0.32);
+    \fill[orange!70] (55:1.2) arc[start angle=55,end angle=78,radius=1.2]
+      -- (78:0.95) arc[start angle=78,end angle=55,radius=0.95] -- cycle;
+    \foreach \a in {0,60,120,180,240,300}{
+      \draw[->,cu,thick] (\a:0.33) -- (\a:0.86);}
+    \node[cu,font=\small] at (0,0) {$p$};
+    \node[font=\footnotesize,align=left,anchor=north] at (0,-1.35)
+      {$\sigma_{\theta\theta}=\sigma_{\varphi\varphi}$ (equibiaxial)};
+  \end{scope}
+  % ---------------- (c) wall element
+  \begin{scope}[xshift=10.1cm]
+    \node[font=\sffamily\bfseries\small,anchor=west] at (-0.5,1.85) {(c) element of the wall};
+    \fill[orange!20] (0,-0.9) rectangle (2.0,0.9);
+    \foreach \x in {0.2,0.4,...,1.81}{\draw[orange!60,thin] (\x,-0.9) -- (\x,0.9);}
+    \draw[thick] (0,-0.9) rectangle (2.0,0.9);
+    % hoop stress sigma = sigma_P + 2 sigma_T x, X=0.7, Y=1.5, scale 0.22
+    \foreach \x in {0.1,0.3,...,1.91}{
+      \pgfmathsetmacro{\sg}{0.22*(0.7+1.5*2*(\x/2.0-0.5))}
+      \draw[->,cphi!80!black,thick] (\x,0.9) -- (\x,{0.9+\sg});
+      \draw[->,cphi!80!black,thick] (\x,-0.9) -- (\x,{-0.9-\sg});}
+    \node[cphi!70!black,font=\small,anchor=west] at (2.05,1.25) {$\sigma(x,t)$};
+    \draw[<->] (0,-1.75) -- (2.0,-1.75) node[midway,below,font=\footnotesize] {$e$: $x\in[-\tfrac12,\tfrac12]$};
+    \node[font=\footnotesize,anchor=east] at (-0.05,0) {inner};
+    \node[font=\footnotesize,anchor=west] at (2.05,0) {outer};
+    \draw[->] (2.75,-1.75) -- (3.2,-1.75) node[right,font=\footnotesize] {$r$};
+    \draw[->] (2.75,-1.75) -- (2.75,-1.3) node[above,font=\footnotesize] {$\theta$};
+    \node[font=\footnotesize,align=center] at (1.0,-2.8) {same hoop strain $\varepsilon(t)$ in all layers;\\ temperature $\tau=-\tau_0x\lambda(t)$};
+  \end{scope}
+  \draw[->,dashed,orange!70!black] (7.25,1.05) to[bend left=20] (10.05,0.6);
+\end{tikzpicture}
+\caption{The Bree problem. (a) A long thin tube and (b) a thin sphere under an
+internal pressure $p$ and a cyclic heat flux through the wall. By symmetry
+nothing depends on the position along the wall, and an element cut by planes
+of symmetry (orange) represents the structure: for the tube, two planes
+through the axis and two cross-sections. (c) The element is a column of
+layers through the thickness: all the layers have the same hoop strain, their
+temperatures vary linearly through the wall, and their stresses, here the
+elastic stresses at the hottest instant for $X=0.7$, $Y=1.5$, have the mean
+$\sigma_P$.}
+\label{fig:cy-vessels}
+\end{figure}
+
+The element is a column of layers, at the position $x=(r-r_m)/e\in[-\tfrac12,\tfrac12]$
+in the wall, all with the same hoop strain $\varepsilon(t)$:
 \begin{equation}\label{eq:cy-bree}
   \sigma(x,t)=\tilde E\,\bigl(\varepsilon(t)-\varepsilon^p(x,t)+\alpha\tau_0x\lambda(t)\bigr),
   \qquad
-  \int_{-1/2}^{1/2}\sigma(x,t)\dd x=\sigma_P ,
+  \int_{-1/2}^{1/2}\sigma(x,t)\dd x=\sigma_P .
 \end{equation}
-where $\tilde E=E/(1-\nu)$ and $\sigma_P=p\,r_m/(2e)$ is the membrane stress
-of the pressure. In the notation~\eqref{eq:cy-discrete}, the layers are the
-fibres, $\mat{B}$ is a column of ones and $\mat{W}$ the layer thicknesses.
+In the tube, Bree keeps the hoop stress only, and $\tilde E=E$. In the sphere
+the stress is equibiaxial, $\sigma_{\theta\theta}=\sigma_{\varphi\varphi}=\sigma$,
+the von Mises stress is $|\sigma|$, and $\tilde E=E/(1-\nu)$. The two problems are
+the same problem. The computations of this chapter use the data of the
+sphere~\cite{Maitournam2012c}, $E=200$\,GPa, $\nu=0.3$, $\sY=280$\,MPa; in the
+variables $X$, $Y$ below, the regimes do not depend on the modulus. In the
+notation~\eqref{eq:cy-discrete}, the layers are the fibres, $\mat{B}$ is a column
+of ones (one unknown, the hoop strain) and $\mat{W}$ the layer thicknesses.
 
 \paragraph{Elastic solution and residual stresses.}
 Without plastic strain the mean of~\eqref{eq:cy-bree} gives
@@ -350,6 +514,31 @@ self-equilibrated, and $\epsp-\Pop\epsp$ is orthogonal to the compatible strains
 If $\epsp=\eps[\vv]$ is compatible, $\Pop\epsp=\epsp$ and $\vrho=\vzero$: a
 plastic strain that fits together like a displacement field leaves no stress
 behind.
+
+\paragraph{The same with matrices.}
+On the fibres the operators are the matrices of~\eqref{eq:cy-truss-PZ},
+$\mat{P}=\mat{B}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}$ and $\mat{Z}=\mat{E}(\mat{I}-\mat{P})$,
+and each property is one line of multiplication.
+\begin{itemize}
+  \item $\mat{P}$ is a projection:
+  $\mat{P}^2=\mat{B}\mat{K}^{-1}(\mat{B}\T\mat{W}\mat{E}\mat{B})\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}
+  =\mat{B}\mat{K}^{-1}\mat{K}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}=\mat{P}$.
+  \item A compatible strain $\boldsymbol\varepsilon^p=\mat{B}\mat{v}$ is kept:
+  $\mat{P}\mat{B}\mat{v}=\mat{B}\mat{K}^{-1}\mat{K}\mat{v}=\mat{B}\mat{v}$, and then
+  $\mat{Z}\boldsymbol\varepsilon^p=\vzero$.
+  \item The residual stress carries no load:
+  $\mat{B}\T\mat{W}\mat{Z}=\mat{B}\T\mat{W}\mat{E}-\mat{K}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}=\mat{0}$.
+  \item $\mat{W}\mat{Z}=\mat{W}\mat{E}-\mat{W}\mat{E}\mat{B}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}$
+  is a symmetric matrix, and
+  $\boldsymbol\varepsilon\T\mat{W}\mat{Z}\boldsymbol\varepsilon
+  =\norm{(\mat{I}-\mat{P})\boldsymbol\varepsilon}^2_{\mat{W}\mat{E}}\ge0$.
+\end{itemize}
+In the language of linear algebra~\cite{Strang1986c}, the plastic strains
+split into two orthogonal pieces for the energy product: the column space of
+$\mat{B}$, the compatible strains, which move the structure without stressing
+it, and the rest, which cannot be produced by a motion and is turned into
+residual stress. $\mat{P}$ and $\mat{I}-\mat{P}$ are the two projections.
+
 For the truss, $\Zop$ is the rank-one map~\eqref{eq:cy-truss-res}; for the
 Bree vessel, $\Pop\varepsilon^p=\langle\varepsilon^p\rangle$ and
 $\Zop\varepsilon^p=\tilde E(\varepsilon^p-\langle\varepsilon^p\rangle)$
@@ -598,6 +787,33 @@ properties of each step do not transfer to it.
   that decreases from one iteration to the next unless the directions are
   chosen for it, as in LATIN.
 \end{itemize}
+
+\paragraph{A toy model of the sweep.}
+\index{direct method!toy model of the sweep}%
+A two-parameter model shows the two dangers at once. Let $e^k_n$ be the error
+at the instant $t_n$ after the iteration $k$. The global stage keeps a fraction
+$a$ of the error of each instant, and the local sweep passes a fraction $b$ of
+the new error at $t_{n-1}$ on to $t_n$:
+\[
+  e^{k+1}_n=a\,e^k_n+b\,e^{k+1}_{n-1}
+  \qquad\Longrightarrow\qquad
+  \mat{e}^{k+1}=\mat{M}\mat{e}^k,\quad \mat{M}=a\,(\mat{I}-b\,\mat{S})^{-1},
+\]
+where $\mat{S}$ shifts each entry down by one instant. With the initial
+condition, $\mat{S}$ is strictly lower triangular, and $\mat{M}$ is lower
+triangular with $a$ on its diagonal: all its eigenvalues equal $a$, and the
+iteration converges when $a<1$. But the powers of $\mat{M}$ do not start to
+decrease at once. With $a=0.6$, $b=0.4$ and 40 instants,
+$\norm{\mat{M}^k}$ stays close to one for some forty iterations, the time the
+error needs to travel out of the window, and only then decays. This is the
+transient of Figure~\ref{fig:cy-truss-lattice}b. With the periodic closure,
+$\mat{S}$ becomes the cyclic shift, whose eigenvalues are the roots of unity
+$\omega$. The eigenvalues of $\mat{M}$ are $a/(1-b\,\omega)$, and the largest one,
+for $\omega=1$, belongs to the error that is the same at all instants:
+$a/(1-b)$. When $a+b=1$ it equals one, and the constant error is never damped.
+In plasticity the constant errors that survive are the compatible plastic
+strains of the kernel of $\Zop$ (Exercise~\ref{exo:cy-q-toy}).
+
 
 \begin{figure}[h]
 \centering
@@ -1313,6 +1529,28 @@ averaging of (b), as in the Krasnosel'ski\u{\i}--Mann iteration of
 Appendix~\ref{app:iter}.
 \end{solution}
 
+\exercise{The toy sweep}\label{exo:cy-q-toy}
+\index{direct method!toy model (exercise)}%
+In the toy model of Section~\ref{sec:cy-orders},
+$\mat{M}=a\,(\mat{I}-b\,\mat{S})^{-1}$. (a) With three instants and the initial
+condition, write $\mat{M}$ and its eigenvalues. (b) With the periodic closure,
+show that the constant vector $(1,1,\dots,1)$ is an eigenvector, with the
+eigenvalue $a/(1-b)$. (c) Why does $a+b=1$ describe a compatible plastic
+strain?
+\begin{solution}
+(a) $(\mat{I}-b\mat{S})^{-1}=\mat{I}+b\mat{S}+b^2\mat{S}^2$, so
+$\mat{M}=a\begin{bmatrix}1&0&0\\ b&1&0\\ b^2&b&1\end{bmatrix}$: lower triangular, the
+three eigenvalues equal $a$. The entries below the diagonal carry the error of
+an early instant to the later ones. (b) For the cyclic shift,
+$\mat{S}\mathbf 1=\mathbf 1$, so $(\mat{I}-b\mat{S})\mathbf 1=(1-b)\mathbf 1$ and
+$\mat{M}\mathbf 1=\frac{a}{1-b}\mathbf 1$. (c) A compatible plastic strain creates no
+residual stress, so the global stage does not correct it, and the local
+sweep carries it unchanged from instant to instant: whatever is not removed
+at one instant ($a$) is passed on to the next ($b=1-a$). The constant
+compatible error is a fixed point of the iteration, which is why periodic
+states are not unique, and why a ratchet appears as a drift.
+\end{solution}
+
 \exercise{Moving frame}\label{exo:cy-q-moving}
 \index{stationary method!exercise}%
 A field $f(X,t)$ is stationary in the frame of a load moving at speed $V$
@@ -1483,6 +1721,7 @@ tolerance of the cycles) and is an exact periodic state
 \bibitem{PeigneyStolz2003} M.~Peigney, C.~Stolz, An optimal control approach to the analysis of inelastic structures under cyclic loading, \emph{J. Mech. Phys. Solids} 51 (2003) 575--605.
 \bibitem{PonterChen2001} A.~R.~S.~Ponter, H.~Chen, A minimum theorem for cyclic load in excess of shakedown, with application to the evaluation of a ratchet limit, \emph{Eur. J. Mech. A/Solids} 20 (2001) 539--553.
 \bibitem{SauterWieners2011} M.~Sauter, C.~Wieners, On the superlinear convergence in computational elasto-plasticity, \emph{Comput. Methods Appl. Mech. Engrg.} 200 (2011) 3646--3658.
+\bibitem{Strang1986c} G.~Strang, \emph{Introduction to Applied Mathematics}, Wellesley-Cambridge Press, 1986.
 \bibitem{SpiliopoulosPanagiotou2012} K.~V.~Spiliopoulos, K.~D.~Panagiotou, A direct method to predict cyclic steady states of elastoplastic structures, \emph{Comput. Methods Appl. Mech. Engrg.} 223--224 (2012) 186--198.
 \bibitem{ZarkaCasier1981} J.~Zarka, J.~Casier, Elastic-plastic response of a structure to cyclic loading: practical rules, in S.~Nemat-Nasser (ed.), \emph{Mechanics Today}, Pergamon, 1981, 93--198.
 \bibitem{ZarkaEtAl1990} J.~Zarka, J.~Frelat, G.~Inglebert, P.~Kasmai-Navidi, \emph{A New Approach in Inelastic Analysis of Structures}, \'Ecole polytechnique, Palaiseau, 1990.

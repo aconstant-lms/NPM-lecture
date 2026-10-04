@@ -25,23 +25,25 @@ non-expansive maps~\cite{BauschkeCombettes2017b}.
 %======================================================================
 \section{Contractions and the order of convergence}\label{sec:it-contr}
 \index{fixed point}\index{contraction}\index{Picard iteration}%
-\begin{theorem}[Banach~\cite{Banach1922}]\label{thm:it-banach}
-Let $g$ map a closed set $D\subset\R^n$ into itself, with
-$\norm{g(x)-g(y)}\le\kappa\norm{x-y}$ for all $x,y\in D$ and some $\kappa<1$. Then
-$g$ has a unique fixed point $x^\ast$ in $D$, the Picard iterates
-$x_{k+1}=g(x_k)$ converge to it from any $x_0\in D$, and
+Start with the simplest case. If every step of an iteration brings any two
+points closer by a fixed factor, the iterates cannot help converging.
+\begin{gbox}{A contraction has one fixed point, and Picard finds it}\label{thm:it-banach}
+Let $g$ map a closed set $D\subset\R^n$ into itself and shrink distances by a
+factor $\kappa<1$: $\norm{g(x)-g(y)}\le\kappa\norm{x-y}$. Then $g$ has exactly one
+fixed point $x^\ast$ in $D$, the Picard iterates $x_{k+1}=g(x_k)$ converge to it
+from any start (Banach~\cite{Banach1922}), and
 \begin{equation}\label{eq:it-banach}
   \norm{x_k-x^\ast}\le\kappa^k\norm{x_0-x^\ast},\qquad
   \norm{x_{k+1}-x^\ast}\le\frac{\kappa}{1-\kappa}\norm{x_{k+1}-x_k}.
 \end{equation}
-\end{theorem}
-\begin{proof}
-$\norm{x_{k+1}-x_k}\le\kappa^k\norm{x_1-x_0}$, so that $(x_k)$ is a Cauchy
-sequence; its limit is a fixed point by continuity of $g$, and two fixed points
-$x^\ast$, $y^\ast$ satisfy $\norm{x^\ast-y^\ast}\le\kappa\norm{x^\ast-y^\ast}$, hence
-coincide. The bounds follow from $\norm{x_{k+1}-x^\ast}\le\kappa\norm{x_k-x^\ast}$
-and the triangle inequality.
-\end{proof}
+\end{gbox}
+\paragraph{Why it works.} Each step multiplies the step before by at most $\kappa$:
+$\norm{x_{k+1}-x_k}\le\kappa^k\norm{x_1-x_0}$. The steps form a geometric
+series, so the iterates settle down, and their limit is a fixed point. Two
+fixed points would satisfy $\norm{x^\ast-y^\ast}\le\kappa\norm{x^\ast-y^\ast}$,
+which forces them to coincide. The second bound is the triangle inequality:
+the remaining error is at most the sum of all the future steps,
+$\kappa+\kappa^2+\dots=\kappa/(1-\kappa)$ times the last one.
 If $g$ is differentiable at $x^\ast$, the iteration converges near $x^\ast$
 when the spectral radius of the Jacobian $g'(x^\ast)$ is smaller than one, and
 the error is then multiplied asymptotically by that spectral radius at each
@@ -49,13 +51,13 @@ iteration~\cite[Ch.~10]{OrtegaRheinboldt1970}. The initial-strain iteration
 of a fibre (Section~\ref{prop:cy-factor}) is such an iteration, with
 $\kappa=E/(E+H)$.
 
-\begin{definition}[Order of convergence]\label{def:it-order}
+\begin{gbox}{Linear, superlinear, quadratic}\label{def:it-order}
 \index{convergence!order}%
 A sequence $x_k\to x^\ast$ converges \emph{linearly} if
 $\norm{x_{k+1}-x^\ast}\le\kappa\norm{x_k-x^\ast}$ with $\kappa<1$,
 \emph{superlinearly} if the ratio tends to zero, and \emph{quadratically} if
 $\norm{x_{k+1}-x^\ast}\le C\norm{x_k-x^\ast}^2$.
-\end{definition}
+\end{gbox}
 A linear rate $\kappa$ gains $-\log_{10}\kappa$ digits per iteration: about
 $0.17$ for $\kappa=0.67$, so that twelve digits take seventy iterations. A
 quadratic rate doubles the number of correct digits at each iteration near the
@@ -66,26 +68,35 @@ solution: five or six iterations suffice from a good start.
 \index{non-expansive map}\index{averaging (fixed-point iteration)}%
 In plasticity the natural maps are not contractions. The return map
 (Section~\ref{thm:pn-contract}) and the period map of cyclic loads
-(Section~\ref{prop:cy-nonexp}) only satisfy $\kappa=1$.
-\begin{definition}\label{def:it-nonexp}
+(Section~\ref{prop:cy-nonexp}) only satisfy $\kappa=1$: they never increase a
+distance, but they need not decrease it.
+\begin{gbox}{Non-expansive maps}\label{def:it-nonexp}
 In a Hilbert space, a map $g$ is \emph{non-expansive} if
 $\norm{g(x)-g(y)}\le\norm{x-y}$, and \emph{firmly non-expansive} if
 $\norm{g(x)-g(y)}^2\le\scal{g(x)-g(y)}{x-y}$. The projection onto a closed convex
 set is firmly non-expansive.
-\end{definition}
+\end{gbox}
 A non-expansive map may have no fixed point (a translation), a whole set of
 fixed points (the identity), or a unique fixed point that Picard iterates never
 reach: the rotation by a right angle in the plane fixes only the origin, and
 its iterates turn around it forever. Averaging the map repairs the last case.
 
-\begin{theorem}[Krasnosel'ski\u{\i}--Mann~\cite{Krasnoselskii1955,Mann1953}]\label{thm:it-km}
+\begin{gbox}{Averaging makes a non-expansive map converge}\label{thm:it-km}
 Let $g$ be non-expansive on $\R^n$ with at least one fixed point, and
 $\theta\in(0,1)$. The averaged iterates
 \begin{equation}\label{eq:it-km}
   x_{k+1}=(1-\theta)\,x_k+\theta\,g(x_k)
 \end{equation}
-converge to a fixed point of $g$, and $\norm{x_k-g(x_k)}\to0$.
-\end{theorem}
+converge to a fixed point of $g$, and $\norm{x_k-g(x_k)}\to0$
+(Krasnosel'ski\u{\i}~\cite{Krasnoselskii1955}, Mann~\cite{Mann1953}).
+\end{gbox}
+\paragraph{Why, on the rotation.} Write the plane rotation by a right angle as the multiplication by $i$ of
+complex numbers. Averaging with $\theta=\tfrac12$ multiplies by $(1+i)/2$, whose
+modulus is $\sqrt2/2<1$: the averaged map is a contraction, and its iterates
+spiral into the origin. In general, averaging cannot make $g$ a contraction,
+but it removes the pure rotations: a non-expansive map either moves a point
+closer to the fixed points or leaves the distance unchanged, and the average
+of $x$ and $g(x)$ is strictly closer unless $g(x)=x$.
 The averaged map $(1-\theta)I+\theta g$ is \emph{averaged} in the sense
 of~\cite[Ch.~4--5]{BauschkeCombettes2017b}: it is again non-expansive, but it
 can no longer rotate without shrinking. Which fixed point is reached depends
@@ -108,12 +119,16 @@ linearizes $F$ at the current iterate:
 \begin{equation}\label{eq:it-newton}
   J(x_k)\,\delta x=-F(x_k),\qquad x_{k+1}=x_k+\delta x .
 \end{equation}
-\begin{theorem}[Local quadratic convergence~{\cite[Ch.~5]{DennisSchnabel1983}}]\label{thm:it-newton}
+\begin{gbox}{Newton converges quadratically near the solution}\label{thm:it-newton}
 If $F(x^\ast)=0$, $J(x^\ast)$ is invertible and $J$ is Lipschitz near $x^\ast$,
 there is a neighbourhood of $x^\ast$ from which the Newton iterates are defined
-and converge quadratically to $x^\ast$.
-\end{theorem}
-The theorem is local: far from the solution Newton's method may diverge or
+and converge quadratically to $x^\ast$~\cite[Ch.~5]{DennisSchnabel1983}.
+\end{gbox}
+\paragraph{Why, in one dimension.} Expand $F$ around the iterate: $0=F(x^\ast)=F(x_k)+F'(x_k)(x^\ast-x_k)+O(e_k^2)$,
+with $e_k=x_k-x^\ast$. Newton's step solves the same equation without the last
+term. Subtract: $F'(x_k)\,e_{k+1}=O(e_k^2)$. The new error is the square of the
+old one, divided by the slope: the number of correct digits doubles.
+The result is local: far from the solution Newton's method may diverge or
 cycle. A \emph{line search} restores global convergence when $F$ is the
 gradient of a convex potential $\Pi$, which is the case of the incremental
 elastoplastic problem (Section~\ref{sec:pn-var}): the step

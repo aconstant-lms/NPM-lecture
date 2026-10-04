@@ -22,7 +22,9 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   ("Backward Euler is a projection"), with its `\label` right after `\begin{gbox}{...}`; the argument follows
   as `\paragraph{Why it works.}`, starting from the picture or the filament, then the short chain of formulas.
   Cite it as "Section~\ref{...}" (gives the section number) or with `\nameref` (gives the box title), never
-  "Theorem~\ref". Numbered `example` environments are kept. Chapter 1 and the appendices still use theorems.
+  "Theorem~\ref". Numbered `example` environments are kept. Chapter 1 and Appendices A-D still use theorems; Appendix E
+  (iterative methods) follows the box style. Before a general statement, prefer a small worked example with
+  numbers or matrices (Strang's A^T C A: e = B u, sigma = W E (e - e^p), B^T sigma = F in Chapter 6).
 - Algorithms: in the chapter text, Simo & Hughes "Box" style: a `gbox` titled `Box <ch>.<n>  <title>`,
   numbered steps (`enumerate`, bold labels), each a short sentence followed by its formulas; cite as Box~... .
   In exercise parts, CMAME-style pseudocode (`algorithm` + `algpseudocode`, Input/Output, numbered lines).
