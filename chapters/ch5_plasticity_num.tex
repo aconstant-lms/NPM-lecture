@@ -145,8 +145,9 @@ the return map at every Gauss point.
 \end{gbox}
 The local problem is a time integration: it carries the history. The global
 problem is a static equilibrium: it carries the geometry. The same split
-underlies the global--local (large time increment) methods, which change the
-time window of the local stage from one step to a whole loading cycle. In the rest of this
+underlies the global--local (large time increment) methods of
+Chapter~\ref{ch:pl-cyc}, which change the time window of the local stage from
+one step to a whole loading cycle. In the rest of this
 chapter, except Section~\ref{sec:pn-newton}, the strain history at a point is
 given, and the question is how to integrate the flow rule over a finite
 increment $\Delta\eps=\eps_\np-\eps_n$.
@@ -297,22 +298,24 @@ differ in three dimensions.
 
 \paragraph{Exactness.}
 \index{return map!exactness}%
-\begin{proposition}\label{prop:pn-exact1d}
-Let the hardening be linear and the strain be monotone on $[t_n,t_\np]$
-(non-decreasing or non-increasing). Then the return map of Box~5.1 gives the
-exact state at $t_\np$, whatever the size of the step.
-\end{proposition}
-\begin{proof}
-Let the strain be non-decreasing. By~\eqref{eq:pl-1d-comb-gamma} the exact
-multiplier vanishes unless $\sign(\sigma-q)\dot\varepsilon>0$: during the step
-the filament can only flow in tension. Integrating the flow rules over the
-step, the exact increments are $\Delta\varepsilon^p=\lambda$,
-$\Delta\alpha=\lambda$ and $\Delta q=H\lambda$ with $\lambda=\int\gamma\dd t\ge0$.
-If $\lambda>0$, the filament is still loading at $t_\np$ (the strain does not
-decrease after the last plastic instant), so that $f_\np=0$ and $\sigma_\np-q_\np>0$.
-The exact final state therefore satisfies~\eqref{eq:pn-be1d} with $\dg=\lambda$. Section~\ref{sec:pn-cpp}
-shows that~\eqref{eq:pn-be1d} has a unique solution; hence the two coincide.
-\end{proof}
+Is the return map only an approximation? For the filament, very often it is
+not.
+\begin{gbox}{The return map is exact on monotone steps}\label{prop:pn-exact1d}
+With linear hardening, if the strain only increases (or only decreases)
+between $t_n$ and $t_\np$, Box~5.1 gives the exact state at $t_\np$, whatever
+the size of the step.
+\end{gbox}
+\paragraph{Why it works.} Follow the strain upwards from $\varepsilon_n$ to
+$\varepsilon_\np$. The filament can only flow in tension, since by~\eqref{eq:pl-1d-comb-gamma}
+the multiplier vanishes unless $\sign(\sigma-q)\dot\varepsilon>0$. So the
+exact solution has the same three increments as the algorithm,
+$\Delta\varepsilon^p=\lambda$, $\Delta\alpha=\lambda$ and $\Delta q=H\lambda$,
+where $\lambda=\int\gamma\dd t\ge0$ is the total plastic slip of the step. If
+there was any slip, the filament is still on the yield surface at the end:
+$f_\np=0$. The exact end state therefore satisfies the equations~\eqref{eq:pn-be1d}
+of the algorithm, with $\dg=\lambda$. These equations have only one solution
+(Section~\ref{sec:pn-cpp}), so the two answers are the same. Nothing was
+linearized: the equations are linear in $\dg$.
 The step may contain an elastic part followed by a plastic part, and even a
 reversal at its first instant (elastic unloading from tensile flow followed by
 compressive flow): the result is exact as long as the strain is monotone
@@ -360,7 +363,7 @@ a convex set first~\cite{BauschkeCombettes2017,Moreau1965}.
 Let $X$ be a space with scalar product $\scal{\cdot}{\cdot}$ and norm
 $\norm{\cdot}$ (finite dimensional here), and $\mathcal K\subset X$ a nonempty
 closed convex set.
-\begin{gbox}{Projection theorem}
+\begin{gbox}{Projection onto a convex set}
 \begin{itemize}
   \item For every $\vx\in X$ there is a unique $P_{\mathcal K}\vx\in\mathcal K$ closest to $\vx$:
   $\displaystyle P_{\mathcal K}\vx=\argmin_{\vy\in\mathcal K}\tfrac12\norm{\vy-\vx}^2$.
@@ -376,14 +379,19 @@ closed convex set.
   $\norm{P_{\mathcal K}\vx-P_{\mathcal K}\vy}\le\norm{\vx-\vy}$.
 \end{itemize}
 \end{gbox}
-\noindent Existence and uniqueness follow from the strict convexity and the
-coercivity of $\vy\mapsto\tfrac12\norm{\vy-\vx}^2$ (Section~\ref{sec:var-direct}).
-The variational inequality is its optimality condition on a convex set: the
-derivative in every admissible direction $\vy-\vp$ is non-negative. For the
-last item, write~\eqref{eq:pn-projVI} at $\vp=P_{\mathcal K}\vx$ with
-$\vy=\vp'=P_{\mathcal K}\vy$ and at $\vp'$ with $\vy=\vp$, and add:
-$\scal{(\vx-\vy)-(\vp-\vp')}{\vp'-\vp}\le0$; the Cauchy--Schwarz inequality
-gives the Lipschitz bound.
+\paragraph{Why it works.} The squared distance
+$\vy\mapsto\tfrac12\norm{\vy-\vx}^2$ is a bowl: strictly convex, and growing
+at infinity. On a closed convex set it has exactly one lowest point
+(Section~\ref{sec:var-direct}). At that point $\vp$, moving towards any other
+point $\vy$ of $\mathcal K$ cannot bring us closer to $\vx$: the angle between
+$\vx-\vp$ and $\vy-\vp$ is obtuse, which is~\eqref{eq:pn-projVI}. Draw a
+convex body, a point outside and the foot of the perpendicular: every chord
+from the foot points away from $\vx$. For the last item, write the angle
+condition at $\vp=P_{\mathcal K}\vx$ towards $\vp'=P_{\mathcal K}\vy$, and at
+$\vp'$ towards $\vp$, and add the two:
+$\scal{(\vx-\vy)-(\vp-\vp')}{\vp'-\vp}\le0$. The Cauchy--Schwarz inequality
+gives the Lipschitz bound. Two points are never farther apart than their
+shadows on a convex set are close.
 
 \subsection{The return map as a projection}\label{ssec:pn-cpp}
 In the generalized variables of Section~\ref{sec:pl-gsm}, the forces are
@@ -404,29 +412,35 @@ $\scal{\vSig}{\vSig'}_E=\vSig\cdot\tensf{G}^{-1}\vSig'$, with
 $\tensf{G}^{-1}=\diag(\bbS,\bbD^{-1})$: half the squared norm is the
 complementary energy, elastic plus hardening.
 
-\begin{theorem}[Closest-point projection~\cite{SimoHughesCI}]\label{thm:pn-cpp}
+Now comes the key fact of this chapter. For the filament, the corrector moved
+the trial stress straight back to the yield surface. In every dimension, and
+for every generalized standard material, it does the same thing: it goes to
+the \emph{closest} admissible point.
+\begin{gbox}{Backward Euler is a projection}\label{thm:pn-cpp}
 The backward Euler step $\Delta\vz\in N_{\Esig}(\vSig_\np)$, with
-$\vSig_\np=\vSig^\trial_\np-\tensf{G}\Delta\vz$, has a unique solution. It is
-the projection of the trial state onto the elastic domain in the energy norm:
+$\vSig_\np=\vSig^\trial_\np-\tensf{G}\Delta\vz$, has exactly one solution:
+the point of the elastic domain closest to the trial state, with the distance
+measured in the energy norm,
 \begin{equation}\label{eq:pn-cpp}
   \vSig_\np=P^E_{\Esig}\bigl(\vSig^\trial_\np\bigr)
   =\argmin_{\vSig^\ast\in\Esig}\ \tfrac12\norm{\vSig^\ast-\vSig^\trial_\np}_E^2,
   \qquad
   \Delta\vz=\tensf{G}^{-1}\bigl(\vSig^\trial_\np-\vSig_\np\bigr).
 \end{equation}
-\end{theorem}
-\begin{proof}
-By definition of the normal cone (Section~\ref{ssec:pl-cones}),
-$\Delta\vz\in N_{\Esig}(\vSig_\np)$ means $\vSig_\np\in\Esig$ and
-$\Delta\vz\cdot(\vSig^\ast-\vSig_\np)\le0$ for all $\vSig^\ast\in\Esig$. With
-$\Delta\vz=\tensf{G}^{-1}(\vSig^\trial_\np-\vSig_\np)$ this reads
+\end{gbox}
+\paragraph{Why it works.} Backward Euler asks for a plastic increment
+$\Delta\vz$ normal to $\Esig$ at the \emph{end} point $\vSig_\np$: the angle
+between $\Delta\vz$ and every chord $\vSig^\ast-\vSig_\np$ of the domain is
+obtuse (Section~\ref{ssec:pl-cones}). Replace $\Delta\vz$ by
+$\tensf{G}^{-1}(\vSig^\trial_\np-\vSig_\np)$:
 \[
-  \scal{\vSig^\trial_\np-\vSig_\np}{\vSig^\ast-\vSig_\np}_E\le0\qquad\forall\vSig^\ast\in\Esig,
+  \scal{\vSig^\trial_\np-\vSig_\np}{\vSig^\ast-\vSig_\np}_E\le0\qquad\text{for every }\vSig^\ast\in\Esig .
 \]
-which is the characterization~\eqref{eq:pn-projVI} of the projection for the
-scalar product $\scal{\cdot}{\cdot}_E$. The projection exists and is unique,
-and so is $\Delta\vz$.
-\end{proof}
+This is the angle condition~\eqref{eq:pn-projVI} of the closest point, written
+in the energy scalar product. The backward Euler equation and the projection
+are one and the same equation. The closest point exists and is unique, and so
+is the step. Simo and Hughes~\cite{SimoHughesCI} call this algorithm the
+\emph{closest-point projection}.
 
 \begin{figure}[h]
 \centering
@@ -457,30 +471,34 @@ projected onto the elastic domain.}
 \label{fig:pn-cpp}
 \end{figure}
 
-The theorem is the discrete form of the principle of maximum plastic
-dissipation (Theorem~\ref{thm:pl-maxdiss}): among all admissible forces,
+The projection is the discrete form of the principle of maximum plastic
+dissipation (Section~\ref{thm:pl-maxdiss}): among all admissible forces,
 $\vSig_\np$ maximizes $\vSig^\ast\cdot\Delta\vz$. It is also the principle of
 minimum complementary energy of one step: the corrector looks for the
 admissible force closest to the trial force, in the norm of the energy. Two
 consequences are immediate. The elastic step is the case where the trial
 state is admissible, since then it is its own projection. And the step
 cannot fail: whatever $\Delta\eps$, the discrete problem has exactly one
-solution, which is the uniqueness used in the proof of
-Proposition~\ref{prop:pn-exact1d}.
+solution, which is the uniqueness used above for the exactness of the
+filament.
 
-\begin{corollary}[Return-mapping equations]\label{cor:pn-rm}
+When the elastic domain is described by a yield function, the projection
+becomes a set of equations that a computer can solve.
+\begin{gbox}{Return-mapping equations}\label{cor:pn-rm}
 \index{Karush--Kuhn--Tucker conditions!discrete}%
 If $\Esig=\{f\le0\}$ with $f$ convex, differentiable and $f(\vzero)<0$, the
 projection~\eqref{eq:pn-cpp} is the solution of
 \begin{equation}\label{eq:pn-rm}
   \vSig_\np=\vSig^\trial_\np-\dg\,\tensf{G}\,\partial_{\vSig}f(\vSig_\np),\qquad
-  \dg\ge0,\quad f(\vSig_\np)\le0,\quad\dg\,f(\vSig_\np)=0 ,
+  \dg\ge0,\quad f(\vSig_\np)\le0,\quad\dg\,f(\vSig_\np)=0 .
 \end{equation}
-which are the Karush--Kuhn--Tucker conditions of the minimization
-in~\eqref{eq:pn-cpp}, with $\dg$ as Lagrange multiplier. The step is elastic
-if and only if $f(\vSig^\trial_\np)\le0$.
-\end{corollary}
-\noindent The first equation contains the backward Euler form of the flow and
+The step is elastic if and only if $f(\vSig^\trial_\np)\le0$.
+\end{gbox}
+\noindent These are the Karush--Kuhn--Tucker conditions of the minimization
+in~\eqref{eq:pn-cpp} (Section~\ref{sec:var-lagrange}), with $\dg$ as the
+Lagrange multiplier of the constraint $f\le0$; the condition $f(\vzero)<0$
+guarantees that the multiplier exists. An admissible trial state is its own
+closest point, which gives $\dg=0$. The first equation contains the backward Euler form of the flow and
 hardening rules~\eqref{eq:pl-box-flow}: $\Delta\epsp=\dg\,\partial_{\sig}f$ and
 $\Delta\valpha=\dg\,\partial_{\vq}f$, both evaluated at the end of the step. The
 normal is the one at the projected point, not at the trial point: this is
@@ -502,13 +520,16 @@ $H$ and an isotropic hardening law $R(\alpha)$, linear ($R=\sY+K\alpha$) or not:
   \Delta\epsp=\dg\,\tn_\np,\quad \Delta\tbeta=\tfrac23H\dg\,\tn_\np,\quad
   \Delta\alpha=\sqrt{\tfrac23}\,\dg,
 \]
-with $\tn_\np=\teta_\np/\norm{\teta_\np}$ and $\teta=\dev\sig-\tbeta$.
+with $\tn_\np=\teta_\np/\norm{\teta_\np}$ and $\teta=\dev\sig-\tbeta$. For
+this model the projection can be done by hand. The idea goes back to
+Wilkins~\cite{Wilkins1964} and to Krieg and Key~\cite{KriegKey1976}.
 
-\begin{proposition}[Radial return~\cite{Wilkins1964,KriegKey1976}]\label{prop:pn-radial}
+\begin{gbox}{Radial return}\label{prop:pn-radial}
 Let $\tens{s}^\trial=2\mu\dev(\eps_\np-\epsp_n)$,
 $\teta^\trial=\tens s^\trial-\tbeta_n$ and
 $f^\trial=\norm{\teta^\trial}-\sqrt{2/3}\,R(\alpha_n)$. If $f^\trial>0$, the
-solution of the backward Euler equations is
+corrected state keeps the direction of the trial relative stress and only
+shortens it:
 \begin{equation}\label{eq:pn-radial}
   \tn_\np=\frac{\teta^\trial}{\norm{\teta^\trial}},\qquad
   \sig_\np=\sig^\trial_\np-2\mu\dg\,\tn_\np,
@@ -519,25 +540,25 @@ where $\dg>0$ is the root of the scalar equation
 \end{equation}
 For linear hardening, $\dg=f^\trial/\bigl(2\mu+\tfrac23(K+H)\bigr)$. The
 pressure is not affected: $\tr\sig_\np=\tr\sig^\trial_\np=3\kappa\tr\eps_\np$.
-\end{proposition}
-\begin{proof}
-The plastic strain increment is deviatoric, so the pressure is elastic. For the
-deviators, subtracting the updates of $\tens s$ and $\tbeta$,
+\end{gbox}
+\paragraph{Why it works.} Two observations do everything. First, the plastic
+strain increment is deviatoric, so the pressure never sees plasticity.
+Second, subtract the updates of $\tens s$ and $\tbeta$:
 \[
   \teta_\np=\teta^\trial-\bigl(2\mu+\tfrac23H\bigr)\dg\,\tn_\np
   \quad\Longrightarrow\quad
   \Bigl[\norm{\teta_\np}+\bigl(2\mu+\tfrac23H\bigr)\dg\Bigr]\tn_\np=\teta^\trial .
 \]
-The bracket is positive: $\tn_\np$ is the unit tensor along $\teta^\trial$,
-and $\norm{\teta_\np}=\norm{\teta^\trial}-(2\mu+\tfrac23H)\dg$. Then
-$f_\np=0$ is~\eqref{eq:pn-radial-g}. The function $g$ is continuous and
-decreasing ($R$ non-decreasing), with $g(0)=f^\trial>0$ and $g\to-\infty$:
-it has one root $\dg>0$, and $\norm{\teta_\np}=\sqrt{2/3}\,R(\alpha_\np)>0$.
-\end{proof}
+The bracket is a positive number, so the final normal $\tn_\np$ points along
+$\teta^\trial$. The normal at the end of the step is known before the step is
+computed! The only unknown left is the length $\dg$, and $f_\np=0$
+is~\eqref{eq:pn-radial-g}. The function $g$ starts at $g(0)=f^\trial>0$ and
+decreases to $-\infty$ ($R$ is non-decreasing): it crosses zero exactly once.
+
 The return is \emph{radial}: in the deviatoric plane, the corrector moves the
 trial stress along the radius of the von Mises circle centred at $\tbeta_n$
-(Figure~\ref{fig:pn-radial}). It is the closest-point projection of
-Theorem~\ref{thm:pn-cpp}: the energy norm on deviators is
+(Figure~\ref{fig:pn-radial}). It is the projection of
+Section~\ref{thm:pn-cpp}: the energy norm on deviators is
 $\norm{\tens s}^2/(2\mu)$, proportional to the Euclidean one, and the closest
 point of a circle is along the radius. For nonlinear hardening the scalar
 equation~\eqref{eq:pn-radial-g} is solved by Newton's method from $\dg=0$;
@@ -640,22 +661,24 @@ matrix that linearizes the discrete global problem
 (Section~\ref{sec:pn-newton}). The continuum tangent $\bbCep$
 of~\eqref{eq:pl-j2-cep} linearizes the rate equations instead.
 
-\begin{proposition}[Consistent tangent of the radial return~\cite{SimoTaylor1985}]\label{prop:pn-calg}
+\begin{gbox}{Consistent tangent of the radial return}\label{prop:pn-calg}
 In a plastic step, with $\theta=1-2\mu\dg/\norm{\teta^\trial}$ and
 $\displaystyle \bar\theta=\Bigl(1+\frac{R'(\alpha_\np)+H}{3\mu}\Bigr)^{-1}-(1-\theta)$,
 \begin{equation}\label{eq:pn-calg}
   \bbCalg=\kappa\,\tI\otimes\tI+2\mu\theta\,\bbIdev-2\mu\bar\theta\,\tn\otimes\tn .
 \end{equation}
-It is symmetric, and it tends to $\bbCep$ as $\dg\to0$.
-\end{proposition}
-\begin{proof}
-Differentiate the stress
-$\sig_\np=\kappa(\tr\eps_\np)\tI+\tens s^\trial-2\mu\dg\,\tn$ with respect
-to $\eps_\np$. First, $\partial\tens s^\trial/\partial\eps_\np=2\mu\bbIdev$.
-Second, the derivative of a unit tensor (Exercise~\ref{exo:pl-perfect3d}) gives
+It is symmetric, and it tends to the continuum tangent $\bbCep$ as $\dg\to0$.
+\end{gbox}
+\paragraph{Why it works.} The stress after the return,
+$\sig_\np=\kappa(\tr\eps_\np)\tI+\tens s^\trial-2\mu\dg\,\tn$, depends on
+$\eps_\np$ through three pieces: the trial deviator, the normal and the
+multiplier. Differentiate each piece. The trial deviator gives
+$\partial\tens s^\trial/\partial\eps_\np=2\mu\bbIdev$. The normal is a unit
+tensor; it can only turn, and the derivative of a unit tensor
+(Exercise~\ref{exo:pl-perfect3d}) gives
 $\partial\tn/\partial\eps_\np=\dfrac{2\mu}{\norm{\teta^\trial}}\bigl(\bbIdev-\tn\otimes\tn\bigr)$.
-Third, differentiating $g(\dg)=0$, with
-$\partial\norm{\teta^\trial}/\partial\eps_\np=2\mu\tn$,
+The multiplier follows from $g(\dg)=0$, differentiated with
+$\partial\norm{\teta^\trial}/\partial\eps_\np=2\mu\tn$:
 \[
   2\mu\,\tn-\Bigl(2\mu+\tfrac23H+\tfrac23R'(\alpha_\np)\Bigr)\frac{\partial\dg}{\partial\eps_\np}=\vzero
   \quad\Longrightarrow\quad
@@ -664,10 +687,9 @@ $\partial\norm{\teta^\trial}/\partial\eps_\np=2\mu\tn$,
 Collecting,
 $\bbCalg=\kappa\tI\otimes\tI+2\mu\bbIdev-2\mu\,\tn\otimes\partial\dg/\partial\eps_\np-2\mu\dg\,\partial\tn/\partial\eps_\np$,
 which is~\eqref{eq:pn-calg} after writing $2\mu\dg/\norm{\teta^\trial}=1-\theta$.
-Both rank-one terms are dyads of a tensor with itself. As $\dg\to0$,
-$\theta\to1$ and $\bar\theta\to(1+(R'+H)/(3\mu))^{-1}$, which
-gives~\eqref{eq:pl-j2-cep}.
-\end{proof}
+Both rank-one terms are dyads of a tensor with itself: the tangent is
+symmetric. A vanishing step gives $\theta=1$ and
+$\bar\theta=(1+(R'+H)/(3\mu))^{-1}$, which is~\eqref{eq:pl-j2-cep}.
 The two tangents differ by the factor $\theta<1$ on the deviatoric directions
 orthogonal to $\tn$:
 \[
@@ -799,7 +821,7 @@ the consistent tangent needs 47 iterations and the continuum one 72.}
 \index{multi-surface plasticity}\index{active set}\index{Tresca criterion!return map}%
 When the elastic domain is an intersection of smooth domains,
 $\Esig=\bigcap_{\beta=1}^m\{f_\beta\le0\}$ (Tresca, Mohr--Coulomb, crystal
-plasticity, caps), Theorem~\ref{thm:pn-cpp} still holds: the solution is the
+plasticity, caps), the projection property of Section~\ref{thm:pn-cpp} still holds: the solution is the
 projection of the trial state. By the last item of the box of
 Section~\ref{ssec:pl-cones}, the return-mapping equations~\eqref{eq:pn-rm}
 become, with Koiter's rule,
@@ -974,25 +996,26 @@ towards their projection onto $\Esig$:
 $\dot\vz=\tau^{-1}\tensf{G}^{-1}\bigl(\vSig-P^E_{\Esig}\vSig\bigr)$, with the
 relaxation time $\tau$. Its backward Euler step is a simple modification of
 the rate-independent one~\cite[Sec.~2.7]{SimoHughesCI}.
-\begin{proposition}[Duvaut--Lions update]\label{prop:pn-dl}
-Let $r=\Delta t/\tau$ and $\bar\vSig_\np=P^E_{\Esig}(\vSig^\trial_\np)$ be the
-rate-independent solution. The backward Euler step has the unique solution
+\begin{gbox}{Duvaut--Lions update}\label{prop:pn-dl}
+Let $r=\Delta t/\tau$ and let $\bar\vSig_\np=P^E_{\Esig}(\vSig^\trial_\np)$ be
+the rate-independent solution. The viscoplastic state lies on the segment
+from the trial state to its projection:
 \begin{equation}\label{eq:pn-dl}
-  \vSig_\np=\frac{\vSig^\trial_\np+r\,\bar\vSig_\np}{1+r}.
+  \vSig_\np=\frac{\vSig^\trial_\np+r\,\bar\vSig_\np}{1+r},
 \end{equation}
-\end{proposition}
-\begin{proof}
-Backward Euler gives $\tensf{G}\Delta\vz=r(\vSig_\np-P\vSig_\np)$ with
-$P=P^E_{\Esig}$, hence
-$T(\vSig_\np):=(1+r)\vSig_\np-rP\vSig_\np=\vSig^\trial_\np$. \emph{Existence}:
-the candidate~\eqref{eq:pn-dl} lies on the segment from $\bar\vSig_\np$ to
-$\vSig^\trial_\np$, and $\vSig^\trial_\np-\bar\vSig_\np$ is in the normal cone
-at $\bar\vSig_\np$; by~\eqref{eq:pn-projVI} every point of the segment
-projects onto $\bar\vSig_\np$, and then $T(\vSig_\np)=\vSig^\trial_\np$.
-\emph{Uniqueness}: $I-P$ is monotone (firm non-expansiveness), so
-$\scal{T\vSig-T\vSig'}{\vSig-\vSig'}_E\ge\norm{\vSig-\vSig'}_E^2$ and $T$ is
-injective.
-\end{proof}
+and this is the only solution of the backward Euler step.
+\end{gbox}
+\paragraph{Why it works.} Look at Figure~\ref{fig:pn-dl}. With $P=P^E_{\Esig}$,
+backward Euler asks $\tensf{G}\Delta\vz=r(\vSig_\np-P\vSig_\np)$, that is,
+$(1+r)\vSig_\np-rP\vSig_\np=\vSig^\trial_\np$. Try a point on the segment
+from $\bar\vSig_\np$ to the trial state. All the points of that segment have
+the same closest point $\bar\vSig_\np$: sliding along the normal does not move
+the foot of the perpendicular (this is~\eqref{eq:pn-projVI}). So
+$P\vSig_\np=\bar\vSig_\np$, the equation becomes linear,
+$(1+r)\vSig_\np-r\bar\vSig_\np=\vSig^\trial_\np$, and its solution
+is~\eqref{eq:pn-dl}. There is no other solution: subtract the equations of two
+solutions and use that $I-P$ is monotone (firm non-expansiveness); this gives
+$(1+r)\norm{\vSig-\vSig'}_E^2-r\norm{\vSig-\vSig'}_E^2\le0$.
 The viscoplastic state lies on the segment between the trial state ($r\to0$,
 a very viscous or a very short step) and the projection ($r\to\infty$)
 (Figure~\ref{fig:pn-dl}). Its distance to $\Esig$, the overstress, is the fraction
@@ -1081,24 +1104,26 @@ control is preferred.
 
 \paragraph{Stability.}
 Plasticity is dissipative: two solutions driven by the same strain history do
-not move apart in the energy norm (the argument of
-Theorem~\ref{thm:pl-unique}, at a single point). A good algorithm inherits
-this property for every step size.
+not move apart in the energy norm (the argument for the uniqueness of the
+stresses, Section~\ref{thm:pl-unique}, at a single point). A good algorithm
+keeps this property for every step size.
 
-\begin{theorem}[Contractivity~\cite{SimoGovindjee1991}]\label{thm:pn-contract}
-Let two states $\vSig_n$ and $\vSig'_n$ be driven by the same strain increment
-$\Delta\eps$ with the return map. Then
+\begin{gbox}{The return map never increases distances}\label{thm:pn-contract}
+Drive two states $\vSig_n$ and $\vSig'_n$ with the same strain increment
+$\Delta\eps$. After the return map they are not farther apart, in the energy
+norm:
 \[
-  \norm{\vSig_\np-\vSig'_\np}_E\le\norm{\vSig_n-\vSig'_n}_E .
+  \norm{\vSig_\np-\vSig'_\np}_E\le\norm{\vSig_n-\vSig'_n}_E ,
 \]
-\end{theorem}
-\begin{proof}
-By~\eqref{eq:pn-trial}, the two trial states differ by
-$\vSig^\trial_\np-\vSig'^\trial_\np=\vSig_n-\vSig'_n$, since the same increment
-$(\bbC:\Delta\eps,\vzero)$ is added to both. By Theorem~\ref{thm:pn-cpp} both
-end states are projections onto $\Esig$ in the energy norm, and projections
-onto a convex set are non-expansive (Section~\ref{ssec:pn-proj}).
-\end{proof}
+whatever the size of the step.
+\end{gbox}
+\paragraph{Why it works.} Two lines. The elastic predictor adds the same
+$(\bbC:\Delta\eps,\vzero)$ to both states~\eqref{eq:pn-trial}, so the trial
+states are exactly as far apart as the old states. The corrector projects
+both onto the same convex set (Section~\ref{thm:pn-cpp}), and projections
+never increase distances (Section~\ref{ssec:pn-proj}). Simo and
+Govindjee~\cite{SimoGovindjee1991} call this property \emph{contractivity}.
+
 The bound holds for every $\Delta\eps$: the return map is unconditionally
 stable in the nonlinear sense (B-stability). Errors made in a step, for
 instance by a loose tolerance of the global Newton iterations, are not
@@ -1113,13 +1138,16 @@ gives $\sigma_\np=\sigma'_\np=\sY$ (Exercise~\ref{exo:pn-contract}).
 %======================================================================
 \section{The incremental problem as a minimization}\label{sec:pn-var}
 \index{variational constitutive update}\index{incremental potential}%
-Theorem~\ref{thm:pn-cpp} characterizes the step by a minimization over the
-\emph{forces}. The dual minimization, over the \emph{internal variables},
-gives an energy for the whole incremental problem. This is the variational
-constitutive update of Ortiz and Stainier~\cite{OrtizStainier1999}; see
+The projection of Section~\ref{thm:pn-cpp} describes the step by a
+minimization over the \emph{forces}. The same step is also a minimization over
+the \emph{internal variables}, and that one gives an energy for the whole
+incremental problem. Here is the idea in words: one step of plasticity
+chooses the internal variables that make the stored energy plus the
+dissipated energy as small as possible. This is the variational constitutive
+update of Ortiz and Stainier~\cite{OrtizStainier1999}; see
 also~\cite{Miehe2002} and~\cite[Sec.~2.8]{KondoMaitournam2023b}.
 
-\begin{theorem}[Incremental potential]\label{thm:pn-W}
+\begin{gbox}{One step minimizes stored plus dissipated energy}\label{thm:pn-W}
 For the quadratic free energy~\eqref{eq:pl-psi} and $\Esig$ closed convex with
 $\vzero\in\Esig$, let
 \begin{equation}\label{eq:pn-Wn}
@@ -1128,8 +1156,7 @@ $\vzero\in\Esig$, let
 the change of free energy plus the dissipation of the step, minimized over the
 internal variables. Then:
 \begin{enumerate}[label=(\alph*)]
-  \item the minimizer is $\vz_\np=\vz_n+\Delta\vz$, the backward Euler step of
-  Theorem~\ref{thm:pn-cpp};
+  \item the minimizer is $\vz_\np=\vz_n+\Delta\vz$, the backward Euler step;
   \item $W_n(\eps)=\psi(\eps,\vz_n)-\psi(\eps_n,\vz_n)-\tfrac12\,\mathrm{dist}_E\bigl(\vSig^\trial(\eps),\Esig\bigr)^2$;
   \item $W_n$ is convex and differentiable, and
   $\partial W_n/\partial\eps=\sig_\np$: the return map derives from a potential;
@@ -1137,32 +1164,29 @@ internal variables. Then:
   $\bbCalg=\partial^2W_n/\partial\eps^2$ is symmetric and positive
   semi-definite.
 \end{enumerate}
-\end{theorem}
-\begin{proof}
-(a) With $\vect\zeta=\vz-\vz_n$, the function to minimize is
-$\Phi(\vect\zeta)=\tfrac12\vect\zeta\cdot\tensf{G}\vect\zeta-\vSig^\trial\cdot\vect\zeta+\pi_{\Esig}(\vect\zeta)$
-up to a constant, because $\psi$ is quadratic in $\vz$ with Hessian
-$\tensf{G}$ and $-\partial_{\vz}\psi(\eps,\vz_n)=\vSig^\trial$. It is strictly
-convex; its minimizer is characterized by
-$\vzero\in\tensf{G}\vect\zeta-\vSig^\trial+\partial\pi_{\Esig}(\vect\zeta)$,
-that is, $\vSig^\trial-\tensf{G}\vect\zeta\in\partial\pi_{\Esig}(\vect\zeta)$,
-which by Theorem~\ref{thm:pl-maxdiss} ((c)$\iff$(b)) is
-$\vect\zeta\in N_{\Esig}(\vSig^\trial-\tensf{G}\vect\zeta)$: the backward
-Euler step.
-(b) At the minimizer, $\pi_{\Esig}(\Delta\vz)=\vSig_\np\cdot\Delta\vz$
-(dissipation identity (d) of Theorem~\ref{thm:pl-maxdiss}), and
-$\vSig_\np=\vSig^\trial-\tensf{G}\Delta\vz$, so that
+\end{gbox}
+\paragraph{Why it works.} (a) Write the increment as $\vect\zeta=\vz-\vz_n$.
+Because $\psi$ is quadratic in $\vz$, the function to minimize is a bowl plus
+the dissipation,
+$\Phi(\vect\zeta)=\tfrac12\vect\zeta\cdot\tensf{G}\vect\zeta-\vSig^\trial\cdot\vect\zeta+\pi_{\Esig}(\vect\zeta)$,
+up to a constant. At the bottom the slopes balance:
+$\vSig^\trial-\tensf{G}\vect\zeta\in\partial\pi_{\Esig}(\vect\zeta)$. The force
+at the end of the step is a slope of the dissipation function at the
+increment. By the principle of maximum dissipation (Section~\ref{thm:pl-maxdiss},
+forms (b) and (c)) this says that $\vect\zeta$ is normal to $\Esig$ at
+$\vSig^\trial-\tensf{G}\vect\zeta$: it is the backward Euler step.
+(b) At the bottom, the dissipation equals $\vSig_\np\cdot\Delta\vz$ (form (d)
+of the same principle), and $\vSig_\np=\vSig^\trial-\tensf{G}\Delta\vz$, so
 $\Phi(\Delta\vz)=-\tfrac12\Delta\vz\cdot\tensf{G}\Delta\vz=-\tfrac12\norm{\vSig^\trial-\vSig_\np}_E^2$.
-(c) The function $(\eps,\vz)\mapsto\psi(\eps,\vz)+\pi_{\Esig}(\vz-\vz_n)$ is
-jointly convex, and a partial minimum of a jointly convex function is convex.
-The squared distance to a convex set is differentiable with gradient
-$\vSig-P^E_{\Esig}\vSig$ (in the scalar product $\scal{\cdot}{\cdot}_E$);
-since $\partial\vSig^\trial/\partial\eps:\delta\eps=(\bbC:\delta\eps,\vzero)$, the
-chain rule gives
+(c) Minimizing a jointly convex function of $(\eps,\vz)$ over $\vz$ leaves a
+convex function of $\eps$. For the gradient, the gradient of half a squared
+distance to a convex set is the gap $\vSig-P^E_{\Esig}\vSig$, and the chain
+rule gives
 $\partial W_n/\partial\eps=\sig^\trial-\bbC:\bbS:(\sig^\trial-\sig_\np)=\sig_\np$.
-(d) A Hessian is symmetric, and positive semi-definite for a convex function.
-\end{proof}
-Part (d) is the general reason for the symmetry of the consistent
+(d) A Hessian is always symmetric, and it is positive semi-definite for a
+convex function.
+
+The last item is the general reason for the symmetry of the consistent
 tangent~\eqref{eq:pn-calg}: the return map of an associative model is the
 gradient of a convex potential. For a non-associative model there is no such
 potential, and the tangent is not symmetric (Exercise~\ref{exo:pn-hill}).
@@ -1483,7 +1507,7 @@ map \texttt{return\_map\_1d} (Box~5.1) of the module \texttt{ci\_core}.
 step gives the same value to all digits, as do 1000 steps. (b) One step gives
 $\sigma=-262.894028$\,MPa and $\alpha=6.104249\times10^{-3}$, the same digits
 as the fine computation. The strain is monotone inside the step (it decreases
-from $0.004$ to $-0.002$), so Proposition~\ref{prop:pn-exact1d} applies: within
+from $0.004$ to $-0.002$), so the exactness of Section~\ref{prop:pn-exact1d} applies: within
 the step the filament flows in one direction only, and the trial state
 $f^\trial$ measures the total overshoot. The reversal is at the first instant
 of the step, which costs nothing; Exercise~\ref{exo:pn-nonmono} puts it inside.
@@ -1523,7 +1547,7 @@ $\dg=f^\trial/(2\mu+\tfrac23(K+H))$, and that the pressure is elastic.
 show that the function $g$ of~\eqref{eq:pn-radial-g} is decreasing and
 convex, and that Newton's method from $\dg=0$ converges monotonically.
 \begin{solution}
-(a) Proof of Proposition~\ref{prop:pn-radial} with $R'=K$: the update of
+(a) The argument of Section~\ref{prop:pn-radial} with $R'=K$: the update of
 $\teta$ is $[\norm{\teta_\np}+(2\mu+\tfrac23H)\dg]\tn_\np=\teta^\trial$, so
 $\tn_\np$ is the direction of $\teta^\trial$, and $f_\np=0$ is linear in $\dg$.
 (b) $g'(\dg)=-(2\mu+\tfrac23H)-\tfrac23R'(\alpha_\np)<0$ and
@@ -1545,7 +1569,7 @@ $\bbCalg$ and with $\bbCep$. The script uses the law \texttt{Voce} of
 \texttt{ci\_core} and the driver \texttt{solve} of \texttt{ci\_fem}, whose
 option \texttt{tangent} selects the consistent or the continuum tangent.
 \begin{solution}
-(a) Proof of Proposition~\ref{prop:pn-calg}. (b) The consistent tangent needs
+(a) The argument of Section~\ref{prop:pn-calg}. (b) The consistent tangent needs
 $2,2,2,5,6,6,6,6,6,6$ iterations (47 in all), the continuum one
 $2,2,2,7,8,9,11,11,10,10$ (72). In step 6 the last residuals are
 $3.15$ and $3.5\times10^{-5}$ with $\bbCalg$, a squaring; with $\bbCep$ they
@@ -1644,9 +1668,9 @@ the yield criterion is Hill's)? Check numerically by finite differences. The
 script is self-contained: it does not use \texttt{ci\_core}, whose return maps
 are written for von Mises and Tresca only.
 \begin{solution}
-(a) Theorem~\ref{thm:pn-cpp} holds for every convex $\Esig$: the elastic
+(a) The projection property (Section~\ref{thm:pn-cpp}) holds for every convex $\Esig$: the elastic
 domain of Hill's criterion is convex, and the step is the projection onto it.
-By Theorem~\ref{thm:pn-W} the stress is the gradient of a convex potential
+By Section~\ref{thm:pn-W} the stress is the gradient of a convex potential
 $W_n$, so its derivative is symmetric. In the linearization the rank-one term
 is $(\bbC:\partial_{\sig}g)\otimes(\bbC:\partial_{\sig}f)/(\dots)$, symmetric
 when $g=f$. (b) With $g\ne f$ the step is no longer a projection, there is no
@@ -1657,7 +1681,7 @@ generic strain, a relative asymmetry $\norm{\bbCalg-\bbCalg{}\T}/\norm{\bbCalg}$
 $2.5\times10^{-2}$ for the non-associative model. The global stiffness is then
 unsymmetric: a symmetric solver with the symmetrized tangent loses the
 quadratic convergence, and the contractivity of
-Theorem~\ref{thm:pn-contract} is lost.
+Section~\ref{thm:pn-contract} is lost.
 \lstinputlisting[firstline=4]{python/examples/ch5/exo_hill.py}
 \end{solution}
 
@@ -1695,7 +1719,7 @@ determined, the direction of flow depends on the trial state.
 
 \exercise{Contractivity of the return map}\label{exo:pn-contract}
 \index{B-stability!exercise}%
-(a) Prove Theorem~\ref{thm:pn-contract} for perfect plasticity, where the
+(a) Show that the return map never increases distances (Section~\ref{thm:pn-contract}) for perfect plasticity, where the
 norm is $\norm{\sig}_E^2=\sig:\bbS:\sig$. (b) Show that forward Euler is not
 contractive with the filament example of Section~\ref{sec:pn-stab}.
 (c) Numerical test, perfect $J_2$ plasticity: state A is virgin; state B was
@@ -1765,7 +1789,7 @@ $\bbCalg$. (c) Deduce that $W_n$ is strongly convex if $K+H>0$.
 (a) $\Delta\vz=\dg\,(\tn,\sqrt{2/3},\tn)$ for $(\epsp,\alpha,\valpha_{\mathrm{kin}})$,
 $\tensf{G}=\diag(\bbC,K,\tfrac23H\bbI)$, so that
 $\Delta\vz\cdot\tensf{G}\Delta\vz=\dg^2(2\mu+\tfrac23K+\tfrac23H)=h\dg^2=\mac{f^\trial}^2/h$;
-insert in Theorem~\ref{thm:pn-W}(b). (b) In the plastic region,
+insert in item (b) of Section~\ref{thm:pn-W}. (b) In the plastic region,
 $\partial f^\trial/\partial\eps=2\mu\tn$ and
 $\partial\tn/\partial\eps=\frac{2\mu}{\norm{\teta^\trial}}(\bbIdev-\tn\otimes\tn)$.
 The gradient is $\sig^\trial-2\mu\frac{f^\trial}{h}\tn=\sig_\np$; differentiating

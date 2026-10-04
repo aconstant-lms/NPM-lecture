@@ -1,0 +1,331 @@
+%======================================================================
+\chapter{Minimization algorithms}\label{app:opt}
+%======================================================================
+% Written for Chapter 7 (identification): the algorithms named there
+% (Nelder-Mead, BFGS, Gauss-Newton, Levenberg-Marquardt) with their
+% principles, costs and pitfalls. Code in python/examples/appF.
+
+\framepart{Outline}
+Chapter~\ref{ch:id} minimizes a cost $\mathcal J(\vp)$ over a few parameters,
+each evaluation of $\mathcal J$ being a whole elastoplastic computation. This
+appendix collects the algorithms it uses, in $\R^n$ with a smooth cost unless said
+otherwise. They all repeat two decisions: a \emph{direction} in which the cost
+decreases, and a \emph{step} along it, or a region in which a model of the cost is
+trusted. They differ by the information they use: values only, the gradient, an
+approximation of the Hessian built from gradients, or, for least squares, the
+Jacobian of the residuals.
+
+Section~\ref{sec:opt-descent} treats descent directions and line searches,
+Section~\ref{sec:opt-newton} Newton and quasi-Newton methods,
+Section~\ref{sec:opt-ls} least squares (Gauss--Newton, Levenberg--Marquardt),
+Section~\ref{sec:opt-free} methods without derivatives, and
+Section~\ref{sec:opt-bounds} bounds and scaling. The standard modern reference is
+Nocedal and Wright~\cite{NocedalWright2006b}; Dennis and
+Schnabel~\cite{DennisSchnabel1983b} and Fletcher~\cite{Fletcher1987} are
+classics, Kelley~\cite{Kelley1999} is short and practical, and \emph{Numerical
+Recipes}~\cite[Ch.~10, 15]{PressEtAl2007} gives readable codes and sound advice
+for every method of this appendix. The equations $F(x)=0$ solved by Newton's
+method are the subject of Appendix~\ref{app:iter}; here the unknown is a minimizer.
+
+%======================================================================
+\section{Descent directions and line searches}\label{sec:opt-descent}
+\index{descent direction}\index{line search}%
+At a point $\vp_k$ with the gradient $\vect g_k=\nabla\mathcal J(\vp_k)\neq\vzero$, a
+direction $\vd_k$ is a \emph{descent direction} if $\vect g_k\cdot\vd_k<0$: a small
+step along $\vd_k$ decreases $\mathcal J$. The iteration is
+$\vp_{k+1}=\vp_k+a_k\vd_k$ with a step $a_k>0$. An exact minimization along the
+line is wasteful; a \emph{line search} accepts any step that decreases $\mathcal J$
+enough.
+\begin{gbox}{Armijo and Wolfe conditions}\label{def:opt-wolfe}
+\index{Armijo condition}\index{Wolfe conditions}%
+With constants $0<c_1<c_2<1$ (typically $c_1=10^{-4}$, $c_2=0.9$), a step $a$ is
+accepted if
+\begin{equation}\label{eq:opt-wolfe}
+\begin{aligned}
+  &\mathcal J(\vp_k+a\vd_k)\le\mathcal J(\vp_k)+c_1\,a\,\vect g_k\cdot\vd_k
+  &&\text{(sufficient decrease)},\\
+  &\nabla\mathcal J(\vp_k+a\vd_k)\cdot\vd_k\ge c_2\,\vect g_k\cdot\vd_k
+  &&\text{(curvature)}.
+\end{aligned}
+\end{equation}
+Backtracking (try $a=1,\tfrac12,\tfrac14,\dots$) enforces the first
+condition~\cite{Armijo1966}; the second excludes too short
+steps~\cite{Wolfe1969}.
+\end{gbox}
+\noindent With such steps, any descent direction that does not become orthogonal
+to the gradient gives $\nabla\mathcal J(\vp_k)\to\vzero$, for a cost bounded below
+with a Lipschitz gradient~\cite[Sec.~3.2]{NocedalWright2006b}: the iteration
+finds a stationary point. It may be a local minimum only, and nothing tells which.
+
+\paragraph{Steepest descent is slow.}
+\index{steepest descent}%
+The obvious direction $\vd_k=-\vect g_k$ is the worst one in a valley. On the
+quadratic $\tfrac12\vp\T\mat{A}\vp$ with exact line searches, the error decreases at
+each iteration by the factor $(\kappa-1)/(\kappa+1)$, where $\kappa$ is the ratio of
+the largest to the smallest eigenvalue of $\mat{A}$~\cite[Sec.~3.3]{NocedalWright2006b}.
+The iterates zigzag across the valley. The Gauss--Newton matrix of the Norton
+filament of Chapter~\ref{ch:id} has $\kappa=6\times10^3$: steepest descent would gain
+about $3\times10^{-4}$ in the error per iteration. Every useful method corrects
+the direction with curvature information.
+
+%======================================================================
+\section{Newton and quasi-Newton methods}\label{sec:opt-newton}
+\index{Newton's method!minimization}\index{quasi-Newton method}%
+Newton's method minimizes the quadratic model
+$\mathcal J(\vp_k)+\vect g_k\cdot\vd+\tfrac12\vd\T\nabla^2\mathcal J_k\vd$:
+$\nabla^2\mathcal J_k\,\vd_k=-\vect g_k$. It is Newton's method of
+Appendix~\ref{app:iter} for the equation $\nabla\mathcal J=\vzero$, with quadratic
+convergence near a minimum where the Hessian is positive definite. Far from it the
+Hessian may be indefinite and $\vd_k$ not a descent direction; a line search, or a
+modification of the Hessian, or a trust region (Section~\ref{sec:opt-ls}) is then
+needed. In identification the Hessian is rarely available: it contains the
+second derivatives of the whole computation with respect to the parameters.
+
+\paragraph{BFGS.}
+\index{BFGS method}%
+Quasi-Newton methods build an approximation $\mat{H}_k$ of the inverse Hessian
+from the gradients already computed. Along the last step
+$\vs_k=\vp_{k+1}-\vp_k$ the gradient changed by $\vy_k=\vect g_{k+1}-\vect g_k$; a
+Hessian should map $\vs_k$ to $\vy_k$, and the new approximation is required to do
+so (the \emph{secant condition} $\mat{H}_{k+1}\vy_k=\vs_k$) while changing as
+little as possible. The update of Broyden, Fletcher, Goldfarb and Shanno
+(BFGS) is
+\begin{equation}\label{eq:opt-bfgs}
+  \mat{H}_{k+1}=\bigl(\mat{I}-\rho_k\vs_k\vy_k\T\bigr)\mat{H}_k\bigl(\mat{I}-\rho_k\vy_k\vs_k\T\bigr)
+  +\rho_k\vs_k\vs_k\T,\qquad \rho_k=\frac1{\vy_k\cdot\vs_k},
+\end{equation}
+with the direction $\vd_k=-\mat{H}_k\vect g_k$. If $\vy_k\cdot\vs_k>0$, which the
+Wolfe conditions guarantee, $\mat{H}_{k+1}$ stays symmetric positive definite and
+$\vd_{k+1}$ is a descent direction. Near the minimum the convergence is
+superlinear. Each iteration costs one gradient, the adjoint of Chapter~\ref{ch:id},
+and a few products of vectors; the limited-memory version L-BFGS keeps only the
+last pairs $(\vs_k,\vy_k)$ and works with millions of
+parameters~\cite[Ch.~6--7]{NocedalWright2006b}.
+
+%======================================================================
+\section{Least squares: Gauss--Newton and Levenberg--Marquardt}\label{sec:opt-ls}
+\index{least squares!nonlinear}\index{Gauss--Newton method}%
+For $\mathcal J=\tfrac12\norm{\mat{r}(\vp)}^2$, the gradient and the Hessian are
+\[
+  \nabla\mathcal J=\mat{S}\T\mat{r},\qquad
+  \nabla^2\mathcal J=\mat{S}\T\mat{S}+\sum_ir_i\nabla^2r_i,\qquad \mat{S}=\frac{\partial\mat{r}}{\partial\vp}.
+\]
+The first part of the Hessian needs only first derivatives, and the second is small
+when the residuals are small or the model nearly linear. Dropping it gives the
+\emph{Gauss--Newton} step
+\begin{equation}\label{eq:opt-gn}
+  \mat{S}_k\T\mat{S}_k\,\vd_k=-\mat{S}_k\T\mat{r}_k ,
+\end{equation}
+the solution of the linear least-squares problem
+$\min_{\vd}\norm{\mat{r}_k+\mat{S}_k\vd}^2$, best computed by a QR factorization
+of $\mat{S}_k$ rather than by the normal equations. The direction is a descent
+direction whenever $\mat{S}_k$ has full rank. Convergence is quadratic for a
+zero residual at the solution, linear otherwise, with a rate that grows with the
+neglected term.
+
+\paragraph{Levenberg--Marquardt.}
+\index{Levenberg--Marquardt method}\index{trust region}%
+When $\mat{S}\T\mat{S}$ is nearly singular, a flat valley, the Gauss--Newton step is
+huge and meaningless. Levenberg~\cite{Levenberg1944} and
+Marquardt~\cite{Marquardt1963} damp it:
+\begin{equation}\label{eq:opt-lm}
+  \bigl(\mat{S}_k\T\mat{S}_k+\nu_k\mat{D}_k\bigr)\vd_k=-\mat{S}_k\T\mat{r}_k ,
+\end{equation}
+with $\mat{D}_k$ the identity or the diagonal of $\mat{S}_k\T\mat{S}_k$. Large
+$\nu_k$ gives a short step along the steepest descent; $\nu_k\to0$ gives
+Gauss--Newton.
+\begin{gbox}{The damped step is a trust-region step}\label{prop:opt-lm}
+The step~\eqref{eq:opt-lm} with $\mat{D}=\mat{I}$ minimizes the quadratic model
+$\tfrac12\norm{\mat{r}_k+\mat{S}_k\vd}^2$ on the ball $\norm{\vd}\le\Delta$, for the
+radius $\Delta=\norm{\vd_k}$; conversely, every radius corresponds to a
+damping $\nu\ge0$. The damping is updated by comparing the actual decrease of
+$\mathcal J$ with the decrease predicted by the model.
+\end{gbox}
+\paragraph{Why it works.} Minimize $\tfrac12\norm{\mat{r}+\mat{S}\vd}^2$ under the
+constraint $\tfrac12(\norm{\vd}^2-\Delta^2)\le0$. The Kuhn--Tucker conditions of
+Section~\ref{sec:var-lagrange} give
+$(\mat{S}\T\mat{S}+\nu\mat{I})\vd=-\mat{S}\T\mat{r}$ with the multiplier $\nu\ge0$,
+zero if the Gauss--Newton step is inside the ball. The norm of the solution
+decreases monotonically from the Gauss--Newton step ($\nu=0$) to zero
+($\nu\to\infty$), so each radius has its damping. The damping is also a Tikhonov
+regularization of the linearized problem: it penalizes the components of the step
+along the small eigenvalues of $\mat{S}\T\mat{S}$, the poorly identified
+combinations of parameters, and leaves the others.
+
+In practice $\nu$ is decreased (by a factor $3$ to $10$) after a successful step
+and increased after a failed one; implementations such as MINPACK~\cite{More1978}
+control the radius directly, with the ratio of the actual to the predicted
+decrease. Each iteration needs the residuals and the whole matrix $\mat{S}$, the
+direct differentiation of Chapter~\ref{ch:id}, and solves a system of the size of
+the number of parameters. For a few parameters and many observations it is the
+method of choice.
+
+%======================================================================
+\section{Without derivatives}\label{sec:opt-free}
+\index{derivative-free optimization}\index{Nelder--Mead method}%
+When the gradient is unavailable, or the cost is noisy (an iterative direct solver
+stopped at a loose tolerance), methods that use only values remain.
+\begin{itemize}
+  \item \emph{Finite-difference gradients} with a quasi-Newton method: $n$ or $2n$
+  evaluations per gradient, with the step of Chapter~\ref{ch:id},
+  Section~\ref{ssec:id-fd}. This is what most black-box calibration tools do.
+  \item \emph{The simplex of Nelder and Mead}~\cite{NelderMead1965b} (Box~7.1): no
+  model, only comparisons of values; robust to noise, efficient in two or three
+  dimensions, without convergence guarantee beyond~\cite{LagariasEtAl1998b}, and
+  easily stopped by curved valleys.
+  \item \emph{Pattern search and model-based methods} (COBYLA, BOBYQA) build
+  linear or quadratic models from interpolation points and come with convergence
+  theory~\cite{ConnScheinbergVicente2009}.
+  \item \emph{Global methods} (genetic and evolutionary algorithms, simulated
+  annealing, Bayesian optimization on a surrogate) explore the whole admissible set
+  and can escape local minima, at the price of hundreds to thousands of
+  evaluations. They are best used to find a starting point for a local method.
+\end{itemize}
+
+%======================================================================
+\section{Bounds and scaling}\label{sec:opt-bounds}
+\index{scaling (optimization)}\index{bounds (optimization)}%
+Physical parameters are positive and of very different magnitudes: a modulus of
+$2\times10^5$\,MPa, an exponent of $5$. Two simple devices remove most of the
+difficulties.
+\begin{itemize}
+  \item \emph{Scaling.} Work with dimensionless variables, $p_j/p_j^{\mathrm{ref}}$ or
+  $\log p_j$. The logarithm also enforces positivity and makes a relative change the
+  natural unit, which is what the Gauss--Newton eigenvalues of Chapter~\ref{ch:id}
+  measure.
+  \item \emph{Bounds.} Projected methods keep the iterates in a box: L-BFGS-B
+  projects the quasi-Newton step and freezes the variables at their
+  bounds~\cite{ByrdLuNocedalZhu1995}; trust-region reflective methods do the same
+  for least squares. At a solution on a bound, the gradient is not zero but points
+  out of the admissible set: the optimality condition is a variational inequality,
+  and the multiplier of the active bound is the corresponding component of the
+  gradient, as for a contact force.
+\end{itemize}
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}>{\raggedright}p{3.0cm}>{\raggedright}p{3.4cm}>{\raggedright}p{3.6cm}>{\raggedright\arraybackslash}p{3.6cm}@{}}
+\toprule
+\sffamily method & \sffamily needs & \sffamily convergence & \sffamily typical use\\
+\midrule
+steepest descent & gradient & linear, $(\kappa-1)/(\kappa+1)$ & almost never\\
+Newton & gradient, Hessian & quadratic, local & small smooth problems\\
+BFGS, L-BFGS & gradient (adjoint) & superlinear & many parameters\\
+Gauss--Newton & residuals, $\mat{S}$ & quadratic if zero residual & small residuals\\
+Levenberg--Marquardt & residuals, $\mat{S}$ (direct diff.) & as Gauss--Newton, safeguarded & few parameters, least squares\\
+Nelder--Mead & values & none in general & 2--3 parameters, noisy cost\\
+global methods & values & probabilistic & starting points\\
+\bottomrule
+\end{tabular}
+\caption{Minimization algorithms; $\kappa$ is the condition number of the Hessian.}
+\label{tab:opt-methods}
+\end{table}
+
+%======================================================================
+\framepart{Summary}
+\begin{gbox*}
+\begin{itemize}
+  \item \textbf{Descent and line search}: a descent direction and a step satisfying
+  the Armijo (and Wolfe) conditions give a stationary point; steepest descent
+  zigzags in valleys, with the rate $(\kappa-1)/(\kappa+1)$.
+  \item \textbf{Newton and BFGS}: Newton uses the Hessian; BFGS builds the inverse
+  Hessian from gradient differences (secant condition), positive definite under
+  the Wolfe conditions, superlinear.
+  \item \textbf{Least squares}: Gauss--Newton keeps the first-order part
+  $\mat{S}\T\mat{S}$ of the Hessian; Levenberg--Marquardt damps it, which is a trust
+  region and a Tikhonov regularization of the flat directions.
+  \item \textbf{Without derivatives}: Nelder--Mead for two or three parameters;
+  model-based and global methods otherwise.
+  \item \textbf{Scaling and bounds}: logarithmic variables; projected methods for
+  bounds.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+\framesub{Short questions}
+
+\exercise{Steepest descent on a valley}\label{exo:opt-sd}
+\index{steepest descent!exercise}%
+Let $\mathcal J=\tfrac12(p_1^2+100\,p_2^2)$. (a) Starting from $(100,1)$, compute two
+steepest-descent steps with exact line search. (b) Give the factor of decrease of
+the error per iteration and the number of iterations for six digits. (c) What does
+one Newton step do?
+\begin{solution}
+(a) The gradient is $(p_1,100p_2)$; along $\vd=-\vect g$ the exact step is
+$a=\vect g\cdot\vect g/\vect g\T\mat{A}\vect g$. From $(100,1)$: $\vect g=(100,100)$,
+$a=2/101$, $\vp_1=(98.02,-0.980)$; then $\vect g=(98.02,-98.0)$ and
+$\vp_2\approx(96.1,0.961)$. The iterates zigzag across the valley and progress
+by $2\%$ per step. (b) $\kappa=100$, factor $99/101=0.980$; six digits take about
+$\ln10^{-6}/\ln0.98\approx680$ iterations. (c) Newton solves
+$\mat{A}\vd=-\vect g$ and lands on the minimum in one step.
+\end{solution}
+
+\exercise{The secant condition}\label{exo:opt-secant}
+\index{BFGS method!exercise}%
+(a) Check that~\eqref{eq:opt-bfgs} satisfies $\mat{H}_{k+1}\vy_k=\vs_k$. (b) Show that
+$\mat{H}_{k+1}$ is positive definite if $\mat{H}_k$ is and $\vy_k\cdot\vs_k>0$. (c) For a
+quadratic cost with Hessian $\mat{A}$, what is $\vy_k$?
+\begin{solution}
+(a) $(\mat{I}-\rho\vy\vs\T)\vy=\vy-\rho\vy(\vs\cdot\vy)=\vzero$, so the first term
+vanishes, and $\rho\vs(\vs\cdot\vy)=\vs$. (b) For $\vz\neq\vzero$, with
+$\vw=(\mat{I}-\rho\vy\vs\T)\vz=\vz-\rho(\vs\cdot\vz)\vy$:
+$\vz\T\mat{H}_{k+1}\vz=\vw\T\mat{H}_k\vw+\rho(\vs\cdot\vz)^2\ge0$; both terms vanish only if
+$\vw=\vzero$ and $\vs\cdot\vz=0$, which gives $\vz=\vzero$. (c) $\vy_k=\mat{A}\vs_k$:
+the secant condition is then exact, and BFGS with exact line searches finds the
+minimum of a quadratic in at most $n$ steps.
+\end{solution}
+
+\exercise{Limits of the damping}\label{exo:opt-lm}
+\index{Levenberg--Marquardt method!exercise}%
+In~\eqref{eq:opt-lm} with $\mat{D}=\mat{I}$, show that $\nu\,\vd\to-\mat{S}\T\mat{r}$ as
+$\nu\to\infty$ and that $\vd$ tends to the Gauss--Newton step as $\nu\to0$ when
+$\mat{S}$ has full rank. Along which eigenvectors of $\mat{S}\T\mat{S}$ is a moderate
+damping most effective?
+\begin{solution}
+Write $\vd=-(\mat{S}\T\mat{S}+\nu\mat{I})^{-1}\mat{S}\T\mat{r}$ in the eigenbasis
+$(\lambda_i,\vect v_i)$: the component along $\vect v_i$ is
+$-(\vect v_i\cdot\mat{S}\T\mat{r})/(\lambda_i+\nu)$. For $\nu\gg\lambda_i$ it is
+$-(\cdot)/\nu$: a short steepest-descent step. For $\nu\to0$ it is $-(\cdot)/\lambda_i$:
+Gauss--Newton. A damping $\nu$ between the eigenvalues cuts the components with
+$\lambda_i\ll\nu$, the flat directions, and keeps those with $\lambda_i\gg\nu$.
+\end{solution}
+
+\framesub{Problems}
+
+\exercise{Six methods on the Rosenbrock valley}\label{exo:opt-rosen}
+\index{Rosenbrock function}%
+The function of Rosenbrock~\cite{Rosenbrock1960},
+$\mathcal J=\tfrac12\norm{\mat{r}}^2$ with $\mat{r}=(10(p_2-p_1^2),\,1-p_1)$, has its minimum
+at $(1,1)$ at the bottom of a curved valley. From $(-1.2,1)$, minimize it to
+$10^{-6}$ with steepest descent, Newton and Gauss--Newton (all with an Armijo
+backtracking), Nelder--Mead, BFGS and Levenberg--Marquardt, and count the
+evaluations.
+\begin{solution}
+Steepest descent needs $14\,446$ iterations and $129\,225$ values of $\mathcal J$: it
+zigzags along the curved valley. Newton needs 21 iterations, Gauss--Newton 10
+(32 values), BFGS 36 iterations with 47 values and gradients, Levenberg--Marquardt
+21 residual and 16 Jacobian evaluations, and Nelder--Mead 117 iterations with 219
+values. The methods that use curvature, exact (Newton) or from first derivatives
+(Gauss--Newton, BFGS, Levenberg--Marquardt), follow the valley; in two dimensions
+the simplex does too, at a moderate price.
+\lstinputlisting[firstline=5]{python/examples/appF/exo_minimization.py}
+\end{solution}
+
+\begin{chapterbib}{99}
+\bibitem{Armijo1966} L.~Armijo, Minimization of functions having Lipschitz continuous first partial derivatives, \emph{Pacific J. Math.} 16 (1966) 1--3.
+\bibitem{ByrdLuNocedalZhu1995} R.~H.~Byrd, P.~Lu, J.~Nocedal, C.~Zhu, A limited memory algorithm for bound constrained optimization, \emph{SIAM J. Sci. Comput.} 16 (1995) 1190--1208.
+\bibitem{ConnScheinbergVicente2009} A.~R.~Conn, K.~Scheinberg, L.~N.~Vicente, \emph{Introduction to Derivative-Free Optimization}, SIAM, 2009.
+\bibitem{DennisSchnabel1983b} J.~E.~Dennis, R.~B.~Schnabel, \emph{Numerical Methods for Unconstrained Optimization and Nonlinear Equations}, Prentice-Hall, 1983 (reprinted by SIAM, 1996).
+\bibitem{Fletcher1987} R.~Fletcher, \emph{Practical Methods of Optimization}, 2nd ed., Wiley, 1987.
+\bibitem{Kelley1999} C.~T.~Kelley, \emph{Iterative Methods for Optimization}, SIAM, 1999.
+\bibitem{LagariasEtAl1998b} J.~C.~Lagarias, J.~A.~Reeds, M.~H.~Wright, P.~E.~Wright, Convergence properties of the Nelder--Mead simplex method in low dimensions, \emph{SIAM J. Optim.} 9 (1998) 112--147.
+\bibitem{Levenberg1944} K.~Levenberg, A method for the solution of certain non-linear problems in least squares, \emph{Quart. Appl. Math.} 2 (1944) 164--168.
+\bibitem{Marquardt1963} D.~W.~Marquardt, An algorithm for least-squares estimation of nonlinear parameters, \emph{J. SIAM} 11 (1963) 431--441.
+\bibitem{More1978} J.~J.~Mor\'e, The Levenberg--Marquardt algorithm: implementation and theory, in G.~A.~Watson (ed.), \emph{Numerical Analysis}, Lecture Notes in Mathematics 630, Springer, 1978, 105--116.
+\bibitem{NelderMead1965b} J.~A.~Nelder, R.~Mead, A simplex method for function minimization, \emph{Comput. J.} 7 (1965) 308--313.
+\bibitem{NocedalWright2006b} J.~Nocedal, S.~J.~Wright, \emph{Numerical Optimization}, 2nd ed., Springer, 2006.
+\bibitem{PressEtAl2007} W.~H.~Press, S.~A.~Teukolsky, W.~T.~Vetterling, B.~P.~Flannery, \emph{Numerical Recipes: The Art of Scientific Computing}, 3rd ed., Cambridge University Press, 2007.
+\bibitem{Rosenbrock1960} H.~H.~Rosenbrock, An automatic method for finding the greatest or least value of a function, \emph{Comput. J.} 3 (1960) 175--184.
+\bibitem{Wolfe1969} P.~Wolfe, Convergence conditions for ascent methods, \emph{SIAM Rev.} 11 (1969) 226--235.
+\end{chapterbib}

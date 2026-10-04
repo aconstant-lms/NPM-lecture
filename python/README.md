@@ -20,6 +20,24 @@
     examples/ch5/  return-map library ci_core.py (Boxes 5.1-5.5), axisymmetric FE
                    solver ci_fem.py, and the exercise scripts of Chapter 5
                    (run them from python/examples/ch5: they import ci_core)
+    figures/ch6/   figures of Chapter 6 (truss: lattice of the computations and
+                   convergence; Bree vessel: diagram, iterates through the wall,
+                   ratchetting drift, two periodic states)
+    examples/ch6/  cy_core.py: the three-bar truss and the Bree vessel as fibre
+                   structures, return map with a search direction, global stage,
+                   incremental and whole-history solvers (direct cyclic method),
+                   LATIN with relaxation, period map (Picard, Krasnoselskii-Mann,
+                   Anderson) and Zarka's estimate
+    figures/ch7/   figures of Chapter 7 (truss identification, indented membrane,
+                   Norton relaxation)
+    examples/ch7/  id_core.py: return-map derivatives, truss with direct
+                   differentiation and discrete adjoint, Norton filament with
+                   sensitivities, indented membrane with the contact adjoint,
+                   Gauss-Newton identifiability, adjoint with checkpoints; exercise scripts (exo_jax_truss.py
+                   needs jax, exo_openturns_truss.py needs openturns)
+    examples/appF/ Rosenbrock comparison of six minimization methods (Appendix F)
+    examples/appE/ exercise of the appendix on iterative methods (Picard,
+                   averaging, Anderson, Newton on two test problems)
 
 The exercise files are printed in the solutions with `\lstinputlisting`,
 so editing a file here changes the printed solution. Each file runs on its own:

@@ -10,7 +10,7 @@ The index is produced by makeindex, run automatically by `imakeidx` (style `prea
 Uncomment `\includeonly{...}` in `main.tex` to compile a single chapter.
 
 ## Layout
-    main.tex                      book skeleton (frontmatter, notation list, 5 chapters, 4 appendices)
+    main.tex                      book skeleton (frontmatter, notation list, 7 chapters, 6 appendices)
     preamble/style.tex            RG-style typography: sans-serif headings, gray boxes (gbox),
                                   \exercise{...} + solution environment, chapterbib, TikZ styles
     preamble/notation.tex         notation for the whole book (see below)
@@ -29,6 +29,8 @@ Uncomment `\includeonly{...}` in `main.tex` to compile a single chapter.
     appendices/appA_...           App. B Function spaces, Poincare inequality, Cea's lemma
     appendices/appB_...           App. C Variational derivatives (Gateaux, Frechet, functional derivative, E-L)
     appendices/appC_...           App. D Integration by parts: the Gauss-Ostrogradsky family
+    appendices/appD_...           App. E Iterative methods for nonlinear equations
+    appendices/appE_...           App. F Minimization algorithms
     figures/ch1, ch2, ch4, ch5, appB   figures (ch2 = slide figures)
     python/figures/...            figure scripts (run from their own directory)
     python/examples/...           exercise code, printed in the book with \lstinputlisting

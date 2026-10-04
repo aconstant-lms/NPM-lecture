@@ -1,0 +1,1728 @@
+%======================================================================
+\chapter{From prediction--correction to LATIN and the direct cyclic method}\label{ch:pl-cyc}
+%======================================================================
+% Sources: notes "Global-local methods for cyclic and monotone elastoplasticity"
+% (2 Oct 2026); H. Maitournam, MEC562 "Mecanique des structures anelastiques"
+% (2012), Sec. 3.6 (three-bar truss) and Ch. 4 (cyclic loads, vessel of
+% Sec. 4.5); P. Ladeveze, Nonlinear Computational Structural Mechanics (1999),
+% Ch. 3, 4, 7; Dang Van and Maitournam (1993); Maouche, Maitournam and
+% Dang Van (1997); Maitournam, Pommier and Thomas (2002); MEALOR II Ch. 2.
+% Also: Amiable, Chapuliot, Constantinescu, Fissolo (2006) for Zarka's method.
+% Draft of 4 Oct 2026; code in python/examples/ch6 (cy_core.py).
+
+\framepart{Outline}
+Chapter~\ref{ch:pl-num} computed an elastoplastic evolution step by step. In
+every step a local problem, the return map at each Gauss point, alternates
+with a global problem, equilibrium, until both are satisfied; then the next
+step starts. This chapter keeps the two problems and changes the order in
+which they are visited. The local stage is applied to a whole history at
+each point, the global stage to all the instants of that history, and the
+two alternate until the history converges. This is the idea of the
+\emph{large time increment} (LATIN) method of
+Ladev\`eze~\cite{LadevezeNCSM} and of the \emph{direct methods} of the
+\'Ecole polytechnique for moving and cyclic
+loads~\cite{DangVanMaitournam1993,MaoucheMaitournamDangVan1997,MaitournamPommierThomas2002}.
+They compute the stabilized response of a structure under a cyclic or a
+moving load without following the history cycle after cycle, which is what
+fatigue design needs.
+
+Two small structures are carried through the whole chapter. The three-bar
+truss is a structure with one redundancy, loaded by forces: it shows how
+plasticity redistributes the forces between the bars. The Bree vessel is a
+wall loaded by a pressure and a cyclic temperature gradient: it shows
+ratchetting. Each method of the chapter is computed on both, and the plots
+show the computation itself, in time and in space, not only its result.
+
+\paragraph{By the end of this chapter you should be able to:}
+\begin{itemize}
+  \item write the elastic solution, the residual stresses and the asymptotic
+  regimes of the three-bar truss and of the Bree vessel;
+  \item split an elastoplastic evolution into admissible and constitutive
+  histories, and write the Melan decomposition of the solution;
+  \item describe the incremental method and the iteration on the whole history
+  as two orders of the same local and global computations, and say what each
+  order guarantees;
+  \item program the direct cyclic method, recognize its convergence, its
+  non-convergence (ratchetting) and its non-unique limits;
+  \item state when the LATIN method converges, and explain the
+  role of the search directions and of the relaxation;
+  \item use Zarka's simplified analysis to estimate a shakedown state without
+  following the history.
+\end{itemize}
+
+\paragraph{Plan of the chapter.} Section~\ref{sec:cy-models} presents the two
+model problems and their asymptotic regimes. Section~\ref{sec:cy-split}
+writes the evolution problem on a time window as the intersection of two sets
+of histories. Section~\ref{sec:cy-orders} compares the two orders of
+computation. Section~\ref{sec:cy-latin} treats the search directions and the
+LATIN method, Section~\ref{sec:cy-period} the period map of cyclic loads,
+Section~\ref{sec:cy-dcm} the direct cyclic and stationary methods, and
+Section~\ref{sec:cy-zarka} Zarka's simplified analysis.
+Section~\ref{sec:cy-map} places the other direct methods. A summary,
+exercises with solutions (page~\pageref{sec:cy-exo}) and the references close
+the chapter.
+
+\begin{gbox}{Guiding questions}
+\begin{enumerate}[itemsep=1pt]
+  \item What does a structure become after many cycles of load, and how can
+  this state be computed without following the cycles?
+  (Sections~\ref{sec:cy-models}, \ref{sec:cy-period})
+  \item Which equations are linear and global, which are nonlinear and local,
+  and on which time window can they be split? (Section~\ref{sec:cy-split})
+  \item Why does the step-by-step method always converge, and what can go wrong
+  when the whole history is iterated at once? (Section~\ref{sec:cy-orders})
+  \item Which search directions make the iteration on the whole history
+  converge, and how fast? (Sections~\ref{sec:cy-latin}--\ref{sec:cy-zarka})
+\end{enumerate}
+The tools are the generalized standard materials and the uniqueness of the
+stresses of Chapter~\ref{ch:pl}, the return map and its contractivity of
+Chapter~\ref{ch:pl-num}, and the residual stresses and shakedown of
+Example~\ref{ex:pl-bar}.
+\end{gbox}
+
+%======================================================================
+\section{Two model problems}\label{sec:cy-models}
+\index{model problems (cyclic plasticity)}%
+Both structures are made of \emph{fibres} in uniaxial stress: the bars of the
+truss, the layers of the wall. Each fibre $i$ has a strain $\varepsilon_i$, a
+stress $\sigma_i$, a plastic strain $\varepsilon^p_i$ and the law of the
+filament of Chapter~\ref{ch:pl-num} with linear kinematic hardening:
+\begin{equation}\label{eq:cy-fibre}
+  \sigma_i=E\,(\varepsilon_i-\varepsilon^p_i-\varepsilon^{th}_i),\qquad
+  |\sigma_i-H\varepsilon^p_i|\le\sY,
+\end{equation}
+with the normality rule of Section~\ref{ssec:pl-1d-kin} and the back stress
+$q_i=H\varepsilon^p_i$; $H=0$ is perfect plasticity and $\varepsilon^{th}_i$ a
+thermal strain.
+
+\paragraph{Three steps, and plasticity lives in the middle one.}
+\index{A^TCA@$A\T CA$ framework}%
+Strang writes every linear structure in three steps~\cite{Strang1986c}: the
+displacements give the strains, the strains give the stresses, the stresses
+balance the loads. For the fibres,
+\begin{equation}\label{eq:cy-discrete}
+  \boldsymbol\varepsilon=\mat{B}\,\mat{u},\qquad
+  \boldsymbol\sigma=\mat{E}\,(\boldsymbol\varepsilon-\boldsymbol\varepsilon^p-\boldsymbol\varepsilon^{th}),\qquad
+  \mat{B}\T\mat{W}\boldsymbol\sigma=\mat{F}(t),
+\end{equation}
+where $\mat{E}$ is the diagonal matrix of the moduli and $\mat{W}$ the
+diagonal matrix of the fibre volumes. Without plastic and thermal strains the
+three steps combine into one linear system,
+\begin{equation}\label{eq:cy-K}
+  \mat{K}\mat{u}=\mat{F},\qquad \mat{K}=\mat{B}\T\mat{W}\mat{E}\,\mat{B},
+\end{equation}
+the $A\T CA$ of Strang with $A=\mat{B}$ and $C=\mat{W}\mat{E}$
+(Figure~\ref{fig:cy-ATCA}). Plasticity changes only the middle step. The first
+and the last steps, geometry and equilibrium, stay linear; the middle step
+receives an extra strain $\boldsymbol\varepsilon^p$, decided at each fibre by
+its own flow rule. This is the split of Chapter~\ref{ch:pl} once more, now in
+matrices, and the whole chapter plays with it. The structure is the finite
+element structure of Section~\ref{sec:pn-incr} with one Gauss point per fibre:
+small enough to be solved by hand, and to be plotted completely.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=1.0cm and 1.9cm,>=Latex]
+  \node[smallbox,kin,minimum width=2.6cm] (u) {$\mat{u}$\\ \footnotesize displacements};
+  \node[smallbox,kin,minimum width=2.6cm,below=of u] (e) {$\boldsymbol\varepsilon$\\ \footnotesize strains};
+  \node[smallbox,stat,minimum width=2.6cm,right=3.2cm of e] (s) {$\boldsymbol\sigma$\\ \footnotesize stresses};
+  \node[smallbox,stat,minimum width=2.6cm,above=of s] (f) {$\mat{F}$\\ \footnotesize loads};
+  \node[smallbox,key,minimum width=2.6cm,below=0.9cm of $(e)!0.5!(s)$] (p) {$\boldsymbol\varepsilon^p$: flow rule, fibre by fibre};
+  \draw[arr] (u) -- (e) node[midway,left,font=\small] {$\mat{B}$};
+  \draw[arr] (e) -- (s) node[midway,above,font=\small] {$\mat{W}\mat{E}$};
+  \draw[arr] (s) -- (f) node[midway,right,font=\small] {$\mat{B}\T$};
+  \draw[arr] (u) -- (f) node[midway,above,font=\small] {$\mat{K}=\mat{B}\T\mat{W}\mat{E}\mat{B}$};
+  \draw[arr] (p) -- ($(e)!0.5!(s)$) node[pos=0.4,right,font=\small] {$-\boldsymbol\varepsilon^p$};
+  \draw[arr,dashed] (s.south) |- (p.east);
+\end{tikzpicture}
+\caption{The three steps of a structure, after Strang~\cite{Strang1986c}:
+geometry ($\mat{B}$), material ($\mat{W}\mat{E}$) and equilibrium
+($\mat{B}\T$). Plasticity enters the middle step only, as a strain
+$\boldsymbol\varepsilon^p$ that each fibre computes from its own stress.}
+\label{fig:cy-ATCA}
+\end{figure}
+
+\subsection{The three-bar truss}\label{ssec:cy-truss}
+\index{three-bar truss}\index{residual stress!three-bar truss}%
+The truss of Maitournam~\cite[Sec.~3.6]{Maitournam2012c} has three bars of
+the same section $S$ and modulus $E$, hinged at the node $O$ and at the fixed
+points $A$, $B$, $C$ (Figure~\ref{fig:cy-truss}). Bar~3 has the length $l$
+and the direction $\vect e_1$; bars~1 and~2 have the length $l\sqrt2$ and
+make angles of $\pm45^\circ$ with it. A force $\vect Q=Q_1\vect e_1+Q_2\vect
+e_2$ acts at $O$. The bars carry the normal forces $N_i=S\sigma_i$, and the
+elongation of bar $i$ is $\delta_i=\vect t_i\cdot\vect u$, where $\vect t_i$ is
+its unit vector oriented towards $O$ and $\vect u$ the displacement of $O$.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=1.25,>=Latex]
+  \coordinate (O) at (0,0);
+  \coordinate (A) at (-2,-2); \coordinate (B) at (-2,2); \coordinate (C) at (-2,0);
+  \foreach \P in {A,B,C}{\fill[pattern=north east lines] ($(\P)+(-0.25,-0.22)$) rectangle ($(\P)+(0,0.22)$);
+     \draw[thick] ($(\P)+(0,-0.22)$) -- ($(\P)+(0,0.22)$);}
+  \draw[very thick,gray!70] (A) -- (O) node[midway,below right,black,font=\small] {1};
+  \draw[very thick,gray!70] (B) -- (O) node[midway,above right,black,font=\small] {2};
+  \draw[very thick,gray!70] (C) -- (O) node[midway,above,black,font=\small] {3};
+  \foreach \P in {A,B,C,O}{\fill[white,draw=black] (\P) circle (1.5pt);}
+  \node[left=6pt,font=\small] at (A) {$A$}; \node[left=6pt,font=\small] at (B) {$B$};
+  \node[left=6pt,font=\small] at (C) {$C$}; \node[below right,font=\small] at (O) {$O$};
+  \draw[->,very thick,orange!80!black] (O) -- (1.1,0) node[right] {$Q_1$};
+  \draw[->,very thick,orange!80!black] (O) -- (0,1.1) node[above] {$Q_2$};
+  \draw[|<->|] (-2,-2.45) -- (0,-2.45) node[midway,below,font=\small] {$l$};
+  \draw[->] (0.6,-1.6) -- (1.1,-1.6) node[right,font=\small] {$\vect e_1$};
+  \draw[->] (0.6,-1.6) -- (0.6,-1.1) node[above,font=\small] {$\vect e_2$};
+\end{tikzpicture}
+\caption{The three-bar truss of Maitournam~\cite{Maitournam2012c}: one degree of
+redundancy, a force $(Q_1,Q_2)$ at the node $O$.}
+\label{fig:cy-truss}
+\end{figure}
+
+\paragraph{Elastic solution.}
+Equilibrium of $O$ gives two equations for three forces:
+$N_2=N_1-\sqrt2\,Q_2$ and $N_3=Q_1+Q_2-\sqrt2\,N_1$. The truss is redundant of
+degree one: the self-equilibrated forces form the line
+\begin{equation}\label{eq:cy-truss-self}
+  (N_1,N_2,N_3)=\gamma\,(1,1,-\sqrt2),\qquad \gamma\in\R .
+\end{equation}
+The elongations are compatible if they derive from a displacement of $O$,
+that is, if they are orthogonal to the self-stresses:
+$\delta_1+\delta_2=\sqrt2\,\delta_3$. With $\delta_i=N_il_i/(ES)$ this gives
+$N_1+N_2=N_3$ and the elastic solution~\cite[eq.~(3.46)]{Maitournam2012c}
+\begin{equation}\label{eq:cy-truss-el}
+  N^{el}_1=\frac{Q_1}{2+\sqrt2}+\frac{Q_2}{\sqrt2},\qquad
+  N^{el}_2=\frac{Q_1}{2+\sqrt2}-\frac{Q_2}{\sqrt2},\qquad
+  N^{el}_3=\frac{2Q_1}{2+\sqrt2}.
+\end{equation}
+Under $Q_1$ alone, bar~3 yields first, at $Q_1=(2+\sqrt2)N_0/2\approx1.71N_0$
+with $N_0=S\sY$, and the truss collapses at the limit load
+$Q_L=(1+\sqrt2)N_0\approx2.41N_0$, when bars~1 and~2 yield as well.
+
+\paragraph{Residual forces and the kernel.}
+\index{Melan decomposition!three-bar truss}%
+Let the bars carry plastic elongations $\delta^p_i=l_i\varepsilon^p_i$ at zero
+load. The forces are self-equilibrated, hence of the
+form~\eqref{eq:cy-truss-self}, and compatibility of the total elongations
+$\delta_i=N_il_i/(ES)+\delta^p_i$ fixes $\gamma$:
+\begin{equation}\label{eq:cy-truss-res}
+  \gamma=-\frac{ES}{(2+2\sqrt2)\,l}\,\bigl(\delta^p_1+\delta^p_2-\sqrt2\,\delta^p_3\bigr).
+\end{equation}
+The residual forces see only the combination
+$\delta^p_1+\delta^p_2-\sqrt2\,\delta^p_3$, the incompatibility of the plastic
+elongations. A compatible plastic elongation, for instance $(a,-a,0)$, which
+is the elongation produced by a vertical displacement of $O$, leaves no
+residual force: it moves the node and nothing else.
+
+\paragraph{The same computation with matrices.}
+\index{residual stress!operator (truss)}%
+Take $l=1$ and $S=1$. The rows of $\mat{B}$ are the vectors $\vect t_i/l_i$, and
+the volumes are the lengths:
+\[
+  \mat{B}=\begin{bmatrix}\tfrac12&\tfrac12\\[1pt]\tfrac12&-\tfrac12\\[1pt]1&0\end{bmatrix},\qquad
+  \mat{W}=\diag(\sqrt2,\sqrt2,1),\qquad
+  \mat{K}=\mat{B}\T\mat{W}\mat{E}\mat{B}=E\begin{bmatrix}1+\tfrac1{\sqrt2}&0\\ 0&\tfrac1{\sqrt2}\end{bmatrix}.
+\]
+The stiffness is diagonal: by symmetry, the horizontal and the vertical loads
+do not interact. Now put plastic strains $\boldsymbol\varepsilon^p$ in the bars,
+at zero load. The node moves by $\mat{u}=\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}\boldsymbol\varepsilon^p$,
+the strains are $\mat{B}\mat{u}=\mat{P}\boldsymbol\varepsilon^p$, and the stresses
+$\mat{E}(\mat{P}-\mat{I})\boldsymbol\varepsilon^p=-\mat{Z}\boldsymbol\varepsilon^p$, with
+\begin{equation}\label{eq:cy-truss-PZ}
+  \mat{P}=\mat{B}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}=
+  \begin{bmatrix}a&-b&b\\-b&a&b\\c&c&1-c\end{bmatrix},\qquad
+  \mat{Z}=\mat{E}(\mat{I}-\mat{P})=E\begin{bmatrix}b\\b\\-c\end{bmatrix}\begin{bmatrix}1&1&-1\end{bmatrix},
+\end{equation}
+where $a=1/\sqrt2\approx0.707$, $b=1-a\approx0.293$ and $c=\sqrt2-1\approx0.414$.
+Two facts can be read on these matrices. $\mat{Z}$ has rank one: one
+redundancy, one way of carrying residual stresses, along $(1,1,-\sqrt2)$. And
+$\mat{Z}$ sends $(1,-1,0)$ to zero: the plastic strain of a vertical motion of
+the node is compatible, and leaves no residual stress. The matrix $\mat{P}$ keeps
+the compatible part of a plastic strain, and $\mat{Z}$ turns the rest into
+residual stress. Section~\ref{sec:cy-split} shows that this is true for every
+structure.
+
+
+\paragraph{Three loadings.}
+Three periodic loadings of period $T=2\pi$ produce the three asymptotic
+regimes of Section~\ref{sec:cy-period} (perfect plasticity,
+Exercise~\ref{exo:cy-q-truss}):
+\begin{itemize}
+  \item $Q_1=1.1N_0(1-\cos t)$, $Q_2=0$: bar~3 yields in the first cycle, then
+  the response is elastic. The range of $N^{el}_3$ is $1.29N_0<2N_0$; this is
+  \emph{elastic shakedown}.
+  \item $Q_1=1.9N_0\sin t$, $Q_2=0$: the range of $N^{el}_3$ is
+  $2.23N_0>2N_0$. Bar~3 yields in tension and in compression in every cycle;
+  this is \emph{alternating plasticity}.
+  \item $Q_2=N_0$ constant and $Q_1=1.2N_0\sin t$: the constant force loads
+  bars~1 and~2 with opposite signs, the alternating one with the same sign.
+  Bar~1 yields in tension in one half-cycle, bar~2 in compression in the
+  other, and the plastic elongations grow by $(a,-a,0)$ in every cycle, with
+  $a=0.4\,\delta_Y$ ($\delta_Y=\sY l\sqrt2/E$): this is \emph{ratchetting}.
+  The ratchet increment is compatible: it lies in the kernel of the
+  residual-stress operator, and nothing in the stresses opposes it.
+\end{itemize}
+With kinematic hardening $H=0.05E$ the third loading no longer ratchets: the
+plastic elongations converge, in about sixty cycles, to a state of elastic
+shakedown. This slow approach is the test case of
+Section~\ref{sec:cy-orders}.
+
+\subsection{The Bree tube and the spherical vessel}\label{ssec:cy-bree}
+\index{Bree problem}\index{ratchetting!Bree problem}%
+A thin tube, or a thin spherical vessel, of mean radius $r_m$ and thickness
+$e\ll r_m$, contains a fluid at a constant pressure $p$. A heat flux crosses
+the wall and is switched on and off, so that the temperature varies linearly
+through the wall, hot inside and cold outside, with the amplitude
+$\tau_0\lambda(t)$, $\lambda(t)=|\sin t|$ (Figure~\ref{fig:cy-vessels}). The
+tube is the problem of Bree~\cite{Bree1967} for the fuel cans of fast reactors;
+the sphere is the reactor vessel of Maitournam~\cite[Sec.~4.5]{Maitournam2012c}.
+Three observations reduce either structure to a column of layers.
+\begin{itemize}
+  \item \emph{Symmetry.} The long tube is axisymmetric: every plane through the
+  axis is a plane of symmetry, and plane sections stay plane. The sphere is
+  symmetric about its centre. Nothing depends on the position along the wall,
+  so that one element of the wall, cut by two planes of symmetry, represents
+  the whole structure.
+  \item \emph{Thin wall.} The radial displacement $u$ is the same across the
+  thickness. The hoop strain $u/r_m$ is therefore the same in every layer,
+  and the radial stress, between $-p$ and $0$, is negligible compared with the
+  hoop stress.
+  \item \emph{Equilibrium.} Cut the vessel in two halves: the pressure on the
+  half is balanced by the hoop stress on the cut. The mean hoop stress through
+  the wall is $\sigma_P=p\,r_m/e$ in the tube and $\sigma_P=p\,r_m/(2e)$ in the
+  sphere.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[>=Latex,scale=0.95]
+  % ---------------- (a) tube
+  \begin{scope}
+    \node[font=\sffamily\bfseries\small,anchor=west] at (-0.9,1.85) {(a) tube};
+    \draw[dashed,gray] (-0.9,0) -- (4.3,0) node[right,font=\small,black] {$z$};
+    \draw[thick] (0,1.2) -- (3.4,1.2);
+    \draw[thick] (0,-1.2) -- (3.4,-1.2);
+    \draw[thick] (3.4,-1.2) arc[start angle=-90,end angle=90,x radius=0.62,y radius=1.2];
+    \draw[thin,dashed,gray] (3.4,1.2) arc[start angle=90,end angle=270,x radius=0.62,y radius=1.2];
+    \fill[gray!25,even odd rule] (0,0) ellipse (0.62 and 1.2) (0,0) ellipse (0.49 and 0.95);
+    \draw[thick] (0,0) ellipse (0.62 and 1.2);
+    \draw[thick] (0,0) ellipse (0.49 and 0.95);
+    \fill[orange!70] (55:0.62 and 1.2) arc[start angle=55,end angle=78,x radius=0.62,y radius=1.2]
+      -- (78:0.49 and 0.95) arc[start angle=78,end angle=55,x radius=0.49,y radius=0.95] -- cycle;
+    \foreach \a in {0,60,120,180,240,300}{
+      \draw[->,cu,thick] ({0.49*0.35*cos(\a)},{0.95*0.35*sin(\a)}) -- ({0.49*0.9*cos(\a)},{0.95*0.9*sin(\a)});}
+    \node[cu,font=\small] at (0,0) {$p$};
+    \draw[->,red!70!black,thick,decorate,decoration={snake,amplitude=0.6pt,segment length=4pt}]
+      (-0.05,-0.75) -- (-0.05,-1.6);
+    \node[red!70!black,font=\footnotesize,anchor=north] at (-0.05,-1.6) {heat flux};
+    \node[font=\small,anchor=west] at (0.85,0.5) {$T_i(t)$ inside (hot)};
+    \node[font=\small,anchor=west] at (1.6,-1.5) {$T_e$ outside};
+    \draw[orange!70!black] (0.32,1.08) -- (1.2,1.5) node[right,font=\footnotesize] {element};
+  \end{scope}
+  % ---------------- (b) sphere
+  \begin{scope}[xshift=6.6cm]
+    \node[font=\sffamily\bfseries\small,anchor=west] at (-1.4,1.85) {(b) sphere};
+    \fill[gray!25,even odd rule] (0,0) circle (1.2) (0,0) circle (0.95);
+    \draw[thick] (0,0) circle (1.2);
+    \draw[thick] (0,0) circle (0.95);
+    \draw[gray,dashed] (0,0) ellipse (1.2 and 0.32);
+    \fill[orange!70] (55:1.2) arc[start angle=55,end angle=78,radius=1.2]
+      -- (78:0.95) arc[start angle=78,end angle=55,radius=0.95] -- cycle;
+    \foreach \a in {0,60,120,180,240,300}{
+      \draw[->,cu,thick] (\a:0.33) -- (\a:0.86);}
+    \node[cu,font=\small] at (0,0) {$p$};
+    \node[font=\footnotesize,align=left,anchor=north] at (0,-1.35)
+      {$\sigma_{\theta\theta}=\sigma_{\varphi\varphi}$ (equibiaxial)};
+  \end{scope}
+  % ---------------- (c) wall element
+  \begin{scope}[xshift=10.1cm]
+    \node[font=\sffamily\bfseries\small,anchor=west] at (-0.5,1.85) {(c) element of the wall};
+    \fill[orange!20] (0,-0.9) rectangle (2.0,0.9);
+    \foreach \x in {0.2,0.4,...,1.81}{\draw[orange!60,thin] (\x,-0.9) -- (\x,0.9);}
+    \draw[thick] (0,-0.9) rectangle (2.0,0.9);
+    % hoop stress sigma = sigma_P + 2 sigma_T x, X=0.7, Y=1.5, scale 0.22
+    \foreach \x in {0.1,0.3,...,1.91}{
+      \pgfmathsetmacro{\sg}{0.22*(0.7+1.5*2*(\x/2.0-0.5))}
+      \draw[->,cphi!80!black,thick] (\x,0.9) -- (\x,{0.9+\sg});
+      \draw[->,cphi!80!black,thick] (\x,-0.9) -- (\x,{-0.9-\sg});}
+    \node[cphi!70!black,font=\small,anchor=west] at (2.05,1.25) {$\sigma(x,t)$};
+    \draw[<->] (0,-1.75) -- (2.0,-1.75) node[midway,below,font=\footnotesize] {$e$: $x\in[-\tfrac12,\tfrac12]$};
+    \node[font=\footnotesize,anchor=east] at (-0.05,0) {inner};
+    \node[font=\footnotesize,anchor=west] at (2.05,0) {outer};
+    \draw[->] (2.75,-1.75) -- (3.2,-1.75) node[right,font=\footnotesize] {$r$};
+    \draw[->] (2.75,-1.75) -- (2.75,-1.3) node[above,font=\footnotesize] {$\theta$};
+    \node[font=\footnotesize,align=center] at (1.0,-2.8) {same hoop strain $\varepsilon(t)$ in all layers;\\ temperature $\tau=-\tau_0x\lambda(t)$};
+  \end{scope}
+  \draw[->,dashed,orange!70!black] (7.25,1.05) to[bend left=20] (10.05,0.6);
+\end{tikzpicture}
+\caption{The Bree problem. (a) A long thin tube and (b) a thin sphere under an
+internal pressure $p$ and a cyclic heat flux through the wall. By symmetry
+nothing depends on the position along the wall, and an element cut by planes
+of symmetry (orange) represents the structure: for the tube, two planes
+through the axis and two cross-sections. (c) The element is a column of
+layers through the thickness: all the layers have the same hoop strain, their
+temperatures vary linearly through the wall, and their stresses, here the
+elastic stresses at the hottest instant for $X=0.7$, $Y=1.5$, have the mean
+$\sigma_P$.}
+\label{fig:cy-vessels}
+\end{figure}
+
+The element is a column of layers, at the position $x=(r-r_m)/e\in[-\tfrac12,\tfrac12]$
+in the wall, all with the same hoop strain $\varepsilon(t)$:
+\begin{equation}\label{eq:cy-bree}
+  \sigma(x,t)=\tilde E\,\bigl(\varepsilon(t)-\varepsilon^p(x,t)+\alpha\tau_0x\lambda(t)\bigr),
+  \qquad
+  \int_{-1/2}^{1/2}\sigma(x,t)\dd x=\sigma_P .
+\end{equation}
+In the tube, Bree keeps the hoop stress only, and $\tilde E=E$. In the sphere
+the stress is equibiaxial, $\sigma_{\theta\theta}=\sigma_{\varphi\varphi}=\sigma$,
+the von Mises stress is $|\sigma|$, and $\tilde E=E/(1-\nu)$. The two problems are
+the same problem. The computations of this chapter use the data of the
+sphere~\cite{Maitournam2012c}, $E=200$\,GPa, $\nu=0.3$, $\sY=280$\,MPa; in the
+variables $X$, $Y$ below, the regimes do not depend on the modulus. In the
+notation~\eqref{eq:cy-discrete}, the layers are the fibres, $\mat{B}$ is a column
+of ones (one unknown, the hoop strain) and $\mat{W}$ the layer thicknesses.
+
+\paragraph{Elastic solution and residual stresses.}
+Without plastic strain the mean of~\eqref{eq:cy-bree} gives
+$\tilde E\varepsilon=\sigma_P$, hence
+\begin{equation}\label{eq:cy-bree-el}
+  \sigma^{el}(x,t)=\sigma_P+2\sigma_T\,x\,\lambda(t),\qquad
+  \sigma_T=\tfrac12\tilde E\alpha\tau_0 :
+\end{equation}
+the outer skin is in tension and the inner skin in compression during
+heating. With a plastic strain, the mean of~\eqref{eq:cy-bree} gives
+$\varepsilon=\varepsilon^{el}+\langle\varepsilon^p\rangle$, where
+$\langle\cdot\rangle$ is the mean through the wall, and
+\begin{equation}\label{eq:cy-bree-melan}
+  \sigma=\sigma^{el}+\rho,\qquad
+  \rho(x,t)=-\tilde E\,\bigl(\varepsilon^p(x,t)-\langle\varepsilon^p\rangle(t)\bigr).
+\end{equation}
+The residual stress is the deviation of the plastic strain from its mean,
+times $-\tilde E$. The mean itself, a uniform plastic strain, is compatible:
+it changes the radius of the vessel and produces no stress. Ratchetting will
+be a growth of $\langle\varepsilon^p\rangle$, invisible in the stresses.
+
+\paragraph{The Bree diagram.}
+\index{Bree diagram}%
+With $X=\sigma_P/\sY$ and $Y=\sigma_T/\sY$, perfect plasticity, the
+asymptotic regime depends only on $(X,Y)$ (Figure~\ref{fig:cy-bree-diagram}).
+The response is elastic for $X+Y\le1$. It shakes down elastically for
+$Y\le2$ and $X+Y/4\le1$, alternates for $Y>2$ and $XY\le1$, and ratchets
+otherwise~\cite{Bree1967}; Maitournam~\cite[Sec.~4.5]{Maitournam2012c}
+derives the ratchetting boundary $X+Y/4=1$ by following the first three
+half-cycles. The figure is computed with the incremental method of
+Chapter~\ref{ch:pl-num}, cycle after cycle, on a grid of $50\times60$ load
+pairs; the computed regimes follow Bree's lines to the resolution of the
+grid. The two cases marked (a) and (b) are used in
+Sections~\ref{sec:cy-period}--\ref{sec:cy-dcm}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/ch6/bree_diagram.pdf}
+\caption{Bree diagram, perfect plasticity: elastic (E), elastic shakedown (S),
+alternating plasticity (P) and ratchetting (R). Colours: regimes computed
+cycle by cycle (30 cycles of 20 steps, 40 layers); lines: Bree's boundaries
+$X+Y=1$, $Y=2$, $X+Y/4=1$, $XY=1$. Points (a) $X=0.7$, $Y=1.5$ and (b)
+$X=0.2$, $Y=3$ are the cases of Sections~\ref{sec:cy-period}--\ref{sec:cy-dcm}.}
+\label{fig:cy-bree-diagram}
+\end{figure}
+
+%======================================================================
+\section{Two groups of equations on a time window}\label{sec:cy-split}
+\index{global--local method}%
+\subsection{Admissible and constitutive histories}
+The quasi-static evolution problem of Chapter~\ref{ch:pl} (box in
+Section~\ref{ssec:pl-bvp-eq}) splits into two groups of equations
+(Figure~\ref{fig:pl-tonti}). Chapter~\ref{ch:pl-num} used the split at one
+instant. Here it is used on a \emph{time window} $I$: one step $[t_n,t_\np]$,
+the whole loading interval $[0,T]$, or one period. A \emph{history} on $I$ is
+a set of fields $s=(\vu,\vz,\vSig)$ on $\Omega\times I$.
+\begin{itemize}
+  \item The \emph{admissible histories} $\Ad$ satisfy, at every instant of $I$,
+  the kinematic conditions, equilibrium and the state laws
+  $\sig=\bbC:(\eps[\vu]-\epsp)$, $\vq=-\bbD\valpha$, together with a
+  \emph{closure} condition: the initial state $\vz(t_0)=\vz_0$, or the
+  periodicity $\vz(t_0)=\vz(t_0+T)$. These equations are linear and global in
+  space, and instantaneous in time: $\Ad$ is an affine set.
+  \item The \emph{constitutive histories} $\Gcon$ satisfy the flow rule
+  $\dot\vz\in N_{\Esig}(\vSig)$ at every point of $\Omega\times I$. These
+  equations are nonlinear and local in space: each point carries its own
+  evolution in time.
+\end{itemize}
+The solution is the history that belongs to both: $s\in\Ad\cap\Gcon$. Every
+method of this chapter builds alternately a point of $\Ad$ (the \emph{global
+stage}) and a point of $\Gcon$ (the \emph{local stage}).
+
+The two sets pull in opposite directions, and this is the engine of every
+convergence argument in this chapter.
+\begin{gbox}{The two signs}\label{prop:cy-signs}
+Let $s$, $s'$ be two histories on $I=[t_0,t]$ with the same closure data. If
+$s,s'\in\Ad$, then
+\[
+  \int_{t_0}^{t}\!\!\int_\Omega(\vSig-\vSig')\cdot(\dot\vz-\dot\vz')\dd x\dd\tau
+  =-\tfrac12\norm{(\vSig-\vSig')(t)}_E^2\le0
+\]
+when $\vSig(t_0)=\vSig'(t_0)$. If $s,s'\in\Gcon$, the same integral is
+non-negative.
+\end{gbox}
+\paragraph{Why it works.} For admissible histories, the computation made for
+the uniqueness of the stresses (Section~\ref{thm:pl-unique}) gives
+$\displaystyle \frac{\dd}{\dd t}\tfrac12\norm{\Delta\vSig}_E^2=-\int_\Omega\Delta\vSig\cdot\Delta\dot\vz\dd x$,
+because $\Delta\sig$ is self-equilibrated and $\Delta\dot\vu$ kinematically
+admissible with zero data; integrate in time. For constitutive histories the
+integrand is non-negative at every point, because the flow rule is monotone
+(Section~\ref{cor:pl-monotone}). Equilibrium makes the power of the gap
+negative; the material makes it positive.
+
+The uniqueness of the stresses (Section~\ref{thm:pl-unique}) is the case where
+$s$ and $s'$ are in both sets. The convergence arguments of
+Section~\ref{sec:cy-latin} play the two signs against each other.
+
+\subsection{The Melan decomposition}
+\index{Melan decomposition}\index{residual stress!operator}%
+The admissible set has an explicit structure. Let $(\vu^{el},\sig^{el})$ be the
+\emph{fictitious elastic} response of the structure to the loads, the
+response it would have without plasticity. For a plastic strain field $\epsp$
+at zero load, let $\vw$ be the solution of the elastic problem with initial
+strain $\epsp$:
+\begin{equation}\label{eq:cy-eigen}
+  \vw\in\Kad(\vzero,S_u),\qquad
+  \int_\Omega\eps[\vw]:\bbC:\eps[\vv]\dd x=\int_\Omega\epsp:\bbC:\eps[\vv]\dd x
+  \quad\forall\vv\in\Kad(\vzero,S_u),
+\end{equation}
+and define $\Pop\epsp=\eps[\vw]$ and $\Zop\epsp=\bbC:(\epsp-\Pop\epsp)$.
+In finite elements, \eqref{eq:cy-eigen} is the system
+$\mat{K}\mat{w}=\sum_e\int\mat{B}\T\mat{C}\,\epsp$ with the \emph{elastic}
+stiffness, which is factorized once.
+
+\begin{gbox}{Melan decomposition}\label{prop:cy-melan}
+Every admissible history is of the form
+\begin{equation}\label{eq:cy-melan}
+  \eps=\eps^{el}+\Pop\epsp,\qquad
+  \sig=\sig^{el}+\vrho,\qquad \vrho=-\Zop\epsp .
+\end{equation}
+The operator $\Pop$ is the projection onto the compatible strains, orthogonal
+for the scalar product $\int_\Omega\vect a:\bbC:\vect b\dd x$. The residual
+stress $\vrho$ is self-equilibrated; $\Zop$ is symmetric, positive
+semi-definite, and its kernel is the set of compatible strains: a compatible
+plastic strain produces no residual stress.
+\end{gbox}
+\paragraph{Why it works.} The problem is linear in the data $(\text{loads},\epsp)$; the elastic part
+gives $\eps^{el}$, the plastic part gives $\Pop\epsp$ by~\eqref{eq:cy-eigen}.
+By~\eqref{eq:cy-eigen}, $\vrho=\bbC:(\Pop\epsp-\epsp)$ satisfies
+$\displaystyle \int_\Omega\vrho:\eps[\vv]\dd x=0$ for all admissible $\vv$; it is
+self-equilibrated, and $\epsp-\Pop\epsp$ is orthogonal to the compatible strains.
+If $\epsp=\eps[\vv]$ is compatible, $\Pop\epsp=\epsp$ and $\vrho=\vzero$: a
+plastic strain that fits together like a displacement field leaves no stress
+behind.
+
+\paragraph{The same with matrices.}
+On the fibres the operators are the matrices of~\eqref{eq:cy-truss-PZ},
+$\mat{P}=\mat{B}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}$ and $\mat{Z}=\mat{E}(\mat{I}-\mat{P})$,
+and each property is one line of multiplication.
+\begin{itemize}
+  \item $\mat{P}$ is a projection:
+  $\mat{P}^2=\mat{B}\mat{K}^{-1}(\mat{B}\T\mat{W}\mat{E}\mat{B})\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}
+  =\mat{B}\mat{K}^{-1}\mat{K}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}=\mat{P}$.
+  \item A compatible strain $\boldsymbol\varepsilon^p=\mat{B}\mat{v}$ is kept:
+  $\mat{P}\mat{B}\mat{v}=\mat{B}\mat{K}^{-1}\mat{K}\mat{v}=\mat{B}\mat{v}$, and then
+  $\mat{Z}\boldsymbol\varepsilon^p=\vzero$.
+  \item The residual stress carries no load:
+  $\mat{B}\T\mat{W}\mat{Z}=\mat{B}\T\mat{W}\mat{E}-\mat{K}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}=\mat{0}$.
+  \item $\mat{W}\mat{Z}=\mat{W}\mat{E}-\mat{W}\mat{E}\mat{B}\mat{K}^{-1}\mat{B}\T\mat{W}\mat{E}$
+  is a symmetric matrix, and
+  $\boldsymbol\varepsilon\T\mat{W}\mat{Z}\boldsymbol\varepsilon
+  =\norm{(\mat{I}-\mat{P})\boldsymbol\varepsilon}^2_{\mat{W}\mat{E}}\ge0$.
+\end{itemize}
+In the language of linear algebra~\cite{Strang1986c}, the plastic strains
+split into two orthogonal pieces for the energy product: the column space of
+$\mat{B}$, the compatible strains, which move the structure without stressing
+it, and the rest, which cannot be produced by a motion and is turned into
+residual stress. $\mat{P}$ and $\mat{I}-\mat{P}$ are the two projections.
+
+For the truss, $\Zop$ is the rank-one map~\eqref{eq:cy-truss-res}; for the
+Bree vessel, $\Pop\varepsilon^p=\langle\varepsilon^p\rangle$ and
+$\Zop\varepsilon^p=\tilde E(\varepsilon^p-\langle\varepsilon^p\rangle)$
+by~\eqref{eq:cy-bree-melan}. In both cases the kernel of $\Zop$, the
+compatible plastic strains, is the direction of ratchetting. Substituting the
+decomposition~\eqref{eq:cy-melan} in the flow rule eliminates displacements
+and equilibrium: the evolution problem becomes
+\begin{equation}\label{eq:cy-reduced}
+  \dot\vz\in N_{\Esig}\bigl(\sig^{el}(t)-\Zop\epsp,\ -\bbD\valpha\bigr),
+  \qquad \text{closure on }\vz ,
+\end{equation}
+an evolution equation for the internal variables alone, local in time and
+non-local in space through $\Zop$. It is a \emph{sweeping process} in the
+sense of Moreau~\cite{Moreau1977}: the elastic domain, shifted by the elastic
+stress $\sig^{el}(t)$, moves with the load and drags the internal variables.
+
+\subsection{Three choices}
+The methods of the chapter differ by three choices, which the rest of the
+chapter takes one at a time.
+\begin{gbox}{Window, closure, search directions}
+\index{search directions}%
+\begin{itemize}
+  \item \textbf{Window} of one alternation of the local and global stages: one
+  step (Chapter~\ref{ch:pl-num}), the interval $[0,T]$ (LATIN), one period
+  (direct cyclic method), one streamline (stationary methods).
+  \item \textbf{Closure}: initial state, periodicity $\vz(t_0)=\vz(t_0+T)$, or
+  equality of the states upstream and downstream of a moving load.
+  \item \textbf{Search directions}: the linear relations that link the point
+  of $\Gcon$ to the previous point of $\Ad$ (local stage) and the next point of
+  $\Ad$ to it (global stage): consistent tangent (Newton), elastic stiffness
+  (initial strain), or a symmetric operator used in both stages (LATIN).
+\end{itemize}
+\end{gbox}
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\sffamily method & \sffamily window & \sffamily closure & \sffamily global direction\\
+\midrule
+Newton (Box~5.3) & one step & initial & consistent tangent $\bbCalg$\\
+initial strain (Box~6.1) & one step & initial & elastic $\bbC$\\
+LATIN (Section~\ref{sec:cy-latin}) & $[0,T]$ & initial & symmetric $\mathbb L$, with relaxation\\
+direct cyclic (Section~\ref{sec:cy-dcm}) & one period & periodic & elastic $\bbC$\\
+stationary (Section~\ref{sec:cy-dcm}) & one streamline & upstream & elastic $\bbC$\\
+\bottomrule
+\end{tabular}
+\caption{The methods of the chapter. In all of them the local stage is the
+return map of Chapter~\ref{ch:pl-num} at fixed total strain, except LATIN,
+whose local direction is $\mathbb L$.}
+\label{tab:cy-methods}
+\end{table}
+
+\paragraph{A dictionary.}
+The literature on these methods uses three notations. Ladev\`eze writes the
+material in a ``normal formulation'' with internal variables $X$ and forces
+$Y=AX$; Dang Van and Maitournam use internal parameters $a_k$ and forces
+$A_k=Z:a_k$; Kondo and Maitournam~\cite{KondoMaitournam2023c} use the
+irreversible forces $A=-\rho_0\,\partial\Psi/\partial(\cdot)$.
+Table~\ref{tab:cy-dictionary} translates them into the notation of this book.
+The only trap is a sign: Ladev\`eze's $Y$ and Dang Van--Maitournam's $A_k$ are
+$-\vq$, while Kondo--Maitournam's force of a hardening variable is $\vq$.
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}llll@{}}
+\toprule
+ & \sffamily this book & \sffamily Ladev\`eze~\cite{LadevezeNCSM} & \sffamily Dang Van--Maitournam~\cite{DangVanMaitournam1993}\\
+\midrule
+Hooke, compliance & $\bbC$, $\bbS$ & $K$, $K^{-1}$ & $L$, $M$\\
+hardening variables & $\valpha$ & $X$ & $a_k$\\
+hardening law & $\vq=-\bbD\valpha$ & $Y=AX$ & $A_k=Z:a_k$\\
+correspondence & & $X=\valpha$, $Y=-\vq$, $A=\bbD$ & $a_k=\valpha$, $A_k=-\vq$, $Z=\bbD$\\
+dissipation & $\sig:\dot\eps^p+\vq\cdot\dot\valpha$ & $\sig:\dot\eps^p-Y\cdot\dot X$ & $\sig:\dot\eps^p-A_k\cdot\dot a_k$\\
+flow rule & $\dot\vz\in\partial\varphi^\ast(\sig,\vq)$ & $(\dot\eps^p,-\dot X)=B(\sig,Y)$ & normality to $f(\sig,A_k)\le0$\\
+admissible set & $\Ad$ & $A_d$ & KA, SA, state laws\\
+constitutive set & $\Gcon$ & $\Gamma$ & integration along the path\\
+\bottomrule
+\end{tabular}
+\caption{Notation of the LATIN method and of the direct methods in the
+notation of this book (Table~\ref{tab:pl-dictionary}). In Kondo and
+Maitournam~\cite[Sec.~2.6]{KondoMaitournam2023c}, with the plastic strain as
+the kinematic variable, the force of $\epsp$ is $A_{\varepsilon^p}=\sig-\tbeta$
+and the force of an isotropic variable is $q$.}
+\label{tab:cy-dictionary}
+\end{table}
+
+%======================================================================
+\section{Two orders for the same computations}\label{sec:cy-orders}
+\index{direct method!order of the loops}\index{incremental method!order of the loops}%
+\subsection{Step by step, or the whole history at once}
+Discretize the window in instants $t_0<t_1<\dots<t_N$. Each method evaluates
+the same two kinds of computations: a \emph{local} return map
+$\vz_n=\mathcal R(\eps_n;\vz_{n-1})$ at each Gauss point and instant, and a
+\emph{global} linear solve at each instant. They differ in the order of the
+loops over the instants $n$ and over the iterations $k$
+(Figure~\ref{fig:cy-orders}).
+
+\providecommand{\cycorr}[2]{\draw[thick,#2,-{Latex[length=1.6mm]}] ($(#1)+(0.17,0.10)$)
+   arc[start angle=-30,end angle=260,radius=0.2];}
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[x=0.95cm,y=1cm,
+  glob/.style={-{Latex[length=2mm]},thick,cphi},
+  lab/.style={font=\small,align=left}]
+  % (a) incremental
+  \node[font=\sffamily\bfseries\small,right] at (-0.2,1.75) {(a) incremental};
+  \draw[arr] (0,0) -- (9.6,0) node[right] {$t$};
+  \foreach \x/\l in {0/t_0,3/t_{n-1},4.6/t_n,6.2/t_{n+1},9/t_N}
+     {\draw (\x,0.1) -- (\x,-0.1) node[below] {$\l$};}
+  \foreach \a/\b in {3/4.6,4.6/6.2}{
+     \draw[glob,bend left=50] (\a,0.2) to (\b-0.05,0.35);
+     \coordinate (c) at (\b,0.55); \cycorr{c}{cu}}
+  \coordinate (c) at (3,0.55); \cycorr{c}{cu}
+  \node[lab,cu] at (8.1,0.75) {$k=1,\dots,K_n$};
+  % (b) direct
+  \begin{scope}[yshift=-3.3cm]
+  \node[font=\sffamily\bfseries\small,right] at (-0.2,2.25) {(b) whole history, iteration $k$};
+  \draw[arr,gray] (0,0) -- (9.6,0) node[right,black] {$t$};
+  \foreach \x in {0,1.25,2.5,3.75,5,6.25,7.5,8.75}{
+     \draw[gray] (\x,0.08) -- (\x,-0.08);
+     \draw[glob] (\x,1.55) -- (\x,1.05);
+     \coordinate (c) at (\x,0.55); \cycorr{c}{cu}}
+  \foreach \a/\b in {0/1.25,1.25/2.5,2.5/3.75,3.75/5,5/6.25,6.25/7.5,7.5/8.75}
+     {\draw[cu,thick,-{Latex[length=1.6mm]}] (\a+0.22,0.67) to[bend left=35] (\b-0.2,0.67);}
+  \draw[orange!80!black,thick,dashed,-{Latex[length=2mm]}] (8.75,-0.25) .. controls (8.6,-0.75) and (0.3,-0.75) .. (0,-0.25)
+     node[pos=0.5,below,font=\scriptsize] {closure: $\vz(t_0)=\vz_0$, or $\vz(t_0)\gets\vz(t_N)$ (periodic)};
+  \end{scope}
+  % legend
+  \begin{scope}[yshift=-5.0cm]
+  \draw[glob] (0.1,0) -- (0.6,0); \node[lab,right] at (0.7,0) {global stage: equilibrium (elastic predictor)};
+  \coordinate (c) at (0.35,-0.65); \cycorr{c}{cu}
+  \node[lab,right] at (0.7,-0.6) {local stage: return map (plastic corrector), from $\vz(t_{n-1})$};
+  \end{scope}
+  % (c,d) lattice
+  \begin{scope}[xshift=11.6cm,yshift=-0.4cm,x=0.5cm,y=0.42cm]
+    \node[font=\sffamily\bfseries\small,right] at (-0.8,5.6) {(c) for $n$, for $k$};
+    \foreach \i in {0,...,6}{\foreach \j in {0,...,3}{\fill[gray!60] (\i,\j) circle (1.4pt);}}
+    \foreach \i in {0,...,5}{\draw[cu,thick,-{Latex[length=1.4mm]}] (\i,0.12) -- (\i,2.88);
+       \draw[cphi,thick,-{Latex[length=1.4mm]}] (\i+0.08,3) .. controls (\i+0.5,3) and (\i+0.5,0) .. (\i+0.92,0);}
+    \draw[cu,thick,-{Latex[length=1.4mm]}] (6,0.12) -- (6,2.88);
+    \draw[->] (-0.5,-0.6) -- (6.6,-0.6) node[right,font=\scriptsize] {$n$};
+    \draw[->] (-0.5,-0.6) -- (-0.5,3.6) node[above,font=\scriptsize] {$k$};
+  \end{scope}
+  \begin{scope}[xshift=11.6cm,yshift=-3.7cm,x=0.5cm,y=0.42cm]
+    \node[font=\sffamily\bfseries\small,right] at (-0.8,5.6) {(d) for $k$, for $n$};
+    \foreach \i in {0,...,6}{\foreach \j in {0,...,3}{\fill[gray!60] (\i,\j) circle (1.4pt);}}
+    \foreach \j in {0,...,3}{\draw[cu,thick,-{Latex[length=1.4mm]}] (0.12,\j) -- (5.88,\j);}
+    \foreach \j in {0,...,2}{\draw[cphi,thick,-{Latex[length=1.4mm]}] (5.95,\j+0.1) .. controls (3,\j+0.6) and (3,\j+0.4) .. (0.05,\j+0.9);}
+    \draw[->] (-0.5,-0.6) -- (6.6,-0.6) node[right,font=\scriptsize] {$n$};
+    \draw[->] (-0.5,-0.6) -- (-0.5,3.6) node[above,font=\scriptsize] {$k$};
+  \end{scope}
+\end{tikzpicture}
+\caption{Two orders for the same computations. (a) Incremental: the elastic
+predictor of the increment $t_{n-1}\to t_n$ (green) and the plastic corrector
+(blue) are repeated at fixed $t_n$ until equilibrium; then the next step
+starts. (b) Whole history: at iteration $k$ the global stage solves the
+elastic problems of all the instants at once (they are independent), then
+the local stage sweeps the history at each Gauss point, and the closure
+condition starts the next iteration. (c), (d) The lattice of the computations
+$(t_n,k)$, visited column by column or row by row.}
+\label{fig:cy-orders}
+\end{figure}
+
+The incremental method of Chapter~\ref{ch:pl-num} loops \emph{for $n$, for
+$k$}: it converges the equilibrium of $t_n$ before it looks at $t_\np$. The
+iteration on the whole history loops \emph{for $k$, for $n$}: it visits all
+the instants with the same (wrong) data, and corrects them all at the next
+iteration. With the elastic stiffness in the global stage, the two
+algorithms are written below; Box~6.1 is the modified
+Newton method of Box~5.3.
+
+\begin{gbox}{Box 6.1\quad Initial-strain iteration, step by step}
+\index{initial-strain method}%
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+  \item \textbf{Step.} For $n=1,\dots,N$, start from $\mat{u}^{(0)}=\mat{u}_{n-1}$.
+  \item \textbf{Local stage.} At each Gauss point,
+  $(\sig^{(k)},\vz^{(k)})=\mathcal R(\mat{B}\mat{u}^{(k)};\vz_{n-1})$.
+  \item \textbf{Global stage.} Solve
+  $\mat{K}\,\delta\mat{u}=\mat{F}^{\mathrm{ext}}_n-\sum_e\int\mat{B}\T\sig^{(k)}$
+  with the elastic stiffness $\mat{K}$, factorized once;
+  $\mat{u}^{(k+1)}=\mat{u}^{(k)}+\delta\mat{u}$.
+  \item \textbf{Test.} Repeat 2--3 until the residual is small; store
+  $\vz_n=\vz^{(k)}$ and go to the next step.
+\end{enumerate}
+\end{gbox}
+
+\begin{gbox}{Box 6.2\quad Iteration on the whole history}
+\index{direct cyclic method!Box 6.2}%
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+  \item \textbf{Initialization.} $\epsp(t_n)=\vzero$ for all $n$ (or a guess);
+  closure state $\vz(t_0)$.
+  \item \textbf{Global stage.} For every instant $t_n$, solve the elastic problem
+  with initial strain: $\mat{K}\mat{u}_n=\mat{F}^{\mathrm{ext}}_n+\sum_e\int\mat{B}\T\mat{C}\,\epsp(t_n)$
+  (one factorization, $N$ independent solutions); $\eps_n=\mat{B}\mat{u}_n$.
+  \item \textbf{Local stage.} At each Gauss point, sweep the history:
+  $\vz(t_n)=\mathcal R(\eps_n;\vz(t_{n-1}))$, $n=1,\dots,N$.
+  \item \textbf{Closure.} Initial condition: $\vz(t_0)=\vz_0$. Periodic
+  (direct cyclic method): $\vz(t_0)\gets\vz(t_N)$.
+  \item \textbf{Test.} Repeat 2--4 until the stresses of the two stages agree
+  at all instants (and, if periodic, $\vz(t_N)=\vz(t_0)$).
+\end{enumerate}
+\end{gbox}
+
+\subsection{What each order guarantees}
+\paragraph{Why time stepping is the standard.}
+The evolution problem~\eqref{eq:cy-reduced} with an initial condition is a
+Cauchy problem, and it is causal: the state at $t$ depends on the past only.
+The implicit Euler scheme for a sweeping process, Moreau's \emph{catching-up
+algorithm}~\cite{Moreau1977}, is the return map; it is at the same time the
+proof of existence of the solution and the algorithm that computes it. Each
+step is the minimization of a strictly convex incremental potential
+(Section~\ref{thm:pn-W}), with a unique solution and a globally convergent
+Newton method; the next step starts from a converged state, close to the
+solution; and the return map is contractive
+(Section~\ref{thm:pn-contract}), so that an error made in a step is not
+amplified by the following ones. Consistency and stability give the
+convergence of the time discretization. Everything is local in time, and so
+are the guarantees.
+
+\paragraph{What the whole-history iteration risks.}
+\index{ratchetting!non-convergence of direct methods}%
+The iteration of Box~6.2 is a fixed-point iteration on
+histories, $\epsp\gets\mathcal R_{[t_0,t_N]}(\eps^{el}+\Pop\epsp)$, and the
+properties of each step do not transfer to it.
+\begin{itemize}
+  \item Nothing guarantees the convergence of the pair ``return map at fixed
+  total strain, elastic stiffness'' on a window. The convergence of LATIN
+  (Section~\ref{sec:cy-latin}) needs other directions and a relaxation.
+  \item Rate-independent plasticity has no fading memory. The return map is
+  only non-expansive with respect to $\vz_{n-1}$, so that an error made at
+  $t_n$ is carried unchanged to all later instants by the local sweep.
+  Figure~\ref{fig:cy-truss-lattice}b shows it: a correction made at the first
+  plastic instant reappears at every later instant, iteration after
+  iteration, while the incremental method confines its iterations to the
+  plastic steps.
+  \item With the periodic closure, an error that is constant in time is not
+  damped by the time coupling at all. In plasticity this is the kernel of
+  $\Zop$: a compatible plastic strain added to a periodic state gives another
+  periodic state. The iteration may converge to a periodic state that depends
+  on its starting point, or not converge at all if the structure ratchets
+  (Sections~\ref{sec:cy-period}--\ref{sec:cy-dcm}).
+  \item The iterates are not states of any loading history; there is no energy
+  that decreases from one iteration to the next unless the directions are
+  chosen for it, as in LATIN.
+\end{itemize}
+
+\paragraph{A toy model of the sweep.}
+\index{direct method!toy model of the sweep}%
+A two-parameter model shows the two dangers at once. Let $e^k_n$ be the error
+at the instant $t_n$ after the iteration $k$. The global stage keeps a fraction
+$a$ of the error of each instant, and the local sweep passes a fraction $b$ of
+the new error at $t_{n-1}$ on to $t_n$:
+\[
+  e^{k+1}_n=a\,e^k_n+b\,e^{k+1}_{n-1}
+  \qquad\Longrightarrow\qquad
+  \mat{e}^{k+1}=\mat{M}\mat{e}^k,\quad \mat{M}=a\,(\mat{I}-b\,\mat{S})^{-1},
+\]
+where $\mat{S}$ shifts each entry down by one instant. With the initial
+condition, $\mat{S}$ is strictly lower triangular, and $\mat{M}$ is lower
+triangular with $a$ on its diagonal: all its eigenvalues equal $a$, and the
+iteration converges when $a<1$. But the powers of $\mat{M}$ do not start to
+decrease at once. With $a=0.6$, $b=0.4$ and 40 instants,
+$\norm{\mat{M}^k}$ stays close to one for some forty iterations, the time the
+error needs to travel out of the window, and only then decays. This is the
+transient of Figure~\ref{fig:cy-truss-lattice}b. With the periodic closure,
+$\mat{S}$ becomes the cyclic shift, whose eigenvalues are the roots of unity
+$\omega$. The eigenvalues of $\mat{M}$ are $a/(1-b\,\omega)$, and the largest one,
+for $\omega=1$, belongs to the error that is the same at all instants:
+$a/(1-b)$. When $a+b=1$ it equals one, and the constant error is never damped.
+In plasticity the constant errors that survive are the compatible plastic
+strains of the kernel of $\Zop$ (Exercise~\ref{exo:cy-q-toy}).
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/ch6/truss_lattice.pdf}
+\caption{The lattice of Figure~\ref{fig:cy-orders} computed for the truss
+($H=0.05E$, $Q_2=N_0$, $Q_1=1.2N_0\sin t$, two periods of 40 steps): size of the
+plastic correction $\max_i|\Delta\varepsilon^p_i|$ at each instant $t_n$ and
+iteration $k$. (a) Incremental initial-strain iteration (Box~6.1):
+2 iterations at the elastic steps, up to 46 at the plastic ones, 982 local
+evaluations in all. (b) Iteration on the whole history
+(Box~6.2, initial condition): the corrections made at the
+first plastic instants are carried to the end of the window; 40 iterations
+($3200$ local evaluations) reach an indicator of $3\times10^{-6}$.}
+\label{fig:cy-truss-lattice}
+\end{figure}
+
+\paragraph{When it pays.}
+The whole-history iteration wins when its strengths matter more than its
+risks:
+\begin{itemize}
+  \item \emph{Confined plasticity.} By~\eqref{eq:cy-melan}, the elastic
+  prediction is exact outside the plastic zone, and the correction couples
+  the plastic points only through $\Zop$ restricted to the plastic zone. A
+  small plastic zone in an elastic structure (contact, notches, the skin of a
+  thermal shock) gives a fast contraction.
+  \item \emph{One loop instead of two.} Cycle after cycle, the incremental
+  method converges the equilibrium of every step of every transient cycle,
+  which is then thrown away. The direct cyclic method converges the
+  equilibrium and the periodicity together.
+  \item \emph{Cheap iterations.} The global stage uses the elastic stiffness,
+  factorized once; the instants are independent and can be compressed in a
+  Fourier or wavelet basis in time~\cite{MaitournamPommierThomas2002}; the
+  local stage is parallel in space.
+\end{itemize}
+Figure~\ref{fig:cy-truss-process} compares the costs on the truss. For three
+bars, factorizing the tangent is free, and the cycle-by-cycle computation
+needs fewer local evaluations than the direct cyclic method (3750 against
+13\,200 to reach $10^{-6}\varepsilon_Y$); Anderson acceleration of the period
+map (Section~\ref{sec:cy-period}) needs four cycles. In a finite element model
+the balance changes: the incremental method refactorizes the tangent at
+every Newton iteration, the direct cyclic method never does, and Maouche et
+al.~\cite{MaoucheMaitournamDangVan1997} report a computation of fretting
+contact ten times faster in gross slip (3\,h against 30\,h for 74 cycles) and
+twice as fast in partial slip.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch6/truss_process.pdf}
+\caption{Truss, $H=0.05E$, $Q_2=N_0$, $Q_1=1.2N_0\sin t$, one period of 40 steps.
+(a) Plastic strain of bar~1 over the period, iterates $k$ of the direct cyclic
+method (Box~6.2, periodic closure). (b) The same quantity in
+cycles 1 to 64 of the incremental computation. (c) Error on the periodic
+state against the number of local evaluations: cycle by cycle (Newton,
+Box~5.3), Anderson acceleration of the period map, direct cyclic method.}
+\label{fig:cy-truss-process}
+\end{figure}
+
+%======================================================================
+\section{Search directions and the LATIN method}\label{sec:cy-latin}
+\index{LATIN method}\index{search directions}%
+\subsection{One step, two directions}\label{ssec:cy-dir}
+Ladev\`eze~\cite[Sec.~3.3]{LadevezeNCSM} describes the classical solvers of
+one step by two \emph{search directions}. For a fibre loaded by a force, the
+admissible points are on the horizontal line $\sigma=\Sigma$ of the plane
+$(\varepsilon,\sigma)$ and the constitutive points on the curve $\Gcon$ of the
+material (Figure~\ref{fig:cy-directions}). From an admissible point $s_k$,
+the \emph{local stage} finds the point $\hat s\in\Gcon$ reached along a
+direction $E^+$; from $\hat s$, the \emph{global stage} finds the admissible
+point $s_{k+1}$ reached along a direction $E^-$:
+\begin{equation}\label{eq:cy-directions}
+  E^+:\ \hat\sigma-\sigma_k=-L^+(\hat\varepsilon-\varepsilon_k),\qquad
+  E^-:\ \sigma_{k+1}-\hat\sigma=L^-(\varepsilon_{k+1}-\hat\varepsilon).
+\end{equation}
+The local direction must be local in space, the global one linear. The return
+map of Chapter~\ref{ch:pl-num} is the local stage with the ``vertical''
+direction $L^+=\infty$: the total strain is fixed, $\hat\varepsilon=\varepsilon_k$,
+and only the stress is corrected. The choice of $L^-$ names the method: the
+consistent tangent $E^{\mathrm{alg}}$ gives Newton's method (Box~5.3), the
+elastic modulus $E$ gives the initial-strain method (Box~6.1).
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[x=1.45cm,y=1.6cm,>=Latex]
+  \foreach \ox/\title in {0/{(a) initial strain: $L^+=\infty$, $L^-=E$},4.6/{(b) conjugate: $L^+=L^-=L$}}{
+  \begin{scope}[xshift=\ox*1.45cm]
+    \draw[->] (0,0) -- (3.6,0) node[right] {$\varepsilon$};
+    \draw[->] (0,0) -- (0,2.05) node[above] {$\sigma$};
+    \draw[very thick,orange!80!black] (0,0) -- (1,1) -- (3.5,1.75) node[right,font=\small] {$\Gcon$};
+    \draw[very thick,cphi] (0.1,1.6) -- (3.5,1.6) node[right,font=\small] {$\Ad$};
+    \fill (3,1.6) circle (1.5pt);
+    \node[font=\sffamily\small,anchor=west] at (-0.1,2.35) {\title};
+  \end{scope}}
+  % (a) initial strain zigzag
+  \draw[cu,thick,->] (1.6,1.6) -- (1.6,1.18);
+  \draw[cphi,thick,->] (1.6,1.18) -- (2.02,1.6);
+  \draw[cu,thick,->] (2.02,1.6) -- (2.02,1.306);
+  \draw[cphi,thick,->] (2.02,1.306) -- (2.314,1.6);
+  \draw[cu,thick,->] (2.314,1.6) -- (2.314,1.394);
+  \draw[cphi,thick,->] (2.314,1.394) -- (2.52,1.6);
+  \draw[cu,thick] (2.52,1.6) -- (2.52,1.456);
+  \node[font=\scriptsize,below] at (1.6,1.15) {$\hat s_0$};
+  \node[font=\scriptsize,above] at (1.6,1.6) {$s_0$};
+  % (b) conjugate
+  \begin{scope}[xshift=4.6*1.45cm]
+  \draw[cu,thick,->] (1.6,1.6) -- (2.125,1.337);
+  \draw[cphi,thick,->] (2.125,1.337) -- (2.65,1.6);
+  \draw[cu,thick,->] (2.65,1.6) -- (2.781,1.534);
+  \draw[cphi,thick,->] (2.781,1.534) -- (2.913,1.6);
+  \draw[cu,thick] (2.913,1.6) -- (2.945,1.584);
+  \node[font=\scriptsize,above] at (1.6,1.6) {$s_0$};
+  \node[font=\scriptsize,below] at (2.125,1.32) {$\hat s_0$};
+  \end{scope}
+\end{tikzpicture}
+\caption{Search directions for a fibre with linear hardening ($E_t=0.3E$)
+loaded by a force $\Sigma=1.6\sY$, in units of $\varepsilon_Y$ and $\sY$. Blue:
+local stage, from $\Ad$ to $\Gcon$; green: global stage, back to $\Ad$; the
+dot is the solution. (a) Return map at fixed strain and elastic stiffness:
+the error is multiplied by $\kappa=0.7$ at each iteration. (b) Conjugate
+directions with $L=0.5E$: factor $0.25$. Newton's direction $L^-=E_t$ would
+reach the solution in one iteration, the plastic branch being straight.}
+\label{fig:cy-directions}
+\end{figure}
+
+\begin{gbox}{Initial-strain iteration on a fibre}\label{prop:cy-factor}
+For a fibre with linear kinematic hardening $H$, loaded by a force on its
+plastic branch, the initial-strain iteration multiplies the error on the
+strain by
+\[
+  \kappa=1-\frac{E_t}{E}=\frac{E}{E+H},\qquad E_t=\frac{EH}{E+H}.
+\]
+\end{gbox}
+\noindent The iteration corrects the strain with the elastic stiffness,
+$\varepsilon_{k+1}=\varepsilon_k+(\Sigma-\sigma(\varepsilon_k))/E$, while the
+true slope of the plastic branch is $E_t$. Each step therefore removes the
+fraction $E_t/E$ of the error and keeps the rest:
+$\varepsilon_{k+1}-\varepsilon^\ast=(1-E_t/E)(\varepsilon_k-\varepsilon^\ast)$.
+Without hardening $\kappa=1$: a single fibre loaded by a force has no solution
+beyond the yield force. In a structure, the elastic parts that confine the
+plastic zone give the contraction: for the truss of Figure~\ref{fig:cy-truss}
+with bar~3 plastic, the factor is the stiffness that bar~3 loses at yield,
+relative to the stiffness of the truss seen from bar~3
+(Exercise~\ref{exo:cy-q-factor}). Nguyen~\cite{Nguyen1977} proved that the
+implicit initial-strain iteration of one step converges for every increment
+when the hardening is strictly positive; Dang Van and
+Maitournam~\cite[Rem.~4.1]{DangVanMaitournam1993} use this result for their
+stationary method (Section~\ref{sec:cy-dcm}).
+
+Ladev\`eze~\cite[Sec.~3.3.6]{LadevezeNCSM} gives the condition on the two
+search directions under which the alternation always converges.
+\begin{gbox}{Conjugate directions converge}\label{thm:cy-conjugate}
+Let the constitutive relation $\sigma=\mathcal K(\varepsilon)$ of one step be
+strictly monotone, and take conjugate directions $L^+=L\T$, $L^-=L$ with $L$
+linear, symmetric and positive definite. Then the distance from the admissible
+iterates $s_k$ to $\Gcon$, measured by
+$d^2(s,\Gcon)=\int_\Omega(\sigma^+-\sigma^-):(\varepsilon^+-\varepsilon^-)\dd x$
+with $s^\pm\in\Gcon$ the points reached from $s$ along $E^\pm$, tends to zero.
+\end{gbox}
+\noindent The idea of the argument: measure the error in the norm of $L$,
+show that it decreases at each iteration by at least $d^2(s_{k+1},\Gcon)$,
+and add up. The error cannot decrease forever by fixed amounts, so the
+distances must go to zero. The two signs (Section~\ref{prop:cy-signs}) make
+every term of the sum non-negative. The pairs ``vertical, tangent'' and ``vertical, elastic'' are
+not conjugate, and this argument does not cover them: Newton's method needs its
+own local analysis~\cite{SauterWieners2011}, and the initial-strain method the
+hardening of Nguyen's theorem.
+
+\subsection{The large time increment method}\label{ssec:cy-latin}
+\index{LATIN method!algorithm}%
+The LATIN method applies the same construction to the whole interval
+$[0,T]$~\cite{LadevezeNCSM,BoisseBussyLadeveze1990}. The material is written in
+a \emph{normal formulation}, where the state law of the hardening variables is
+linear with a constant symmetric positive operator; for the linear hardening of
+this book it is the law $\vq=-\bbD\valpha$ itself (Table~\ref{tab:cy-dictionary}).
+The directions are written on the \emph{rates} of the plastic strain:
+\begin{equation}\label{eq:cy-latin-dir}
+  E^+:\ \dot{\hat\varepsilon}{}^p-\dot\varepsilon^p_k=-h\,(\hat\sigma-\sigma_k),
+  \qquad
+  E^-:\ \dot\varepsilon^p_{k+1}-\dot{\hat\varepsilon}{}^p=h\,(\sigma_{k+1}-\hat\sigma),
+\end{equation}
+with a scalar or an operator $h>0$, local in space, the same in both stages.
+The local stage is a return map at each point and each instant, with the
+stiffness $1/h$ in place of $E$. The global stage is linear but no longer
+instantaneous: the plastic strain at $t_n$ depends on its rates at all earlier
+instants, so that the admissible problem is a viscoelastic problem of Maxwell
+type, solved by marching in time with the modulus $E/(1+Eh)$.
+
+\begin{gbox}{Box 6.3\quad LATIN iteration on $[0,T]$}
+\index{LATIN method!Box 6.3}%
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+  \item \textbf{Initialization.} Elastic solution at every instant:
+  $s_0=(\sig^{el}(t),\ \epsp=\vzero)$.
+  \item \textbf{Local stage.} At each point, for $n=1,\dots,N$: return map
+  with stiffness $1/h$ from the trial stress
+  $\sigma_k(t_n)+\Delta\varepsilon^p_k(t_n)/h$ and the stored
+  $\hat\varepsilon^p(t_{n-1})$; it gives $(\hat\sigma,\hat\varepsilon^p)(t_n)$.
+  \item \textbf{Global stage.} For $n=1,\dots,N$: solve the elastic problem with
+  the modulus $E/(1+Eh)$ and the initial strain
+  $\varepsilon^p(t_{n-1})+\Delta\hat\varepsilon^p(t_n)-h\hat\sigma(t_n)$; update
+  $\varepsilon^p(t_n)=\varepsilon^p(t_{n-1})+\Delta\hat\varepsilon^p(t_n)+h(\sigma-\hat\sigma)(t_n)$.
+  \item \textbf{Relaxation.} $s_{k+1}=(1-\mu)\,\bar s_{k+1}+\mu\,s_k$, with
+  $\bar s_{k+1}$ the result of the global stage and $0<\mu<1$.
+  \item \textbf{Indicator.} Stop when the distance between $s_{k+1}$ and
+  $\hat s$ in the energy norm is small.
+\end{enumerate}
+\end{gbox}
+
+The convergence of the method is due to Ladev\`eze~\cite[Sec.~4.5]{LadevezeNCSM};
+we state it without proof.
+\begin{gbox}{Convergence of the LATIN method}\label{thm:cy-latin}
+Let the flow rule of the normal formulation be maximal monotone, the
+hardening operator $A=\bbD$ symmetric positive definite, and the directions
+conjugate, $h^+=h^-=h$, with $h$ symmetric, positive definite and bounded
+with its inverse. Then:
+\begin{enumerate}[label=(\alph*)]
+  \item with a relaxation $\mu>0$, the LATIN iterates converge to the solution,
+  in statics and in dynamics;
+  \item without relaxation, $\mu=0$, the iterates converge in dynamics under an
+  additional condition; in statics, under a stronger monotonicity assumption,
+  only the averages $\tfrac12(s_k+s_{k+1})$ are shown to converge.
+\end{enumerate}
+\end{gbox}
+Figure~\ref{fig:cy-latin} computes these statements on the truss, over two
+periods of the ratchetting load with hardening. With $\mu=0$ the indicator
+stalls at $3\times10^{-3}$, although the constitutive iterate is exact to
+$10^{-12}\varepsilon_Y$: the admissible iterate oscillates around the solution
+and only an average converges. With $\mu=0.3$ the indicator falls to
+$10^{-12}$ in 126 iterations for $h=1/E$ and in 297 for $h=4/E$. The relaxation
+is the averaging of the Krasnosel'ski\u{\i}--Mann iteration of
+Appendix~\ref{app:iter}: it turns a map that is only non-expansive into one
+whose iterates converge. On this small problem the whole-history
+initial-strain iteration (Box~6.2) is faster still, 84 iterations; its
+convergence is not guaranteed, that of LATIN is.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/ch6/latin.pdf}
+\caption{Truss, $H=0.05E$, $Q_2=N_0$, $Q_1=1.2N_0\sin t$, window of two periods
+(80 steps) with the initial condition: error indicator against the iteration
+number for the whole-history initial-strain iteration (Box~6.2) and for LATIN
+(Box~6.3) with $h=1/E$ or $4/E$, without and with relaxation.}
+\label{fig:cy-latin}
+\end{figure}
+
+\paragraph{The third principle: approximations in time.}
+\index{LATIN method!radial approximation}\index{proper generalized decomposition}%
+The global stage of LATIN is a linear problem on $\Omega\times[0,T]$. Its cost
+is what decides the method on large models. Ladev\`eze's third principle
+approximates its correction by a short sum of products of functions of space
+and of time, the \emph{radial} approximation, now called the proper
+generalized decomposition (PGD)~\cite{LadevezeNCSM,NeronLadeveze2010}; for
+loads of many cycles, the time functions are computed on a few ``nodal''
+cycles and interpolated between them~\cite{CognardLadeveze1993}. Comte et
+al.~\cite{ComteEtAl2006} use the elastic direction and a wavelet basis in
+time, in which the global stage decouples into one elastic problem per
+retained coefficient.
+
+%======================================================================
+\section{Cyclic loads: the period map}\label{sec:cy-period}
+\index{period map}\index{shakedown!period map}%
+\subsection{Asymptotic regimes}
+A structure under a load of period $T$ reaches one of three asymptotic
+regimes~\cite[Sec.~4.2]{Maitournam2012c}.
+\index{shakedown}\index{alternating plasticity}\index{ratchetting}%
+\begin{itemize}
+  \item \emph{Elastic shakedown} (adaptation): the dissipated energy stays
+  bounded, the plastic strain and the internal variables tend to fixed
+  fields, and the asymptotic response is elastic: $\sig=\sig^{el}(t)+\vrho_\infty$.
+  \item \emph{Alternating plasticity} (accommodation, plastic shakedown): the
+  plastic strain becomes periodic, with a non-zero dissipation in every
+  cycle; failure comes by low-cycle fatigue.
+  \item \emph{Ratchetting}: the plastic strain grows from cycle to cycle;
+  failure comes by excessive deformation.
+\end{itemize}
+For an elastic--perfectly plastic structure, Halphen~\cite{Halphen1978} proved
+that a periodic solution in stress exists and that every solution tends to one.
+For generalized standard materials with a quadratic hardening energy,
+periodic solutions exist in generalized stress and in internal-variable rates,
+every solution tends to one of them, and two asymptotic solutions differ by a
+constant field. With linear kinematic hardening, $H>0$, stresses and strains
+tend to a periodic solution, and ratchetting is
+excluded~\cite[Sec.~4.2]{Maitournam2012c}. The three loadings of the truss and
+the Bree diagram show the three regimes with perfect plasticity; with $H>0$
+their ratchetting cases shake down.
+
+\subsection{The period map}
+\begin{gbox}{The period map}\label{def:cy-period}
+The \emph{period map} $\Pi$ takes the internal variables at the beginning of a
+cycle to their values at its end, $\Pi:\vz(t_0)\mapsto\vz(t_0+T)$, the cycle
+being computed under the periodic load. The periodic states are the fixed
+points of $\Pi$; the cycle-by-cycle computation is the Picard iteration
+$\vz^{(k+1)}=\Pi\,\vz^{(k)}$.
+\end{gbox}
+
+\begin{gbox}{The period map does not expand}\label{prop:cy-nonexp}
+For two initial states $\vz$, $\vz'$,
+\[
+  \abs{\Pi\vz-\Pi\vz'}\le\abs{\vz-\vz'},\qquad
+  \abs{\vz}^2=\int_\Omega\bigl(\epsp:\Zop\epsp+\valpha\cdot\bbD\valpha\bigr)\dd x .
+\]
+The quantity $\abs{\cdot}$ is a semi-norm. It vanishes on compatible plastic
+strains with $\valpha=\vzero$, and it is a norm on the plastic strains when
+the hardening is linear kinematic.
+\end{gbox}
+\paragraph{Why it works.} Run two cycles side by side. Both histories are
+admissible and constitutive, so by the two signs
+(Section~\ref{prop:cy-signs}) the energy distance $\norm{\Delta\vSig(t)}_E$
+between them can only decrease in time. At the beginning and at
+the end of the cycle the loads are the same, so that
+$\Delta\vSig=(-\Zop\Delta\epsp,-\bbD\Delta\valpha)$ and, since
+$\Zop\bbS\Zop=\Zop$, $\norm{\Delta\vSig}_E^2=\abs{\Delta\vz}^2$. For linear
+kinematic hardening $\valpha=\epsp$, and $\abs{\vz}^2\ge\int_\Omega\epsp:\bbD\epsp\dd x$.
+Three consequences follow, on the two model problems.
+\begin{itemize}
+  \item \emph{Ratchetting is a drift in the kernel.} Without hardening, the
+  semi-norm does not see compatible plastic strains: in the truss the
+  increment $(a,-a,0)$ of each cycle, in the Bree vessel the uniform part
+  $\langle\varepsilon^p\rangle$. Nothing contracts them, and nothing stops them.
+  \item \emph{Periodic states need not be unique.} A non-expansive map may have
+  many fixed points. Figure~\ref{fig:cy-nonunique} shows two exact periodic
+  states of Bree case~(b) with $H=0.02E$: one reached cycle by cycle from the
+  virgin state, one reached by the direct cyclic method. Their stress cycles
+  have the same shape and differ by a constant residual stress of
+  $0.30\,\sY$ inside the wall. The asymptotic state depends on the history,
+  and a direct method selects one periodic state by its own starting point.
+  \item \emph{Convergence is slow, but can be accelerated.} When
+  $\abs{\cdot}$ is a norm, $\Pi$ is non-expansive in a Hilbert space: an
+  orbit is bounded if and only if $\Pi$ has a fixed point~\cite{Pazy1971}, and
+  the averaged (Krasnosel'ski\u{\i}--Mann) iteration converges to a fixed point
+  (Appendix~\ref{app:iter}). In Bree case~(a) with $H=0.02E$, the
+  structure shakes down after 261 cycles. Anderson acceleration of $\Pi$
+  (Appendix~\ref{app:iter}), which combines the last five cycles, needs 14
+  (Figure~\ref{fig:cy-bree-convergence}). Averaging alone, with $\theta=\tfrac12$,
+  is slower than the plain cycles here: its guarantee is not a speed.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch6/bree_nonunique.pdf}
+\caption{Bree case (b), $X=0.2$, $Y=3$, $H=0.02E$ (alternating plasticity): two
+exact periodic states, $\abs{\Pi\vz-\vz}<10^{-11}\varepsilon_Y$. Green: the limit
+of the cycle-by-cycle computation from the virgin state; blue: the limit of the
+direct cyclic method. (a) Stress cycles at the point where they differ most
+(dotted: outer skin, identical). (b) Residual stress at $t=0$.}
+\label{fig:cy-nonunique}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/ch6/bree_convergence.pdf}
+\caption{Bree case (a), $X=0.7$, $Y=1.5$, $H=0.02E$ (slow shakedown), 100 layers,
+40 steps per cycle: residual against the iteration number. Iterations on the
+period map: cycle by cycle (Picard), averaged ($\theta=0.5$), Anderson with five
+previous cycles. Iterations on the history: direct cyclic method (Box~6.2,
+periodic), plain and with Anderson acceleration.}
+\label{fig:cy-bree-convergence}
+\end{figure}
+
+%======================================================================
+\section{The direct cyclic and stationary methods}\label{sec:cy-dcm}
+\subsection{The direct cyclic method}
+\index{direct cyclic method}%
+The direct cyclic method is Box~6.2 on one period with the periodic closure
+$\vz(t_0)\gets\vz(t_N)$~\cite{AkelNguyen1991,MaoucheMaitournamDangVan1997}.
+The global stage solves elastic problems with initial strains at all the
+instants of the period, with one factorization of the elastic stiffness; the
+local stage sweeps the period at each Gauss point with the return map.
+Maitournam, Pommier and Thomas~\cite{MaitournamPommierThomas2002} represent the
+periodic fields by truncated Fourier series in time, so that the global stage
+handles a few harmonics instead of all the instants; commercial codes offer
+the method under the name ``direct cyclic'', with the elastic stiffness as the
+iteration matrix. The method reads its own diagnosis:
+\begin{itemize}
+  \item convergence with $\epsp$ constant in time: elastic shakedown;
+  \item convergence with $\epsp$ periodic: alternating plasticity;
+  \item no convergence, with a drift of the compatible part of $\epsp$:
+  ratchetting.
+\end{itemize}
+
+\paragraph{The computation, in time and through the wall.}
+Figure~\ref{fig:cy-bree-process} follows the direct cyclic method and the
+cycle-by-cycle computation on Bree case~(a) with hardening. The two
+computations build the same kind of profiles: the plastic strain of the outer
+half of the wall grows, its inner half receives a uniform plastic strain, the
+stress at the hot instant flattens close to the yield stress in the outer half. The
+direct cyclic iterates are not cycles, however: they move all the instants at
+once, and they reach the profiles through states that no cycle visits. After
+400 iterations the plain method still has a residual of
+$10^{-4}\varepsilon_Y$ (Figure~\ref{fig:cy-bree-convergence}); with Anderson
+acceleration on the whole history (Appendix~\ref{app:iter}) it converges in 16
+iterations. Its limit is again a periodic state, different from the
+cycle-by-cycle one: they differ mostly by a uniform plastic strain of
+$0.050\,\varepsilon_Y$, a vector of the kernel of $\Zop$, and their residual
+stresses by $0.7\,\%$ of $\sY$.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/ch6/bree_process.pdf}
+\caption{Bree case (a), $X=0.7$, $Y=1.5$, $H=0.02E$. Top: hoop stress through the
+wall at the hottest instant $t=T/2$; bottom: plastic strain at $t=0$. Left:
+iterates $k$ of the direct cyclic method (Box~6.2, periodic closure); right:
+successive cycles of the incremental computation, up to cycle 261.}
+\label{fig:cy-bree-process}
+\end{figure}
+
+\paragraph{Ratchetting seen by the direct cyclic method.}
+\index{ratchetting!direct cyclic method}%
+Without hardening, the same load ratchets
+(Figure~\ref{fig:cy-bree-ratchet}). The direct cyclic iterates do not
+converge: the mean plastic strain $\langle\varepsilon^p\rangle$ grows by
+$0.060\,\varepsilon_Y$ per iteration, while the residual stress, the
+incompatible part, converges to machine precision in 40 iterations. The
+method thus finds the stabilized stress cycle of a ratchetting structure,
+which is what a fatigue criterion needs, and signals the ratchet by the drift.
+The drift per iteration is not the ratchet strain per cycle, which is
+$0.32\,\varepsilon_Y$ in the incremental computation: the iterates are not
+cycles.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch6/bree_ratchet.pdf}
+\caption{Bree case (a) without hardening (ratchetting), direct cyclic method.
+(a) Mean plastic strain at $t=0$ (orange) and change of the residual stress
+from one iteration to the next (blue, logarithmic). (b) Residual stress
+through the wall at $t=0$ for successive iterations.}
+\label{fig:cy-bree-ratchet}
+\end{figure}
+
+\begin{gbox}{Status of the direct cyclic method}
+Convergence of the direct cyclic iteration to a periodic solution is not proved
+in general; neither is the convergence of the direct stationary method of the
+next section~\cite[Sec.~4.2.2]{DangVanMaitournam1993}. Its fixed points are the
+periodic states, which may be non-unique, and its non-convergence is the
+numerical signature of ratchetting. Acceleration (Anderson) and averaging are
+cheap and should be used.
+\end{gbox}
+
+\subsection{Stationary methods}\label{ssec:cy-stat}
+\index{stationary method}\index{moving load}%
+A load that moves at constant speed $V$ along $\vect e_1$ over a long body (a
+wheel on a rail, a rolling bearing, a laser or a welding torch) is stationary
+in the frame of the load. With $x=X-Vt$, all the fields depend on $x$ only,
+and the material derivative becomes a derivative along the streamlines:
+\begin{equation}\label{eq:cy-stationary}
+  \dot{(\cdot)}=-V\,\frac{\partial(\cdot)}{\partial x} .
+\end{equation}
+In this frame the material flows towards decreasing $x$: the initial state is
+the state far ahead of the load (upstream), at $x=+\infty$, and the final state
+the state far behind it (downstream), at $x=-\infty$. In quasi-statics the solution does not depend
+on $V$: time is replaced by the position along the streamline. Nguyen and
+Rahimian~\cite{NguyenRahimian1981} introduced this formulation for a crack
+moving in an elastoplastic medium; Dang Van and
+Maitournam~\cite{DangVanMaitournam1993} wrote it for rolling and sliding
+contact and proved that the stresses of the stationary problem are unique.
+
+\begin{gbox}{Box 6.4\quad Stationary methods}
+\index{stationary method!Box 6.4}%
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+  \item \textbf{Elastic solution} in the frame of the load, $\sig^{el}(x)$;
+  $\epsp=\epsp(+\infty)$ everywhere.
+  \item \textbf{Local stage.} On each streamline, from upstream to downstream,
+  integrate the flow rule with the return map, the position $x$ playing the
+  role of time.
+  \item \textbf{Global stage.} Solve the elastic problem with the initial strain
+  $\epsp(x)$, with the elastic stiffness factorized once.
+  \item \textbf{Test.} Repeat 2--3 until the stresses are plastically admissible:
+  this is one pass of the load (pass-by-pass stationary method, PPSM).
+  \item \textbf{Repeated passes.} Either repeat 1--4 with the downstream state as
+  the new upstream state, or impose $\epsp(-\infty)=\epsp(+\infty)$ on every
+  streamline as the closure (direct stationary method, DSM).
+\end{enumerate}
+\end{gbox}
+The stationary methods are the direct cyclic method with the period replaced
+by one passage of the load and the time replaced by the position: same
+global stage, same local stage, a different closure. They are implemented in
+the finite element code Cast3M as the procedure \texttt{@STATIO}, which
+requires a mesh made of columns along the direction of motion; its example is
+a rail under a moving Hertzian pressure, with the stabilized stresses fed to a
+multiaxial fatigue criterion.
+
+%======================================================================
+\section{Zarka's simplified analysis}\label{sec:cy-zarka}
+\index{Zarka's method}\index{transformed parameter}%
+\subsection{The transformed parameter}
+With linear kinematic hardening, the yield condition of a fibre is
+$|\sigma-H\varepsilon^p|\le\sY$. Write the stress with Melan,
+$\sigma=\sigma^{el}+\rho$, and define the \emph{transformed internal parameter}
+of Zarka~\cite{ZarkaCasier1981,ZarkaEtAl1990}
+\begin{equation}\label{eq:cy-zarka-Y}
+  Y=H\varepsilon^p-\rho=(H\,\mathbb I+\Zop)\,\varepsilon^p .
+\end{equation}
+The yield condition becomes $|\sigma^{el}(t)-Y|\le\sY$: in the space of $Y$,
+the elastic domain is an interval (in three dimensions, a von Mises ball, with
+$Y=H\epsp-\dev\vrho$) centred on the \emph{elastic} stress, which is known in
+advance. Since $H\,\mathbb I+\Zop$ is positive definite, every field $Y$ is
+reached by one plastic strain field and only one, given by a linear elastic
+problem with modified moduli. Self-equilibrium is no longer a constraint on
+$Y$: the problem has become local.
+
+The transformed parameter turns the shakedown question into a local one. The
+answer is due to Mandel, Halphen and Zarka~\cite{MandelHalphenZarka1977}.
+\begin{gbox}{Elastic shakedown with linear kinematic hardening}\label{thm:cy-zarka}
+If at every point there is a $Y^\ast$ inside all the elastic domains of the
+cycle,
+\[
+  |\sigma^{el}(x,t)-Y^\ast(x)|\le\sY'<\sY\qquad\forall t\in[0,T],
+\]
+the structure shakes down elastically, whatever its initial state. The
+limit transformed parameter lies, at every point, in the intersection of the
+elastic domains of the cycle.
+\end{gbox}
+The condition is local: in a fibre it reads
+$\max_t\sigma^{el}-\min_t\sigma^{el}<2\sY$; in three dimensions it asks that
+the path of $\dev\sig^{el}(x,t)$ fit in a ball of radius
+$\sqrt{2/3}\,\sY$, and the radius of the smallest such ball is the
+\emph{elastic fluctuation} of the point~\cite[Sec.~4.4.3]{Maitournam2012c}.
+The shakedown load of a structure with linear kinematic hardening is thus
+computed from its elastic solution alone.
+
+\subsection{The construction}
+The shakedown condition of Section~\ref{thm:cy-zarka} tells where the limit is, not which point of the
+intersection the history selects. Zarka's construction picks one by a
+projection.
+\begin{gbox}{Box 6.5\quad Zarka's construction (elastic shakedown)}
+\index{Zarka's method!Box 6.5}%
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+  \item \textbf{Elastic solution} over the cycle, $\sig^{el}(x,t)$.
+  \item \textbf{Admissible set} of $Y$ at each point: the intersection of the
+  elastic domains centred on $\sig^{el}(x,t)$; in a fibre, the interval
+  $[\max_t\sigma^{el}-\sY,\ \min_t\sigma^{el}+\sY]$.
+  \item \textbf{First half-cycle} computed incrementally (or estimated): $Y_1$.
+  \item \textbf{Projection} of $Y_1$ onto the admissible set at each point: $Y_\infty$.
+  \item \textbf{Plastic strain and residual stress}: solve
+  $(H\,\mathbb I+\Zop)\,\epsp_\infty=Y_\infty$ (one linear problem),
+  $\vrho_\infty=-\Zop\epsp_\infty$.
+\end{enumerate}
+\end{gbox}
+Figure~\ref{fig:cy-zarka} applies Box~6.5 to Bree case~(a) with $H=0.02E$, the
+case where the cycle-by-cycle computation needs 261 cycles. In the inner half of
+the wall, $Y_1$ lies below the admissible band and is projected onto its lower
+edge; in the outer half it is already inside. The resulting plastic strain is
+an exact periodic state and coincides with the cycle-by-cycle limit to
+$10^{-8}\varepsilon_Y$, for the cost of half a cycle and one linear problem. The
+limit of the accelerated direct cyclic method lies in the same band, at
+another point. For alternating plasticity, Zarka's method gives the mean
+value and bounds of the range of $Y$, not the cycle itself; Amiable et
+al.~\cite{AmiableEtAl2006} compare it with full computations of a thermal
+fatigue test. Inglebert and Frelat~\cite{InglebertFrelat1989} describe an
+iterative version; Cast3M implements it as the procedure \texttt{@ZACPLUS}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/ch6/zarka.pdf}
+\caption{Zarka's construction on Bree case (a), $H=0.02E$. (a) Transformed
+parameter $Y$ through the wall: admissible band (grey), state after the
+first half-cycle $Y_1$, its projection (Zarka), and the limits of the
+cycle-by-cycle and of the accelerated direct cyclic computations. (b) The
+corresponding plastic strains.}
+\label{fig:cy-zarka}
+\end{figure}
+
+%======================================================================
+\section{A map of the direct methods}\label{sec:cy-map}
+\index{direct method!survey}%
+The methods of this chapter belong to a larger family of direct methods for
+the asymptotic response. Table~\ref{tab:cy-map} places a few of them; each
+line gives the idea in the language of this chapter.
+
+\begin{table}[h]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{4.2cm}p{9.6cm}@{}}
+\toprule
+\sffamily method & \sffamily idea\\
+\midrule
+limit response~\cite{AkelNguyen1991} & iteration on periodic stresses and strains; the origin of the direct cyclic method\\
+direct cyclic~\cite{MaoucheMaitournamDangVan1997,MaitournamPommierThomas2002} & Box~6.2 on one period, Fourier in time\\
+stationary~\cite{NguyenRahimian1981,DangVanMaitournam1993} & Box~6.4: the period replaced by a passage of a moving load\\
+LATIN, nodal cycles~\cite{LadevezeNCSM,CognardLadeveze1993} & conjugate directions on $[0,T]$, two time scales for many cycles\\
+wavelets in time~\cite{ComteEtAl2006} & elastic direction on $[0,T]$, global stage in a wavelet basis\\
+Zarka~\cite{ZarkaEtAl1990,MandelHalphenZarka1977} & transformed parameter, local projection, one linear problem\\
+optimal control~\cite{PeigneyStolz2003} & the periodic state as the minimizer of a functional under the evolution equations\\
+linear matching~\cite{PonterChen2001} & sequence of linear problems with modified moduli; shakedown and ratchet limits\\
+residual stress decomposition~\cite{SpiliopoulosPanagiotou2012} & Fourier series in time of the residual stress, iterated to periodicity\\
+space--time variational~\cite{CaoEtAl2021} & the whole evolution as one constrained minimization (Brezis--Ekeland--Nayroles)\\
+\bottomrule
+\end{tabular}
+\caption{Direct methods for the asymptotic response of elastoplastic structures.}
+\label{tab:cy-map}
+\end{table}
+
+%======================================================================
+\framepart{Summary}
+\begin{gbox*}
+\begin{itemize}
+  \item \textbf{Two model problems}: the three-bar truss (one redundancy,
+  self-stresses $\gamma(1,1,-\sqrt2)$, limit load $(1+\sqrt2)N_0$) and the Bree
+  vessel (residual stress $-\tilde E(\varepsilon^p-\langle\varepsilon^p\rangle)$,
+  Bree diagram). Both show elastic shakedown, alternating plasticity and
+  ratchetting.
+  \item \textbf{Two groups of equations}: admissible histories $\Ad$ (linear,
+  global, with a closure condition) and constitutive histories $\Gcon$
+  (nonlinear, local); the solution is $\Ad\cap\Gcon$. On $\Ad$ the dissipation
+  of a difference is non-positive, on $\Gcon$ non-negative.
+  \item \textbf{Melan}: $\eps=\eps^{el}+\Pop\epsp$, $\sig=\sig^{el}-\Zop\epsp$;
+  compatible plastic strains, the kernel of $\Zop$, give no residual stress and
+  are the direction of ratchetting.
+  \item \textbf{Two orders}: incremental (for $n$, for $k$) inherits the
+  guarantees of each step; the iteration on the whole history (for $k$, for
+  $n$) has none in general and carries errors forward without damping. It
+  pays when plasticity is confined, when many transient cycles are avoided,
+  and when factorizations are expensive.
+  \item \textbf{Search directions}: the return map is the ``vertical'' local
+  direction; the global direction gives Newton (tangent) or the initial-strain
+  method (elastic, factor $E/(E+H)$ for a fibre). LATIN uses conjugate
+  directions on the rates over $[0,T]$ and converges for monotone materials,
+  in statics only with a relaxation $\mu>0$.
+  \item \textbf{Period map}: $\Pi:\vz(0)\mapsto\vz(T)$ does not expand the
+  energy semi-norm; ratchetting is a drift in its kernel; periodic states
+  may be non-unique; Anderson acceleration cuts hundreds of cycles to tens.
+  \item \textbf{Direct cyclic and stationary methods}: elastic global stage,
+  return-map sweep, periodic or upstream--downstream closure. Convergence
+  means shakedown, a drift means ratchetting; convergence is not proved in
+  general.
+  \item \textbf{Zarka}: with linear kinematic hardening, $Y=H\epsp-\vrho$ turns
+  shakedown into a local condition on the elastic solution, and the shakedown
+  state into a projection plus one linear problem.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}\label{sec:cy-exo}
+Short questions come first, then problems on the two model problems. The
+computational problems use the module \texttt{cy\_core}, presented on
+page~\pageref{sec:cy-aux}; the results are stated in words first, and the
+scripts are printed after them. Solutions are given in small type after each
+exercise.
+
+\framesub{Short questions}
+
+\exercise{Regimes of the three-bar truss}\label{exo:cy-q-truss}
+\index{three-bar truss!exercise}%
+Elastic--perfectly plastic bars, $N_0=S\sY$. Using~\eqref{eq:cy-truss-el} and
+Melan's theorem, find the regime under (a) $Q_1=1.1N_0(1-\cos t)$, $Q_2=0$;
+(b) $Q_1=1.9N_0\sin t$, $Q_2=0$. (c) Under $Q_2=N_0$ and $Q_1=1.2N_0\sin t$,
+show that the plastic elongation $(a,-a,0)$ is compatible, and explain why it
+can grow without bound.
+\begin{solution}
+(a) $N^{el}_3=2Q_1/(2+\sqrt2)$ varies in $[0,\,1.289N_0]$ and $N^{el}_{1,2}$ in
+$[0,\,0.644N_0]$. The constant residual field $\gamma(1,1,-\sqrt2)$ with
+$\gamma=0.25N_0$ gives $N_3\in[-0.354,\,0.935]N_0$ and
+$N_{1,2}\in[0.25,\,0.894]N_0$, inside $[-N_0,N_0]$: elastic shakedown (Melan).
+Bar~3 yields in the first cycle since $\max N^{el}_3>N_0$. (b) The range of
+$N^{el}_3$ is $4\times1.9/(2+\sqrt2)\,N_0=2.23N_0>2N_0$; no residual field can
+bring it into $[-N_0,N_0]$: bar~3 yields in every cycle, alternating
+plasticity. (c) $\delta^p_1+\delta^p_2-\sqrt2\,\delta^p_3=0$, so
+by~\eqref{eq:cy-truss-res} the residual forces vanish: the increment is the
+elongation of a vertical displacement of $O$. Nothing in the stresses
+resists it; the computation gives $a=0.4\,\delta_Y$ per cycle.
+\end{solution}
+
+\exercise{Melan decomposition of the Bree vessel}\label{exo:cy-q-bree}
+\index{Bree problem!exercise}%
+From~\eqref{eq:cy-bree}, derive~\eqref{eq:cy-bree-melan}. Show that
+$\Pop\varepsilon^p=\langle\varepsilon^p\rangle$ and that the kernel of $\Zop$ is
+the set of uniform plastic strains. What does a uniform plastic strain mean
+for the vessel?
+\begin{solution}
+Take the mean of~\eqref{eq:cy-bree} through the wall: $\langle x\rangle=0$, so
+$\sigma_P=\tilde E(\varepsilon-\langle\varepsilon^p\rangle)$ and
+$\varepsilon=\sigma_P/\tilde E+\langle\varepsilon^p\rangle$; substituting,
+$\sigma=\sigma^{el}-\tilde E(\varepsilon^p-\langle\varepsilon^p\rangle)$. The
+compatible strains are the uniform ones ($\mat{B}$ is a column of ones), and
+$\Pop$ is the orthogonal projection on them, the mean. $\Zop\varepsilon^p=0$
+if and only if $\varepsilon^p$ equals its mean. A uniform hoop plastic strain
+is a permanent increase of the radius: the vessel swells without stress. It
+is the ratchet strain of the Bree problem.
+\end{solution}
+
+\exercise{Contraction factor in the truss}\label{exo:cy-q-factor}
+\index{initial-strain method!exercise}%
+In the truss loaded by $Q_1$ beyond first yield, bar~3 is plastic with
+hardening $H$ and bars~1, 2 are elastic. Show that the initial-strain
+iteration multiplies the error on the displacement $u_1$ of $O$ by
+$\kappa=1-K_t/K$, where $K=(1+1/\sqrt2)ES/l$ and $K_t=(E_t+E/\sqrt2)S/l$ are
+the elastic and tangent stiffnesses of the truss in the direction $\vect e_1$.
+Compare with the factor of a single fibre (Section~\ref{prop:cy-factor}) and discuss $H=0$.
+\begin{solution}
+By symmetry $u_2=0$. Bar~3 has the strain $u_1/l$; bars~1 and~2 have
+$u_1/(2l)$ each and the projection factor $1/\sqrt2$ on $\vect e_1$. The
+stiffness of the truss in $\vect e_1$ is $(E+2\cdot\tfrac12\tfrac{1}{\sqrt2}E)S/l
+=(1+1/\sqrt2)ES/l$ elastically, and the same with $E_t$ for bar~3 on its plastic
+branch. The residual is affine in $u_1$ with slope $K_t$, and the iteration
+divides it by $K$: $\kappa=1-K_t/K$. With $H=0$, $E_t=0$ and
+$\kappa=1-\frac{1/\sqrt2}{1+1/\sqrt2}=\frac{\sqrt2}{1+\sqrt2}\approx0.59$: the
+iteration still converges, because the elastic bars confine bar~3. For a
+single fibre $K_t/K=E_t/E$ and $\kappa=E/(E+H)$, equal to $1$ without
+hardening.
+\end{solution}
+
+\exercise{Relaxation in LATIN}\label{exo:cy-q-relax}
+\index{LATIN method!relaxation (exercise)}%
+A linear map $x\mapsto -x$ has the unique fixed point $0$. (a) Show that its
+Picard iterates do not converge from $x_0\ne0$, but that their averages
+$\tfrac12(x_k+x_{k+1})$ do. (b) Show that the relaxed iteration
+$x_{k+1}=(1-\mu)(-x_k)+\mu x_k$ converges for $0<\mu<1$. (c) Relate (a) and (b)
+to the convergence of LATIN (Section~\ref{thm:cy-latin}) and Figure~\ref{fig:cy-latin}.
+\begin{solution}
+(a) $x_k=(-1)^kx_0$ oscillates; $\tfrac12(x_k+x_{k+1})=0$. (b)
+$x_{k+1}=(2\mu-1)x_k$ and $|2\mu-1|<1$. (c) Without relaxation, the LATIN
+iteration in statics may behave like (a): an iterate oscillates around the
+solution, here the admissible one, while an average converges; the
+indicator stalls in Figure~\ref{fig:cy-latin}. The relaxation is the
+averaging of (b), as in the Krasnosel'ski\u{\i}--Mann iteration of
+Appendix~\ref{app:iter}.
+\end{solution}
+
+\exercise{The toy sweep}\label{exo:cy-q-toy}
+\index{direct method!toy model (exercise)}%
+In the toy model of Section~\ref{sec:cy-orders},
+$\mat{M}=a\,(\mat{I}-b\,\mat{S})^{-1}$. (a) With three instants and the initial
+condition, write $\mat{M}$ and its eigenvalues. (b) With the periodic closure,
+show that the constant vector $(1,1,\dots,1)$ is an eigenvector, with the
+eigenvalue $a/(1-b)$. (c) Why does $a+b=1$ describe a compatible plastic
+strain?
+\begin{solution}
+(a) $(\mat{I}-b\mat{S})^{-1}=\mat{I}+b\mat{S}+b^2\mat{S}^2$, so
+$\mat{M}=a\begin{bmatrix}1&0&0\\ b&1&0\\ b^2&b&1\end{bmatrix}$: lower triangular, the
+three eigenvalues equal $a$. The entries below the diagonal carry the error of
+an early instant to the later ones. (b) For the cyclic shift,
+$\mat{S}\mathbf 1=\mathbf 1$, so $(\mat{I}-b\mat{S})\mathbf 1=(1-b)\mathbf 1$ and
+$\mat{M}\mathbf 1=\frac{a}{1-b}\mathbf 1$. (c) A compatible plastic strain creates no
+residual stress, so the global stage does not correct it, and the local
+sweep carries it unchanged from instant to instant: whatever is not removed
+at one instant ($a$) is passed on to the next ($b=1-a$). The constant
+compatible error is a fixed point of the iteration, which is why periodic
+states are not unique, and why a ratchet appears as a drift.
+\end{solution}
+
+\exercise{Moving frame}\label{exo:cy-q-moving}
+\index{stationary method!exercise}%
+A field $f(X,t)$ is stationary in the frame of a load moving at speed $V$
+along $\vect e_1$: $f(X,t)=g(x)$ with $x=X-Vt$. (a)
+Derive~\eqref{eq:cy-stationary} and explain why the initial state is
+prescribed at $x=+\infty$. (b) Show that for a rate-independent material the
+stationary solution does not depend on $V$.
+\begin{solution}
+(a) At fixed material point $X$, $\partial f/\partial t=g'(x)\,\partial x/\partial t=-Vg'(x)$.
+A material point sees $x$ decrease: it comes from $x=+\infty$, ahead of the
+load, where it is still in its initial state, and leaves towards
+$x=-\infty$. (b) The flow rule of a
+rate-independent material is invariant under a change of time scale: the
+rate $-V\partial_x$ multiplies all the rates by the same positive factor, and
+the normal cone is a cone. The evolution along a streamline depends on the
+position only.
+\end{solution}
+
+\exercise{Zarka for one fibre}\label{exo:cy-q-zarka}
+\index{Zarka's method!exercise}%
+A fibre with linear kinematic hardening has an elastic stress cycling between
+$\sigma_{\min}$ and $\sigma_{\max}$. (a) When can it shake down elastically?
+(b) After the first half-cycle the transformed parameter is
+$Y_1=\sigma_{\max}-\sY$. Where does Zarka's construction place $Y_\infty$?
+(c) What happens if $\sigma_{\max}-\sigma_{\min}>2\sY$?
+\begin{solution}
+(a) If $\sigma_{\max}-\sigma_{\min}\le2\sY$: the interval
+$[\sigma_{\max}-\sY,\,\sigma_{\min}+\sY]$ is not empty. (b) $Y_1$ is the lower
+end of the interval, already admissible: $Y_\infty=Y_1$; the fibre shakes down
+after its first yield in tension. (c) The interval is empty: no fixed $Y$ is
+admissible at both extremes; the fibre yields in every cycle (alternating
+plasticity), and Zarka's method only bounds the range of $Y$.
+\end{solution}
+
+\framesub{The module \texttt{cy\_core}}
+\phantomsection\label{sec:cy-aux}%
+\index{direct cyclic method!Python implementation}%
+The computational problems import one module, \texttt{cy\_core}. It describes a
+structure made of uniaxial fibres by the matrices $\mat{B}$ and $\mat{W}$
+of~\eqref{eq:cy-discrete}, and builds the truss and the Bree vessel. Its
+function \texttt{return\_map} is the return map of the filament with a local
+search direction $G$ ($G=E$ for Box~5.1); \texttt{local\_stage} sweeps a
+history with it, and \texttt{global\_stage} solves the admissible problem at
+all the instants with a global direction $h$ ($h=0$ for the elastic
+problem with initial strain). The solvers are \texttt{incremental} (Box~5.3
+with the consistent tangent, or Box~6.1), \texttt{global\_local} (Box~6.2,
+initial or periodic closure), \texttt{latin} (Box~6.3), \texttt{period\_map}
+and \texttt{fixed\_point} (Picard, averaging or Anderson), and \texttt{zarka}
+(Box~6.5).
+\lstinputlisting[firstline=4]{python/examples/ch6/cy_core.py}
+
+\framesub{Problems}
+
+\exercise{Regimes and orders of computation on the truss}\label{exo:cy-truss}
+\index{three-bar truss!computation}%
+(a) Compute 30 cycles of each loading of Section~\ref{ssec:cy-truss} with
+perfect plasticity, and classify the regimes by the drift per cycle and the
+range of the plastic strain within a cycle. (b) With $H=0.05E$, compute two
+periods of the third loading step by step with Newton's method, step by step
+with the initial-strain iteration (Box~6.1), and with the whole-history
+iteration (Box~6.2). Count the local evaluations.
+\begin{solution}
+(a) Loading 1: no drift, no range: elastic shakedown (bar~3 keeps the
+plastic strain of its first yield). Loading 2: no drift, a range of
+$0.546\,\varepsilon_Y$ in bar~3: alternating plasticity. Loading 3: drift
+$(+0.4,-0.4,0)\,\varepsilon_Y$ per cycle in bars 1 and 2: ratchetting along the
+compatible direction. (b) Newton: 178 local evaluations, 2 or 3 iterations per
+step. Initial strain: 982 evaluations, from 2 iterations at the elastic steps
+to 46 at the plastic ones. Whole history: 64 iterations of 80 instants, 5120
+evaluations. On this small structure the step-by-step methods are cheaper; the
+whole-history iteration needs one factorization only.
+\lstinputlisting[firstline=4]{python/examples/ch6/exo_truss_regimes.py}
+\end{solution}
+
+\exercise{LATIN on the truss: directions and relaxation}\label{exo:cy-latin}
+\index{LATIN method!exercise}%
+On the window of two periods of the third loading of the truss ($H=0.05E$),
+run Box~6.3 with $hE=1$ and $hE=4$, without and with the relaxation $\mu=0.3$.
+Compare the error indicator and the error of the constitutive iterate on the
+plastic strain with respect to the step-by-step solution, and explain the
+case $\mu=0$ with the convergence statement of Section~\ref{thm:cy-latin}.
+\begin{solution}
+With $\mu=0.3$ the indicator reaches $10^{-10}$ in 107 iterations ($hE=1$) and
+266 ($hE=4$); the plastic strain agrees with the step-by-step solution to
+$10^{-9}\varepsilon_Y$. With $\mu=0$ the indicator stalls at $2.7\times10^{-3}$
+($hE=1$) and $1.1\times10^{-3}$ ($hE=4$), constant over the last iterations,
+while the constitutive iterate is exact to $6\times10^{-13}\varepsilon_Y$: the
+admissible iterate oscillates around the solution, and in statics only the
+convergence of averages is guaranteed (Section~\ref{thm:cy-latin}). The relaxation removes the
+oscillation (Exercise~\ref{exo:cy-q-relax}).
+\lstinputlisting[firstline=4]{python/examples/ch6/exo_latin.py}
+\end{solution}
+
+\exercise{The Bree vessel: period map and direct cyclic method}\label{exo:cy-bree}
+\index{Bree problem!computation}%
+Take the Bree vessel with $X=0.7$, $Y=1.5$ (100 layers, 40 steps per cycle).
+(a) Without hardening, compute 20 cycles; give the drift of the mean plastic
+strain and the change of the residual stress per cycle. (b) With $H=0.02E$,
+iterate on the period map with Picard (cycle by cycle), averaging
+($\theta=\tfrac12$) and Anderson acceleration (Algorithm~\ref{alg:cy-anderson}),
+then run the direct cyclic method plain and accelerated. (c) Compare the two
+periodic states obtained cycle by cycle and with the accelerated direct cyclic
+method.
+\begin{solution}
+(a) The mean plastic strain grows by $0.317\,\varepsilon_Y$ per cycle and the
+residual stress does not change ($10^{-16}\sY$): the ratchet is a drift in the
+kernel of $\Zop$. (b) Picard needs 261 cycles to reach $10^{-10}\varepsilon_Y$;
+averaging is not converged after 400 ($6\times10^{-8}\varepsilon_Y$); Anderson
+needs 14 cycles. The plain direct cyclic method has a residual of
+$10^{-4}\varepsilon_Y$ after 400 sweeps; accelerated, it converges in 16. (c)
+Both states are exact fixed points of $\Pi$. They differ by a mean plastic
+strain of $0.050\,\varepsilon_Y$ (a compatible field) and by residual stresses of
+$0.0068\,\sY$: the periodic state is not unique, and each method selects its own.
+\begin{algorithm}[H]
+\caption{Anderson acceleration of a fixed-point map}\label{alg:cy-anderson}
+\begin{algorithmic}[1]
+\Require map $M$ (period map $\Pi$ or one direct cyclic sweep), start $z_0$, depth $m$, tolerance $\epsilon$
+\Ensure a fixed point $z^\ast\approx M(z^\ast)$
+\For{$k=0,1,2,\dots$}
+  \State $g_k\gets M(z_k)$;\ \ $f_k\gets g_k-z_k$ \Comment{one cycle or one sweep}
+  \If{$\norm{f_k}_\infty<\epsilon$} \Return $z_k$ \EndIf
+  \State $m_k\gets\min(m,k)$;\ \ $\Delta F\gets[f_{i+1}-f_i]_{i=k-m_k}^{k-1}$;\ \ $\Delta G\gets[g_{i+1}-g_i]_{i=k-m_k}^{k-1}$
+  \State $\gamma\gets\arg\min_\gamma\norm{f_k-\Delta F\,\gamma}_2$ \Comment{small least squares}
+  \State $z_{k+1}\gets g_k-\Delta G\,\gamma$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\lstinputlisting[firstline=4]{python/examples/ch6/exo_bree_cyclic.py}
+\end{solution}
+
+\exercise{Zarka's estimate of the shakedown state}\label{exo:cy-zarka}
+\index{Zarka's method!computation}%
+Apply Box~6.5 to the Bree vessel with $H=0.02E$ for $(X,Y)=(0.6,1.5)$ and
+$(0.7,1.5)$, and compare with the cycle-by-cycle limits.
+\begin{solution}
+Elastic shakedown is possible at every layer in both cases. For $(0.6,1.5)$ the
+structure shakes down in its first cycle and Zarka's estimate coincides with
+the limit to $5\times10^{-14}\varepsilon_Y$. For $(0.7,1.5)$ the cycle-by-cycle
+computation needs 261 cycles; Zarka's estimate, half a cycle and one linear
+problem, coincides with its limit to $5\times10^{-9}\varepsilon_Y$ (the
+tolerance of the cycles) and is an exact periodic state
+($\abs{\Pi\epsp-\epsp}<10^{-14}\varepsilon_Y$).
+\lstinputlisting[firstline=4]{python/examples/ch6/exo_zarka.py}
+\end{solution}
+
+\begin{chapterbib}{99}
+\bibitem{AkelNguyen1991} S.~Akel, Q.~S.~Nguyen, Limit response in cyclic plasticity, in J.-P.~Boehler, A.~S.~Khan (eds.), \emph{Anisotropy and Localization of Plastic Deformation}, Springer, 1991, 431--434.
+\bibitem{AmiableEtAl2006} S.~Amiable, S.~Chapuliot, A.~Constantinescu, A.~Fissolo, A comparison of lifetime prediction methods for a thermal fatigue experiment, \emph{Int. J. Fatigue} 28 (2006) 692--706.
+\bibitem{BoisseBussyLadeveze1990} P.~Boisse, P.~Bussy, P.~Ladev\`eze, A new approach in non-linear mechanics: the large time increment method, \emph{Int. J. Numer. Meth. Engng} 29 (1990) 647--663.
+\bibitem{Bree1967} J.~Bree, Elastic-plastic behaviour of thin tubes subjected to internal pressure and intermittent high-heat fluxes with application to fast-nuclear-reactor fuel elements, \emph{J. Strain Anal.} 2 (1967) 226--238.
+\bibitem{CaoEtAl2021} X.~Cao, A.~Oueslati, N.~Shirafkan, F.~Bamer, B.~Markert, G.~de Saxc\'e, A non-incremental numerical method for dynamic elastoplastic problems by the symplectic Brezis--Ekeland--Nayroles principle, \emph{Comput. Methods Appl. Mech. Engrg.} 384 (2021) 113908.
+\bibitem{CognardLadeveze1993} J.-Y.~Cognard, P.~Ladev\`eze, A large time increment approach for cyclic viscoplasticity, \emph{Int. J. Plasticity} 9 (1993) 141--157.
+\bibitem{ComteEtAl2006} F.~Comte, H.~Maitournam, P.~Burry, T.~M.~L.~Nguyen, A direct method for the solution of evolution problems, \emph{C. R. M\'ecanique} 334 (2006) 317--322.
+\bibitem{DangVanMaitournam1993} K.~Dang Van, M.~H.~Maitournam, Steady-state flow in classical elastoplasticity: applications to repeated rolling and sliding contact, \emph{J. Mech. Phys. Solids} 41 (1993) 1691--1710.
+\bibitem{Halphen1978} B.~Halphen, \emph{Probl\`emes quasistatiques en viscoplasticit\'e}, Th\`ese d'\'Etat, Universit\'e Paris~VI, 1978.
+\bibitem{InglebertFrelat1989} G.~Inglebert, J.~Frelat, Quick analysis of inelastic structures using a simplified method, \emph{Nucl. Eng. Des.} 116 (1989) 281--291.
+\bibitem{KondoMaitournam2023c} D.~Kondo, H.~Maitournam, Thermodynamics of irreversible processes: formulation of constitutive models, Chapter~2 in J.~Besson et al., \emph{MEALOR II: Damage Mechanics and Local Approach to Fracture}, 2023, 5--38.
+\bibitem{LadevezeNCSM} P.~Ladev\`eze, \emph{Nonlinear Computational Structural Mechanics: New Approaches and Non-Incremental Methods of Calculation}, Springer, 1999.
+\bibitem{Maitournam2012c} H.~Maitournam, \emph{M\'ecanique des structures an\'elastiques: comportement, chargements cycliques et fatigue}, course notes MEC562, \'Ecole polytechnique, 2012.
+\bibitem{MaitournamPommierThomas2002} M.~H.~Maitournam, B.~Pommier, J.-J.~Thomas, D\'etermination de la r\'eponse asymptotique d'une structure an\'elastique sous chargement thermom\'ecanique cyclique, \emph{C. R. M\'ecanique} 330 (2002) 703--708.
+\bibitem{MandelHalphenZarka1977} J.~Mandel, B.~Halphen, J.~Zarka, Adaptation d'une structure \'elastoplastique \`a \'ecrouissage cin\'ematique, \emph{Mech. Res. Commun.} 4 (1977) 309--314.
+\bibitem{MaoucheMaitournamDangVan1997} N.~Maouche, M.~H.~Maitournam, K.~Dang Van, On a new method of evaluation of the inelastic state due to moving contacts, \emph{Wear} 203--204 (1997) 139--147.
+\bibitem{Moreau1977} J.-J.~Moreau, Evolution problem associated with a moving convex set in a Hilbert space, \emph{J. Differential Equations} 26 (1977) 347--374.
+\bibitem{NeronLadeveze2010} D.~N\'eron, P.~Ladev\`eze, Proper generalized decomposition for multiscale and multiphysics problems, \emph{Arch. Comput. Methods Eng.} 17 (2010) 351--372.
+\bibitem{Nguyen1977} Q.~S.~Nguyen, On the elastic plastic initial-boundary value problem and its integration, \emph{Int. J. Numer. Meth. Engng} 11 (1977) 817--832.
+\bibitem{NguyenRahimian1981} Q.~S.~Nguyen, M.~Rahimian, Mouvement permanent d'une fissure en milieu \'elastoplastique, \emph{J. M\'ec. Appl.} 5 (1981) 95--120.
+\bibitem{Pazy1971} A.~Pazy, Asymptotic behavior of contractions in Hilbert space, \emph{Israel J. Math.} 9 (1971) 235--240.
+\bibitem{PeigneyStolz2003} M.~Peigney, C.~Stolz, An optimal control approach to the analysis of inelastic structures under cyclic loading, \emph{J. Mech. Phys. Solids} 51 (2003) 575--605.
+\bibitem{PonterChen2001} A.~R.~S.~Ponter, H.~Chen, A minimum theorem for cyclic load in excess of shakedown, with application to the evaluation of a ratchet limit, \emph{Eur. J. Mech. A/Solids} 20 (2001) 539--553.
+\bibitem{SauterWieners2011} M.~Sauter, C.~Wieners, On the superlinear convergence in computational elasto-plasticity, \emph{Comput. Methods Appl. Mech. Engrg.} 200 (2011) 3646--3658.
+\bibitem{Strang1986c} G.~Strang, \emph{Introduction to Applied Mathematics}, Wellesley-Cambridge Press, 1986.
+\bibitem{SpiliopoulosPanagiotou2012} K.~V.~Spiliopoulos, K.~D.~Panagiotou, A direct method to predict cyclic steady states of elastoplastic structures, \emph{Comput. Methods Appl. Mech. Engrg.} 223--224 (2012) 186--198.
+\bibitem{ZarkaCasier1981} J.~Zarka, J.~Casier, Elastic-plastic response of a structure to cyclic loading: practical rules, in S.~Nemat-Nasser (ed.), \emph{Mechanics Today}, Pergamon, 1981, 93--198.
+\bibitem{ZarkaEtAl1990} J.~Zarka, J.~Frelat, G.~Inglebert, P.~Kasmai-Navidi, \emph{A New Approach in Inelastic Analysis of Structures}, \'Ecole polytechnique, Palaiseau, 1990.
+\end{chapterbib}

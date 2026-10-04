@@ -17,6 +17,14 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   entries (see the printed index) instead of creating near-duplicates; use `sortkey@Display` for accents/math.
 - In running text, inline integrals and fractions are written with `\displaystyle` (`$\displaystyle \int...$`,
   `$\displaystyle \frac...$`); `\tfrac` stays small. Not in tables, captions or headings.
+- Key statements (Strang style, decided Oct 2026): no Theorem/Proposition/Lemma/Corollary/Definition
+  environments in Chapters 2-6. A key result is a `gbox` whose title states the claim in words
+  ("Backward Euler is a projection"), with its `\label` right after `\begin{gbox}{...}`; the argument follows
+  as `\paragraph{Why it works.}`, starting from the picture or the filament, then the short chain of formulas.
+  Cite it as "Section~\ref{...}" (gives the section number) or with `\nameref` (gives the box title), never
+  "Theorem~\ref". Numbered `example` environments are kept. Chapter 1 and Appendices A-D still use theorems; Appendix E
+  (iterative methods) follows the box style. Before a general statement, prefer a small worked example with
+  numbers or matrices (Strang's A^T C A: e = B u, sigma = W E (e - e^p), B^T sigma = F in Chapter 6).
 - Algorithms: in the chapter text, Simo & Hughes "Box" style: a `gbox` titled `Box <ch>.<n>  <title>`,
   numbered steps (`enumerate`, bold labels), each a short sentence followed by its formulas; cite as Box~... .
   In exercise parts, CMAME-style pseudocode (`algorithm` + `algpseudocode`, Input/Output, numbered lines).
@@ -28,9 +36,9 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   the reaction (positive); keep this convention in every chapter.
 - New symbols go into the notation list `front/notation_list.tex` (after the table of contents) as well as
   `preamble/notation.tex`. Appendices in order: `app0_prerequisites` (A), `appA_function_spaces` (B),
-  `appB_variational_derivatives` (C), `appC_integration_by_parts` (D); always cite them by label.
+  `appB_variational_derivatives` (C), `appC_integration_by_parts` (D), `appD_iterative_methods` (E), `appE_minimization` (F, label `app:opt`); always cite them by label.
 - Each chapter ends with its own `chapterbib`; bibitem keys must be unique across the whole book.
-- Labels are prefixed per chapter: ch1 `sec:var-*`, ch2 `sec:el-*`/`sec:diff`, ch3 `*:rg-*`, ch4 `*:pl-*`, ch5 `*:pn-*`, appendices `app:*`.
+- Labels are prefixed per chapter: ch1 `sec:var-*`, ch2 `sec:el-*`/`sec:diff`, ch3 `*:rg-*`, ch4 `*:pl-*`, ch5 `*:pn-*`, ch6 `*:cy-*`, ch7 `*:id-*`, appendices `app:*`.
 - Author comments in the sources look like `%% AC: ...`; process them when asked, then delete them.
 - Red `\draftnote{...}` marks open questions for the author; leave them unless resolved.
 

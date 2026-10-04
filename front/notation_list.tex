@@ -54,7 +54,11 @@ $E$, $\nu$, $\lambda$, $\mu$, $K$ & Young's modulus, Poisson's ratio, Lam\'e con
 $\bbC$, $\bbS$ & elastic moduli (GPa) and compliances (GPa$^{-1}$); Voigt components $c_{IJ}$, $s_{IJ}$\\
 $\tk$ & tensor of diffusion coefficients (e.g.\ W\,m$^{-1}$K$^{-1}$ for heat)\\
 $\sY$; \ $\eta$, $\tau=\eta/E$ & initial yield stress (MPa); viscosity (MPa\,s), relaxation time (s)\\[6pt]
-\multicolumn{2}{@{}l}{\sffamily\bfseries Plasticity (Chapters~\ref{ch:pl}--\ref{ch:pl-num}, after Simo and Hughes)}\\[2pt]
+\end{tabular}
+
+\noindent
+\begin{tabular}{@{}p{3.5cm}p{11.5cm}@{}}
+\multicolumn{2}{@{}l}{\sffamily\bfseries Plasticity (Chapters~\ref{ch:pl}--\ref{ch:pl-cyc}, after Simo and Hughes)}\\[2pt]
 $\epse$, $\epsp$ & elastic and plastic strains, $\eps=\epse+\epsp$\\
 $\valpha$, $\tbeta$, $\teta$ & internal hardening variables, back stress, relative stress $\dev\sig-\tbeta$\\
 $\tn$ & unit normal to the von Mises surface\\
@@ -62,6 +66,16 @@ $\Esig$ & elastic domain\\
 $\bbCep$, $\bbCalg$ & continuum elastoplastic and consistent (algorithmic) tangents\\
 $\dg$, $(\cdot)^{\trial}$, $(\cdot)_{\np}$ & plastic multiplier increment, trial state, current step\\
 $\mac{x}$ & ramp (Macaulay) bracket $(x+|x|)/2$\\
+$\Pop$, $\Zop$, $\vrho$ & compatible part, residual-stress operator, residual stress $\vrho=-\Zop\epsp$\\
+$\Ad$, $\Gcon$ & admissible and constitutive histories on a time window\\
+$\mat{W}$, $\mat{E}$ & fibre volumes and moduli (diagonal), $\mat{K}=\mat{B}\T\mat{W}\mat{E}\mat{B}$\\
+[6pt]
+\multicolumn{2}{@{}l}{\sffamily\bfseries Identification (Chapter~\ref{ch:id})}\\[2pt]
+$\vp$, $\mathcal Q$ & parameters, admissible set\\
+$\mat{y}(\vp)$, $\mat{y}^m$, $\mat{r}$ & computed and measured observations, scaled residual\\
+$\mathcal J$ & cost functional\\
+$\mat{S}=\partial\mat{r}/\partial\vp$ & sensitivity matrix; $\mat{S}\T\mat{S}$ Gauss--Newton matrix\\
+$\boldsymbol\lambda$, $\boldsymbol\mu$; \ $\vu^\star$, $\sig^\star$ & discrete adjoints (equilibrium, internal variables); continuous adjoint fields\\
 \end{tabular}
 }
 \cleardoublepage
