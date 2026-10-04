@@ -2,7 +2,7 @@
 * Radial return of Box 5.2 programmed on Gauss-point fields
 * Chapter 5: "Radial return with combined and nonlinear
 * hardening" and "Simple shear, then a non-proportional path"
-* (companion exercise C5.1)
+* (Box 5.6; exercise "The radial return on fields in Cast3M" (a))
 *
 * STATUS: UNTESTED. Written against the operator notices (VMIS,
 * MASQ, EXCO, SIGM, ZERO, EXP); not run. See cast3m/README.md for

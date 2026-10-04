@@ -2,10 +2,10 @@
 # sweep_sy.sh -- companion exercise C7.3: the cost J(sY) of Exercise 7.9 along
 # one parameter, with E and H at their true values, from the shell alone:
 # sed fills the template, Cast3M runs in its own directory, awk computes J.
-# Usage: ./sweep_sy.sh            (CASTEM=castem25 by default)
+# Usage: ./sweep_sy.sh            (CASTEM=castem26 by default)
 #        CASTEM="python3 $PWD/tools/castem_stub.py" ./sweep_sy.sh   (test)
 set -eu
-CASTEM=${CASTEM:-castem25}
+CASTEM=${CASTEM:-castem26}
 E=200000.; H=10000.; UREF=0.001            # u_ref = sY l / E (true values)
 HERE=$(cd "$(dirname "$0")" && pwd)
 

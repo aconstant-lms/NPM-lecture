@@ -43,7 +43,9 @@ tangent, and a minimum principle for the whole incremental problem.
   the projected return, and viscoplasticity with the Perzyna and Duvaut--Lions
   updates;
   \item prove the contractivity of the return map, and recognize the
-  incremental problem as the minimization of a convex potential.
+  incremental problem as the minimization of a convex potential;
+  \item write the radial return as a sequence of operations on Gauss-point
+  fields, as in the language of a finite element code.
 \end{itemize}
 
 \paragraph{Plan of the chapter.} Section~\ref{sec:pn-incr} states the
@@ -54,7 +56,8 @@ return and consistent tangent. Section~\ref{sec:pn-newton} assembles the global
 Newton method. Sections~\ref{sec:pn-multi}--\ref{sec:pn-vp} treat corners, plane
 stress and viscoplasticity. Section~\ref{sec:pn-stab} discusses accuracy and
 stability, and Section~\ref{sec:pn-var} the variational form of the
-incremental problem. A summary, exercises with solutions
+incremental problem. Section~\ref{sec:pn-fields} writes the radial return as
+it is programmed in a finite element code, on whole fields. A summary, exercises with solutions
 (page~\pageref{sec:pn-exo}) and the references close the chapter. The reference
 text is Simo and Hughes~\cite[Ch.~1--3,~6]{SimoHughesCI}; see
 also~\cite{deSouzaNeto2008,Maitournam2012b,KondoMaitournam2023b}.
@@ -1253,6 +1256,116 @@ of a heterogeneous material defines an effective incremental potential, which
 is the incremental variational homogenization of Miehe~\cite{Miehe2002}.
 
 %======================================================================
+\section{Return maps on fields: the view of a finite element code}\label{sec:pn-fields}
+\index{radial return!on fields}\index{Cast3M!return map on fields}%
+The module \texttt{ci\_core} calls the return map point by point: a loop over
+the Gauss points, and in each one the steps of Box~5.2. The languages of
+finite element codes see the same data differently. In Cast3M, a stress field
+at the Gauss points is one object (a \texttt{MCHAML}), a displacement field at
+the nodes another (a \texttt{CHPOINT}), and the operators act on whole fields:
+add two stress fields, take the von Mises norm of a field, keep the points
+where a field is positive. The radial return is then written without any loop
+over the points, and the scalar Newton iteration of Box~5.2 runs at all Gauss
+points at once.
+
+\paragraph{Three Gauss points.}
+Take $E=200$\,GPa, $\nu=0.3$ ($\mu=76.92$\,GPa), $\sY=250$\,MPa, linear
+isotropic hardening $K=2$\,GPa, no kinematic hardening, $\alpha_n=0$. Three
+Gauss points receive trial stresses whose von Mises norms are
+$\eta_{eq}^\trial=\sqrt{3/2}\,\norm{\teta^\trial}=(200,\ 260,\ 400)$\,MPa.
+The trial function is the field $f^\trial=(-50,\ 10,\ 150)$, and the mask of the
+plastic points is the field $(0,\ 1,\ 1)$. One division by $3\mu+K=232\,769$\,MPa,
+multiplied by the mask, gives the field
+$\Delta\alpha=(0,\ 4.296\times10^{-5},\ 6.444\times10^{-4})$. The stress is
+scaled back along its deviator by the field $3\mu\,\Delta\alpha/\eta_{eq}^\trial
+=(0,\ 0.0381,\ 0.3718)$, and the new norms $(200,\ 250.086,\ 251.289)$ equal
+$R(\alpha_n+\Delta\alpha)$ at the two plastic points. Every number above is one
+field operation, whatever the number of points.
+
+\begin{gbox}{A return map is an operation on fields}\label{thm:pn-fields}
+The radial return of Box~5.2 is a short sequence of operations on the
+Gauss-point fields: an elastic predictor, a norm, a mask, a scalar iteration
+done pointwise on whole fields, and a scaling of the deviator. The data
+structure changes; the algorithm and its result do not.
+\end{gbox}
+
+\noindent The field operations use the von Mises norm
+$\eta_{eq}=\sqrt{3/2}\,\norm{\teta}$, which a code provides, and the increment
+$\Delta\alpha=\sqrt{2/3}\,\dg$ of the cumulated plastic strain. In these
+variables Box~5.2 reads as follows.
+
+\begin{gbox}{Box 5.6\quad Radial return on Gauss-point fields}\label{box:pn-fields}
+\index{radial return!Box 5.6}%
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+  \item \textbf{Predictor.} From the converged state, with $\mat{u}_n$ the
+  nodal displacements of $t_n$:
+  \[
+    \sig^\trial=\sig_n+\bbC:\eps(\mat{u}-\mat{u}_n),\qquad
+    \teta^\trial=\sig^\trial-\tbeta_n,\qquad
+    \eta_{eq}^\trial=\sqrt{\tfrac32}\,\norm{\dev\teta^\trial}.
+  \]
+  \item \textbf{Mask.} $f^\trial=\eta_{eq}^\trial-R(\alpha_n)$; the field
+  $\chi$ equals 1 where $f^\trial>0$ and 0 elsewhere.
+  \item \textbf{Multiplier.} From $\Delta\alpha=0$, repeat at all points at
+  once until $\max\abs{g}$ is small:
+  \[
+    g=\chi\,\bigl(\eta_{eq}^\trial-a\,\Delta\alpha-R(\alpha_n+\Delta\alpha)\bigr),\qquad
+    \Delta\alpha\leftarrow\Delta\alpha+\frac{g}{a+R'(\alpha_n+\Delta\alpha)},
+  \]
+  with $a=3\mu+H$, or $a=3\mu+H+\tfrac32\eta/\Delta t$ for the Perzyna
+  update~\eqref{eq:pn-perzyna-j2}. One iteration for linear hardening.
+  \item \textbf{Update.} Along the deviator of the trial relative stress:
+  \[
+    \sig_\np=\sig^\trial-3\mu\,\Delta\alpha\,\frac{\dev\teta^\trial}{\eta_{eq}^\trial},\qquad
+    \tbeta_\np=\tbeta_n+H\,\Delta\alpha\,\frac{\dev\teta^\trial}{\eta_{eq}^\trial},\qquad
+    \alpha_\np=\alpha_n+\Delta\alpha .
+  \]
+\end{enumerate}
+\end{gbox}
+
+\paragraph{Why it works.}
+It is Box~5.2 with other variables. With $\tn=\teta^\trial/\norm{\teta^\trial}
+=\sqrt{3/2}\,\dev\teta^\trial/\eta_{eq}^\trial$ and $\Delta\alpha=\sqrt{2/3}\,\dg$:
+$2\mu\dg\,\tn=3\mu\,\Delta\alpha\,\dev\teta^\trial/\eta_{eq}^\trial$ and
+$\tfrac23H\dg\,\tn=H\,\Delta\alpha\,\dev\teta^\trial/\eta_{eq}^\trial$. The scalar
+equation of step~3 is the equation $g(\dg)=0$ of Box~5.2 multiplied by
+$\sqrt{3/2}$; for linear hardening $\Delta\alpha=f^\trial/(3\mu+K+H)$, which is
+$\dg=f^\trial/(2\mu+\tfrac23(K+H))$. The mask $\chi$ keeps $\Delta\alpha=0$ at the
+elastic points, so that the update leaves them at the trial state, as in
+step~3 of Box~5.2. Since each point only sees its own values, applying the
+scalar Newton iteration to whole fields is the same as applying it point by
+point; the stopping test on the largest residual simply makes every point do
+as many iterations as the slowest one.
+
+\paragraph{In Cast3M.}
+Each step is one or two operators of the gibiane language:
+\begin{center}
+\small
+\begin{tabular}{@{}l@{\hspace{5mm}}l@{}}
+\toprule
+step of Box~5.6 & gibiane \\
+\midrule
+predictor, $\bbC:\eps(\mat{u}-\mat{u}_n)$ & \texttt{SIGM} on the displacement increment \\
+norm $\eta_{eq}$ & \texttt{VMIS} \\
+mask $\chi$, field of ones & \texttt{MASQ} with the thresholds 0 and $-1$ \\
+multiplier & field arithmetic, \texttt{MAXI}, \texttt{ABS}, \texttt{EXP} (Voce) \\
+deviator, scaling & \texttt{EXCO} (one component, renamed), \texttt{ET} (join) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent The global stage of Box~5.3 is a residual
+$\mat{F}^{\mathrm{ext}}-\sum\int\mat{B}\T\sig$ (\texttt{BSIG}) and a linear
+solve (\texttt{RESO}). With the elastic stiffness as iteration matrix,
+assembled and factorized once, the loop is the initial-strain iteration of
+Box~6.1 (Section~\ref{sec:cy-orders}): each iteration is cheap, the convergence
+is linear, and the number of iterations grows quickly when most of the
+structure is plastic. The consistent tangent of Section~\ref{ssec:pn-calg}
+needs one more field, the fourth-order tensor $\bbCalg$ at every Gauss point,
+from which the code assembles the stiffness; the built-in incremental
+procedures of the codes (\texttt{PASAPAS} in Cast3M) offer this choice. The two
+loops are compared in Exercise~\ref{exo:pn-fields}.
+
+%======================================================================
 \framepart{Summary}
 \begin{gbox*}
 \begin{itemize}
@@ -1286,6 +1399,11 @@ is the incremental variational homogenization of Miehe~\cite{Miehe2002}.
   energy; the incremental potential $W_n$ is convex, $\sig_\np=\partial W_n/\partial\eps$,
   $\bbCalg=\partial^2W_n/\partial\eps^2$, and the incremental structural
   problem is the minimization of $\Pi_n$.
+  \item \textbf{On fields:} in a finite element code the radial return is a
+  sequence of operations on Gauss-point fields (Box~5.6): predictor, von Mises
+  norm, mask of the plastic points, a scalar Newton iteration on whole fields,
+  scaling of the deviator. With the elastic stiffness the global loop is the
+  initial-strain iteration; the consistent tangent needs $\bbCalg$ as a field.
 \end{itemize}
 \end{gbox*}
 
@@ -1877,6 +1995,45 @@ $p=k\ln(c/a)+\tfrac k2\bigl(1-c^2/b^2\bigr)$, $k=2\sY/\sqrt3$. The plastic
 zone appears at $p=0.541\,p_L$ and reaches the outer radius at $p_L$.}
 \label{fig:pn-cylzone}
 \end{figure}
+
+
+\exercise{The radial return on fields in Cast3M}\label{exo:pn-fields}
+\index{radial return!Cast3M}\index{Cast3M!return map on fields}%
+(a)~Program Box~5.6 as a gibiane procedure acting on Gauss-point fields, with
+linear or Voce isotropic hardening and linear kinematic hardening. Drive it on
+one quadrilateral element in plane strain whose nodes all follow
+$\vu=\eps\cdot\vx$: the strain is homogeneous, and the element is a
+material-point driver with no equilibrium to solve. Repeat the computations of
+Exercise~\ref{exo:pn-shear}. (b)~Put the procedure in an equilibrium loop with
+the elastic stiffness (Box~5.3 with $\mat{K}$ replaced by the elastic matrix)
+for the cylinder of Exercise~\ref{exo:pn-fem}: 200 elements through the wall,
+20 steps to $0.8\,p_L$ and to $0.95\,p_L$, perfect plasticity; then Voce
+hardening to 320\,MPa in 10 steps. Compare the displacements, the plastic zone
+and the numbers of iterations with the Newton computations of
+Exercises~\ref{exo:pn-tangent} and~\ref{exo:pn-fem}.
+\begin{solution}
+(a)~Simple shear $\gamma=0.01$: $\sigma_{12}=149.706775$\,MPa in one step and in
+1000. Shear to $\varepsilon_{12}=0.002$, then $\varepsilon_{11}$ from 0 to 0.004:
+the errors on $\sigma_{12}$ are 30.07, 4.941, 0.5281, 0.05293\,MPa for 1, 10,
+100, 1000 steps, against the reference $\sigma_{11}=834.8243$,
+$\sigma_{12}=26.0140$\,MPa. The procedure is the algorithm of
+\texttt{ci\_core} on another data structure, and the numbers must agree to the
+printed digits. (b)~The displacements are those of the Newton computations up to
+the tolerance and the mesh: $u(a)=0.18305$ and $0.30536$\,mm at $0.8\,p_L$ and
+$0.95\,p_L$, $u(a)=3.4526$\,mm with Voce hardening (80 elements in
+Exercise~\ref{exo:pn-tangent}); the plastic radius is found to one Gauss-point
+spacing, about $c=131$ and $165.5$\,mm. The number of iterations is much larger
+than the 60 and 70 of Newton's method: the elastic matrix gives linear
+convergence, with a factor that tends to 1 as the plastic zone spreads through
+the wall. The price of a matrix factorized once is paid in iterations.
+\draftnote{The gibiane files have not been run with Cast3M yet: the values above
+are the references they must reproduce, and their listings are printed only in
+the draft version.}
+\ifdraft
+\lstinputlisting[style=gibstyle,firstline=31]{cast3m/ch5/return_map_point.dgibi}
+\lstinputlisting[style=gibstyle,firstline=156]{cast3m/ch5/cylinder_radial_return.dgibi}
+\fi
+\end{solution}
 
 %======================================================================
 \begin{chapterbib}{99}

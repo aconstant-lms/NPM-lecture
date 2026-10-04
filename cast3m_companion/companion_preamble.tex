@@ -11,25 +11,7 @@
 % introduction).
 \providecommand{\op}[1]{\texttt{#1}}
 
-%---- gibiane listings ----------------------------------------------------
-% Comments are the lines with a * in the first column (fixed-column comment
-% of listings); keywords are case-insensitive, as in gibiane.
-\lstdefinelanguage{gibiane}{%
-  sensitive=false,
-  morecomment=[f][\color{gray}][0]{*},
-  morestring=[b]',
-  morekeywords={opti,debproc,finproc,repeter,fin,si,sinon,finsi,quitter,
-    mess,table,prog,mots,lect,et,ega,dime,extr,exco,masq,vmis,sigm,bsig,
-    reso,rigi,mode,mate,cara,bloq,depi,reac,pres,forc,char,evol,pasapas,
-    droi,dall,cerc,coor,chan,zero,manu,dess,trac,abs,maxi,exp,log,flot,
-    exis,poin,ipol,rela,elim,resu,nbno,sin,cos,inve,index,vale,chai,mot},
-  keywordstyle=\color{blue!60!black}}
-\lstdefinestyle{gibstyle}{language=gibiane,
-  basicstyle=\ttfamily\scriptsize,
-  stringstyle=\color{green!45!black},
-  backgroundcolor=\color{gray!6},frame=none,
-  breaklines=true,showstringspaces=false,columns=fixed,
-  xleftmargin=0.6em,aboveskip=4pt,belowskip=4pt}
+%---- shell listings (gibiane listings: style gibstyle, in preamble/style) --
 \lstdefinestyle{shstyle}{language=bash,
   basicstyle=\ttfamily\scriptsize,
   keywordstyle=\color{blue!60!black},commentstyle=\color{gray},

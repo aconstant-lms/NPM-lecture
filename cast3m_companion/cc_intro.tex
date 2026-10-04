@@ -12,8 +12,8 @@ quoted in the solutions. This companion does the same computations with the
 finite element code Cast3M, chapter by chapter. Its chapters carry the numbers
 of the chapters of the notes they accompany; Chapter~3, on the reciprocity
 gap, has its own Cast3M files and is treated separately. Exercises are numbered
-C\,\textit{chapter}.\textit{n}, so that Exercise~\ref{exo:cc-cylinder} is never confused with
-Exercise~5.2 of the notes.
+C\,\textit{chapter}.\textit{n}, so that Exercise~C4.2 is never confused with
+Exercise~4.2 of the notes.
 
 After this companion you should be able to
 \begin{itemize}
@@ -43,7 +43,8 @@ return of Box~5.2 (Section~\ref{B-sec:pn-j2}) is a sequence of operations on fie
 trial stress, its von Mises norm, a mask of the plastic points, a scalar
 Newton iteration done at all Gauss points at once, an update along the
 deviator. The equilibrium loop of Box~5.3 is a residual and a linear solve.
-Chapter~\ref{cc:ch5} writes both, and compares them with \op{pasapas}.
+Section~\ref{B-sec:pn-fields} of the notes writes both (Box~5.6), and
+Chapter~\ref{cc:ch5} shows the gibiane lines.
 
 \paragraph{Cast3M as a black box.}
 For an identification (Chapter~\ref{B-ch:id} of the notes) the direct solver
@@ -64,8 +65,7 @@ JAX (Chapter~\ref{cc:ch7}).
 \ref{exo:cc-sheet} & sheet in plane strain, perfect plasticity & Ex.~\ref{B-exo:pl-sheet}\\
 \ref{exo:cc-filament} & filament under a strain cycle & Ex.~\ref{B-exo:pl-cyclic}\\
 \ref{exo:cc-residual} & cylinder: loading, unloading, residual stresses & Ex.~\ref{B-exo:pl-cyl}\\
-\ref{exo:cc-rrj2} & radial return on Gauss-point fields & Ex.~\ref{B-exo:pn-shear}\\
-\ref{exo:cc-cylinder} & cylinder: return map and equilibrium loop in gibiane & Ex.~\ref{B-exo:pn-fem}\\
+-- & radial return on Gauss-point fields, at a point and in the cylinder: now in the notes, Box~5.6 & Ex.~\ref{B-exo:pn-fields}\\
 \ref{exo:cc-bree} & Bree's tube, cycle by cycle & Ex.~\ref{B-exo:cy-bree}\\
 \ref{exo:cc-id-q-scale}, \ref{exo:cc-id-q-step} & short questions: a load that scales, the step of finite differences & Ex.~\ref{B-exo:id-q-fd}\\
 \ref{exo:cc-id-sweep} & the cost along one parameter, from the shell & Ex.~\ref{B-exo:id-truss}\\
@@ -79,7 +79,7 @@ JAX (Chapter~\ref{cc:ch7}).
 subdirectory per chapter. Each starts with a header that states the exercise,
 the data and the reference values of the Python scripts; each prints its
 results next to these values with \op{mess}. Run them with the local Cast3M
-command, for instance \texttt{castem25 return\_map\_point.dgibi}.
+command, for instance \texttt{castem26 return\_map\_point.dgibi}.
 
 \paragraph{Status.}
 The gibiane files were written against the operator notices and the Cast3M

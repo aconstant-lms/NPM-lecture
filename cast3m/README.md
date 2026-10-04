@@ -13,9 +13,9 @@ treated separately.
 | `ch4/sheet_vm_250.dgibi` | Ch. 4, same exercise with the data of `exo_sheet.py` | C4.1 | untested |
 | `ch4/filament_cyclic.dgibi` | Ch. 4, cyclic loading, isotropic/kinematic hardening (bar element) | C4.2 | untested |
 | `ch4/cylinder_residual.dgibi` | Ch. 4, thick cylinder: loading, unloading, residual stresses | C4.3 | untested |
-| `ch5/return_map_point.dgibi` | Ch. 5, radial return (Box 5.2) **programmed on Gauss-point fields**; shear and non-proportional path | C5.1 | untested |
-| `ch5/cylinder_radial_return.dgibi` | Ch. 5, thick cylinder: the same return map + equilibrium iterations in gibiane, against PASAPAS | C5.2 | untested |
-| `ch5/cylinder_pressure.dgibi` | Ch. 5, thick cylinder with Voce hardening, PASAPAS | C5.2 | untested |
+| `ch5/return_map_point.dgibi` | Ch. 5, radial return on Gauss-point fields (Box 5.6, Section "Return maps on fields"); shear and non-proportional path | book, Ex. "The radial return on fields in Cast3M" (a) | untested |
+| `ch5/cylinder_radial_return.dgibi` | Ch. 5, thick cylinder: the same return map + equilibrium iterations in gibiane, against PASAPAS | book, same exercise (b) | untested |
+| `ch5/cylinder_pressure.dgibi` | Ch. 5, thick cylinder with Voce hardening, PASAPAS (reference for the exercise above) | -- | untested |
 | `ch6/bree_tube.dgibi` | Ch. 6, Bree's problem on an axisymmetric tube, cycle by cycle | C6.1 | untested |
 | `ch7/truss.template` + drivers | Ch. 7, identification of the truss with Cast3M as direct solver | C7.3-C7.6 | drivers tested with the stand-in, template untested |
 
@@ -24,7 +24,7 @@ stays where the Python README points to it.
 
 ## Running
 
-    castem25 ch5/return_map_point.dgibi        (or the local Cast3M command)
+    castem26 ch5/return_map_point.dgibi        (or the local Cast3M command)
 
 Each file prints its results next to the reference values of the Python
 scripts (`mess` lines), so a run is checked by reading its output. The files
@@ -52,7 +52,7 @@ introduction.
 | `tools/castem_stub.py` | stands in for Cast3M: same file in, same CSV out, computed with `id_core` | |
 
 The command is taken from the environment variable `CASTEM` (default
-`castem25`). Without Cast3M, the drivers can be checked against the stand-in:
+`castem26`). Without Cast3M, the drivers can be checked against the stand-in:
 
     cd cast3m/ch7
     export CASTEM="python3 $PWD/tools/castem_stub.py"
@@ -112,5 +112,8 @@ named `et`, which hides the operator `ET`, and lists of instants built with
 `prog ... pas ...` that may miss their last value by rounding; they are now
 built as a number times `prog 0. pas 1. n`.
 
-Files marked untested are printed in the companion document with a red note;
-they go into the book only once they have been run.
+Files marked untested are printed in the companion document with a red note.
+In the book, Exercise "The radial return on fields in Cast3M" (Chapter 5,
+Box 5.6) cites `ch5/return_map_point.dgibi` and `ch5/cylinder_radial_return.dgibi`
+and prints them only in the draft version (`\drafttrue`), until they have been
+run.

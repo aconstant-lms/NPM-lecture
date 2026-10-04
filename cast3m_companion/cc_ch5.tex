@@ -28,12 +28,12 @@ tangent of the notes (quadratic convergence).
 \begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
 Radial return, Box~5.2, Sec.~\ref{B-sec:pn-j2};
 Ex.~\ref{B-exo:pn-radial}, \ref{B-exo:pn-shear}
- & \textbf{Exercise \ref{exo:cc-rrj2}}: the procedure \texttt{rrj2} on Gauss-point fields
+ & \textbf{Exercise \ref{B-exo:pn-fields}}: the procedure \texttt{rrj2} on Gauss-point fields
    (linear or Voce isotropic, linear kinematic hardening), driven on one
    element with a prescribed homogeneous strain.\\[1mm]
 Equilibrium, Box~5.3, Sec.~\ref{B-sec:pn-newton}; Ex.~\ref{B-exo:pn-fem},
 \ref{B-exo:pn-tangent}
- & \textbf{Exercise \ref{exo:cc-cylinder}}: \texttt{rrj2} inside an equilibrium loop with the
+ & \textbf{Exercise \ref{B-exo:pn-fields}}: \texttt{rrj2} inside an equilibrium loop with the
    elastic stiffness; the cylinder at $0.8p_L$, $0.95p_L$ and with Voce
    hardening; against \op{pasapas}.\\[1mm]
 Viscoplasticity, Sec.~\ref{B-sec:pn-vp}
@@ -49,53 +49,16 @@ Plane stress, Box~5.5; Ex.~\ref{B-exo:pn-ps}
 Consistent tangent, Sec.~\ref{B-ssec:pn-calg}
  & To do: an iteration matrix built from a Gauss-point modulus field
    (\op{mate} with fields), or \op{pasapas} with its tangent option; compare
-   the iteration counts with Exercise~\ref{exo:cc-cylinder}.\\
+   the iteration counts with Exercise~\ref{B-exo:pn-fields}.\\
 \end{tabular}
 \end{gbox}
 
-\section{The radial return on fields}\label{cc:sec5-rrj2}
+\section{The radial return on fields, line by line}\label{cc:sec5-rrj2}
 \index{radial return!on fields}%
-In Box~5.2 the multiplier is $\dg$ and the norm is $\norm{\teta}$. Gibiane
-has the von Mises norm \op{vmis}, $q=\sqrt{3/2}\,\norm{\dev\teta}$, so the
-procedure uses $q$ and the increment of the cumulated plastic strain
-$\Delta\alpha=\sqrt{2/3}\,\dg$, called \texttt{dp}. In these variables
-Box~5.2 reads as follows.
-
-\begin{gbox}{Box C5.1\quad Radial return on Gauss-point fields}\label{cc:box-rrj2}
-\index{radial return!Box C5.1}%
-\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
-  \item \textbf{Predictor.} With the displacement $\mat{u}_n$ of the
-  converged state, $\sig^\trial=\sig_n+\bbC:\eps(\mat{u}-\mat{u}_n)$, one
-  call of \op{sigm}; $\teta^\trial=\sig^\trial-\tbeta_n$ and
-  $q^\trial=\sqrt{3/2}\,\norm{\dev\teta^\trial}$, one call of \op{vmis}.
-  \item \textbf{Mask.} $f^\trial=q^\trial-R(\alpha_n)$; the field
-  \texttt{pla} is 1 where $f^\trial>0$ and 0 elsewhere (\op{masq}).
-  \item \textbf{Multiplier.} From $\Delta\alpha=0$, at all points at once,
-  \[
-    g=\texttt{pla}\,\bigl(q^\trial-a\,\Delta\alpha
-      -R(\alpha_n+\Delta\alpha)\bigr),\qquad
-    \Delta\alpha\leftarrow\Delta\alpha+\frac{g}{a+R'(\alpha_n+\Delta\alpha)},
-  \]
-  with $a=3\mu+H+\tfrac32\eta/\Delta t$, until $\max\abs{g}<10^{-10}\sY$: one iteration for linear hardening,
-  a few for Voce. $\eta=0$ is the rate-independent case.
-  \item \textbf{Update.} With $\dev\teta^\trial$ built component by
-  component,
-  \[
-    \sig_\np=\sig^\trial-3\mu\,\Delta\alpha\,\frac{\dev\teta^\trial}{q^\trial},\quad
-    \tbeta_\np=\tbeta_n+H\,\Delta\alpha\,\frac{\dev\teta^\trial}{q^\trial},\quad
-    \alpha_\np=\alpha_n+\Delta\alpha .
-  \]
-\end{enumerate}
-\end{gbox}
-
-\paragraph{Why it is Box~5.2.}
-With $\Delta\alpha=\sqrt{2/3}\,\dg$, $q=\sqrt{3/2}\norm{\teta}$ and
-$\tn=\sqrt{3/2}\,\dev\teta/q$: $2\mu\dg\,\tn=3\mu\,\Delta\alpha\,\dev\teta/q$,
-$\tfrac23H\dg\,\tn=H\,\Delta\alpha\,\dev\teta/q$, and $g(\dg)=0$ of Box~5.2
-multiplied by $\sqrt{3/2}$ is the equation of step~3. For linear hardening
-$\Delta\alpha=f^\trial/(3\mu+K+H)$, which is $\dg=f/(2\mu+\tfrac23(K+H))$ of
-the notes. The Perzyna term $\tfrac32\eta/\Delta t$ is
-equation~\eqref{B-eq:pn-perzyna-j2} in the same variables.
+Box~5.6 of the notes (Section~\ref{B-sec:pn-fields}) writes the radial
+return on Gauss-point fields, in the variables $\eta_{eq}=\sqrt{3/2}\,
+\norm{\teta}$ (\op{vmis}) and $\Delta\alpha=\sqrt{2/3}\,\dg$ (\texttt{dp} in
+the files). This section shows the gibiane lines of each step.
 
 \begin{castemcom}
 \textbf{Predictor and mask.} \texttt{sgt} is the trial stress, computed by
@@ -208,55 +171,12 @@ fin bequ;
 
 \framepart{Exercises}
 
-\exercise{The radial return at a material point}\label{exo:cc-rrj2}
-\index{radial return!Cast3M}%
-Program Box~C5.1 as a procedure on Gauss-point fields. Drive it on one
-\texttt{QUA4} element in plane strain whose nodes all follow $\vu=\eps\cdot\vx$:
-the strain is homogeneous and no equilibrium iteration is needed. With the data
-of Exercise~\ref{B-exo:pn-shear} ($E=200$\,GPa, $\nu=0.3$, $\sY=250$\,MPa,
-$K=2$\,GPa): (a)~simple shear $\gamma=0.01$ in one step and in 1000 steps;
-(b)~shear to $\varepsilon_{12}=0.002$, then $\varepsilon_{11}$ from 0 to 0.004 at
-fixed shear in $n=1$, 10, 100, 1000 steps. Plot the error on $\sigma_{12}$
-against $n$.
-\begin{solution}
-(a)~$\sigma_{12}=149.706775$\,MPa in one step and in 1000: the path is
-proportional and the return map is exact. (b)~The reference (200\,000 steps)
-is $\sigma_{11}=834.8243$, $\sigma_{12}=26.0140$\,MPa,
-$\alpha=3.114637\times10^{-3}$; the error on $\sigma_{12}$ is 30.07, 4.941,
-0.5281, 0.05293\,MPa: first order, the normal turns during the step
-(\texttt{exo\_shear.py}). The gibiane numbers must agree to the printed digits:
-the procedure is the same algorithm on a different data structure.
-\untested{\texttt{cast3m/ch5/return\_map\_point.dgibi}}
-\lstinputlisting[style=gibstyle,firstline=31]{cast3m/ch5/return_map_point.dgibi}
-\end{solution}
-
-\exercise{The thick-walled cylinder, return map and equilibrium in gibiane}\label{exo:cc-cylinder}
-\index{thick-walled cylinder!Cast3M}%
-Put the procedure of Exercise~\ref{exo:cc-rrj2} in the equilibrium loop of
-Section~\ref{cc:sec5-loop} for the cylinder of Exercise~\ref{B-exo:pn-fem}
-($a=100$, $b=200$\,mm, plane strain, axisymmetric slice of 200
-\texttt{QUA4}). (a)~Perfect plasticity, $\sY=250$\,MPa: 20 steps to $0.8p_L$
-and to $0.95p_L$; the bore displacement, the radius of the plastic zone, the
-number of iterations. (b)~Voce hardening ($\sigma_\infty=600$\,MPa, $\delta=30$),
-$p=320$\,MPa in 10 steps. (c)~The same computation (a) with \op{pasapas}.
-\begin{solution}
-The Python code of the notes (Newton with the consistent tangent, 200 linear
-elements) gives $p_L=200.09$\,MPa; at $0.8p_L$, $u(a)=0.18305$\,mm and
-$c=131.0$\,mm (closed form 130.8) in 60 iterations; at $0.95p_L$,
-$u(a)=0.30536$\,mm and $c=165.5$\,mm (164.0) in 70 iterations. With Voce
-hardening and 80 elements, $u(a)=3.4526$\,mm in 47 Newton iterations
-(Exercise~\ref{B-exo:pn-tangent}). The gibiane loop should give the same
-displacements to the mesh difference and the plastic radius to one Gauss-point
-spacing (0.5\,mm), with many more iterations: the elastic stiffness converges
-linearly, with a factor close to 1 when most of the wall is plastic, so that
-the count grows quickly near $p_L$. This is the price of a matrix built once,
-and the reason for the consistent tangent. \op{pasapas} gives the reference
-of~(c).
-The listing starts after the procedures \texttt{smul}, \texttt{devia},
-\texttt{hard} and \texttt{rrj2}, printed with Exercise~\ref{exo:cc-rrj2}.
-\untested{\texttt{cast3m/ch5/cylinder\_radial\_return.dgibi}}
-\lstinputlisting[style=gibstyle,firstline=155]{cast3m/ch5/cylinder_radial_return.dgibi}
-\end{solution}
+The exercise of this chapter has moved into the notes: Exercise~\ref{B-exo:pn-fields}
+(the radial return at a material point, and the cylinder with the equilibrium
+loop in gibiane, against \op{pasapas}). Its files are
+\texttt{cast3m/ch5/return\_map\_point.dgibi} and
+\texttt{cast3m/ch5/cylinder\_radial\_return.dgibi}; the Voce computation with
+\op{pasapas} alone is \texttt{cast3m/ch5/cylinder\_pressure.dgibi}.
 
 \begin{chapterbib}{9}
 \bibitem{cc-simo} J.C.~Simo and T.J.R.~Hughes, \emph{Computational

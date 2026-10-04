@@ -13,9 +13,9 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-# Command that runs Cast3M on a file: castem25 by default; for tests without
+# Command that runs Cast3M on a file: castem26 by default; for tests without
 # Cast3M, CASTEM="python3 <this dir>/tools/castem_stub.py" (see the README).
-CASTEM = os.environ.get("CASTEM", "castem25")
+CASTEM = os.environ.get("CASTEM", "castem26")
 TEMPLATE = (HERE / "truss.template").read_text()
 RUNS = HERE / "runs"                     # one subdirectory per computation
 

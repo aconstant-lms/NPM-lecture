@@ -2,7 +2,8 @@
 * Thick-walled cylinder under internal pressure: radial return and
 * equilibrium iterations programmed with fields in gibiane
 * Chapter 5: "The thick-walled cylinder by finite elements" and
-* "Consistent against continuum tangent" (companion exercise C5.2)
+* "Consistent against continuum tangent" (Box 5.6; exercise "The
+* radial return on fields in Cast3M" (b))
 *
 * STATUS: UNTESTED. Written against the operator notices; not run.
 * See cast3m/README.md for the constructions to check first.
