@@ -17,6 +17,12 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   entries (see the printed index) instead of creating near-duplicates; use `sortkey@Display` for accents/math.
 - In running text, inline integrals and fractions are written with `\displaystyle` (`$\displaystyle \int...$`,
   `$\displaystyle \frac...$`); `\tfrac` stays small. Not in tables, captions or headings.
+- Key statements (Strang style, decided Oct 2026): no Theorem/Proposition/Lemma/Corollary/Definition
+  environments in Chapters 2-6. A key result is a `gbox` whose title states the claim in words
+  ("Backward Euler is a projection"), with its `\label` right after `\begin{gbox}{...}`; the argument follows
+  as `\paragraph{Why it works.}`, starting from the picture or the filament, then the short chain of formulas.
+  Cite it as "Section~\ref{...}" (gives the section number) or with `\nameref` (gives the box title), never
+  "Theorem~\ref". Numbered `example` environments are kept. Chapter 1 and the appendices still use theorems.
 - Algorithms: in the chapter text, Simo & Hughes "Box" style: a `gbox` titled `Box <ch>.<n>  <title>`,
   numbered steps (`enumerate`, bold labels), each a short sentence followed by its formulas; cite as Box~... .
   In exercise parts, CMAME-style pseudocode (`algorithm` + `algpseudocode`, Input/Output, numbered lines).

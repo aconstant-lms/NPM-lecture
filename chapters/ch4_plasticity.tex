@@ -531,25 +531,27 @@ stored in the dislocation structure).
 
 \paragraph{Maximum dissipation in one dimension.}
 \index{maximum plastic dissipation!one-dimensional}%
-The flow rule of the perfectly plastic filament has a variational
-characterization, which is the seed of Section~\ref{sec:pl-maxdiss}.
-\begin{proposition}\label{prop:pl-1d-maxdiss}
+The flow rule of the perfectly plastic filament can be said in one sentence,
+and this sentence is the seed of Section~\ref{sec:pl-maxdiss}.
+\begin{gbox}{The actual stress maximizes the dissipated power}\label{prop:pl-1d-maxdiss}
 Let $\Esig=[-\sY,\sY]$ and $\sigma\in\Esig$. The flow
 rule~\eqref{eq:pl-1d-flow}--\eqref{eq:pl-1d-kt} holds if and only if
 \[
   \sigma\,\dot\varepsilon^p\ \ge\ \sigma^\ast\,\dot\varepsilon^p\qquad\text{for all }\sigma^\ast\in\Esig .
 \]
-Among all admissible stresses, the actual stress maximizes the dissipated
-power $\sigma^\ast\dot\varepsilon^p$, and the maximum is
+Among all admissible stresses, the actual one gives the largest dissipated
+power $\sigma^\ast\dot\varepsilon^p$, and this largest power is
 $\sY|\dot\varepsilon^p|$.
-\end{proposition}
-\begin{proof}
-If $|\sigma|<\sY$, the linear function $\sigma^\ast\mapsto\sigma^\ast\dot\varepsilon^p$ is
-maximal at an interior point only if $\dot\varepsilon^p=0$; conversely the
-flow rule gives $\gamma=0$. If $\sigma=\pm\sY$, the function is maximal on
-$[-\sY,\sY]$ at $\pm\sY$ if and only if $\pm\dot\varepsilon^p\ge0$, that is
+\end{gbox}
+\paragraph{Why it works.} For a given rate $\dot\varepsilon^p$, the power
+$\sigma^\ast\dot\varepsilon^p$ is a straight line in $\sigma^\ast$. On the
+interval $[-\sY,\sY]$ a straight line is largest at an end, never strictly
+inside, unless it is flat. So: inside the domain ($|\sigma|<\sY$) the stress
+can be the maximizer only if the line is flat, $\dot\varepsilon^p=0$, which is
+the elastic case of the flow rule. At the end $\sigma=\sY$ the line must rise
+towards $\sY$, $\dot\varepsilon^p\ge0$; at $\sigma=-\sY$ it must rise towards
+$-\sY$, $\dot\varepsilon^p\le0$. This is
 $\dot\varepsilon^p=\gamma\sign\sigma$ with $\gamma\ge0$.
-\end{proof}
 
 \subsection{The viscoplastic filament}\label{ssec:pl-vp1d}
 \index{viscoplasticity!Perzyna}\index{viscoplasticity!filament}%
@@ -842,15 +844,15 @@ the plastic strain rate is normal to the yield surface: this is the
 filament hold without change, because they rest only on the following
 property.
 
-\begin{lemma}[Persistency]\label{lem:pl-persist}
+\begin{gbox}{Persistency: on the yield surface, $f$ cannot increase}\label{lem:pl-persist}
 For a piecewise smooth process with $f(\sig(t),\vq(t))\le0$ for all $t$, the
 condition $f(t)=0$ implies $\dot f(t)\le0$, where $\dot f$ is the right time
 derivative.
-\end{lemma}
-\begin{proof}
-For $\Delta t>0$, $f(t+\Delta t)\le0=f(t)$. Dividing by $\Delta t$ and letting
-$\Delta t\to0$ gives $\dot f(t)\le0$.
-\end{proof}
+\end{gbox}
+\noindent The reason fits in one line: $f$ is never positive, so where it
+equals zero it is at its maximum, and a function cannot increase from its
+maximum. In symbols, $f(t+\Delta t)\le0=f(t)$ for $\Delta t>0$; divide by
+$\Delta t$ and let $\Delta t\to0$.
 
 \subsection{The plastic multiplier and the continuum tangent}\label{ssec:pl-tangent}
 \index{plastic multiplier}\index{tangent modulus!continuum elastoplastic}%
@@ -862,7 +864,7 @@ gradients at the current state. By the chain rule and~\eqref{eq:pl-box-flow},
   =\partial_{\sig}f:\bbC:\dot\eps
   -\gamma\,\bigl(\partial_{\sig}f:\bbC:\tens r+\partial_{\vq}f\cdot\bbD\,\vect h\bigr).
 \end{equation}
-\begin{proposition}[Plastic multiplier and continuum tangent]\label{prop:pl-cep}
+\begin{gbox}{Plastic multiplier and continuum tangent}\label{prop:pl-cep}
 Assume that the \emph{hardening modulus}
 $h_p=\partial_{\sig}f:\bbC:\tens r+\partial_{\vq}f\cdot\bbD\,\vect h$ is
 positive. Then the Kuhn--Tucker and consistency conditions determine
@@ -875,18 +877,19 @@ $\dot\sig=\bbCep:\dot\eps$ if $\gamma>0$, with
   \bbCep=\bbC-\frac{(\bbC:\tens r)\otimes(\bbC:\partial_{\sig}f)}{h_p}.
 \end{equation}
 The continuum tangent $\bbCep$ is symmetric if the flow is associative.
-\end{proposition}
-\begin{proof}
-If $\partial_{\sig}f:\bbC:\dot\eps<0$, then by~\eqref{eq:pl-fdot}
-$\dot f<0$ for every $\gamma\ge0$, and consistency gives $\gamma=0$. If
-$\partial_{\sig}f:\bbC:\dot\eps>0$, then $\gamma=0$ would give $\dot f>0$,
-which Lemma~\ref{lem:pl-persist} excludes; hence $\gamma>0$, $\dot f=0$, and
-$\gamma=\partial_{\sig}f:\bbC:\dot\eps/h_p$. The neutral case gives
-$\gamma=0$. Then
+\end{gbox}
+\paragraph{Why it works.} Equation~\eqref{eq:pl-fdot} says that $\dot f$ is a
+straight line in $\gamma$, starting at $\partial_{\sig}f:\bbC:\dot\eps$ for
+$\gamma=0$ and going down with slope $-h_p$. If the start is negative, $\dot f$
+is negative for every $\gamma\ge0$; consistency ($\gamma\dot f=0$) then forces
+$\gamma=0$: elastic unloading. If the start is positive, $\gamma=0$ would give
+$\dot f>0$, which persistency forbids; so $\gamma>0$, and consistency puts the
+line at zero, $\gamma=\partial_{\sig}f:\bbC:\dot\eps/h_p$. Both cases are
+contained in the ramp~\eqref{eq:pl-gamma}. The stress rate is then
 $\dot\sig=\bbC:(\dot\eps-\gamma\,\tens r)=\bbC:\dot\eps-(\bbC:\tens r)\,
-(\bbC:\partial_{\sig}f:\dot\eps)/h_p$, using the major symmetry of $\bbC$.
-If $\tens r=\partial_{\sig}f$ the two vectors of the dyad coincide.
-\end{proof}
+(\bbC:\partial_{\sig}f:\dot\eps)/h_p$, by the major symmetry of $\bbC$. If
+$\tens r=\partial_{\sig}f$, the two tensors of the dyad are the same, and the
+tangent is symmetric.
 The quantity $\partial_{\sig}f:\bbC:\dot\eps$ is the rate of $f$ produced by a
 purely elastic response, $\dot f^\trial$, with the trial stress rate
 $\dot\sig^\trial=\bbC:\dot\eps$. Geometrically, the material loads plastically
@@ -1102,7 +1105,8 @@ part of the plastic work is stored.
 
 \subsection{Generalized standard materials}\label{ssec:pl-gsm-def}
 \index{dissipation potential}\index{generalized standard material!definition}\index{normality rule}\index{Biot equation}\index{Legendre--Fenchel transform!dual dissipation potential}\index{Fenchel--Young inequality!normality rule}%
-\begin{definition}[Halphen--Nguyen~\cite{HalphenNguyen1975}]\label{def:pl-gsm}
+The definition is due to Halphen and Nguyen~\cite{HalphenNguyen1975}.
+\begin{gbox}{Generalized standard material}\label{def:pl-gsm}
 A material is \emph{generalized standard} if its state laws derive from a free
 energy $\psi(\eps,\vz)$, convex in $(\eps,\vz)$, and if there is a
 \emph{dissipation potential} $\varphi(\dot\vz)$, convex, lower
@@ -1112,7 +1116,7 @@ semicontinuous, with $\varphi\ge0$ and $\varphi(\vzero)=0$, such that
   \qquad\Longleftrightarrow\qquad
   \dot\vz\in\partial\varphi^\ast(\vSig).
 \end{equation}
-\end{definition}
+\end{gbox}
 \noindent The subdifferential $\partial\varphi$ is the set of slopes of the
 supporting hyperplanes of $\varphi$ (it reduces to the gradient where
 $\varphi$ is differentiable), and $\varphi^\ast$ is the Legendre--Fenchel
@@ -1123,14 +1127,15 @@ inequality. The first form, written as
 $\vzero\in\partial_{\vz}\psi+\partial\varphi(\dot\vz)$, is a generalized Biot
 equation; the second is the \emph{normality rule}.
 
-\begin{proposition}\label{prop:pl-gsm-CD}
+\begin{gbox}{Two convex potentials guarantee the second principle}\label{prop:pl-gsm-CD}
 A generalized standard material satisfies the Clausius--Duhem inequality:
 $\mathcal D=\vSig\cdot\dot\vz\ge\varphi(\dot\vz)\ge0$.
-\end{proposition}
-\begin{proof}
-The subgradient inequality for $\varphi$ at $\dot\vz$, tested at $\vzero$,
-gives $0=\varphi(\vzero)\ge\varphi(\dot\vz)+\vSig\cdot(\vzero-\dot\vz)$.
-\end{proof}
+\end{gbox}
+\paragraph{Why it works.} A convex function lies above each of its tangent
+lines. The force $\vSig$ is a slope of $\varphi$ at $\dot\vz$; follow that
+tangent line back to the origin, where $\varphi$ vanishes:
+$0=\varphi(\vzero)\ge\varphi(\dot\vz)+\vSig\cdot(\vzero-\dot\vz)$. This is
+$\vSig\cdot\dot\vz\ge\varphi(\dot\vz)$.
 A material defined by two convex potentials is thus thermodynamically
 admissible \emph{for every process}: the second principle is built into the
 structure. The modeller chooses $\psi$ and $\varphi$; no further check is
@@ -1141,7 +1146,7 @@ needed.
 Rate-independent plasticity corresponds to dissipation potentials that are
 positively homogeneous of degree one: $\varphi(\lambda\dot\vz)=\lambda\,\varphi(\dot\vz)$
 for $\lambda>0$.
-\begin{proposition}\label{prop:pl-rateindep}
+\begin{gbox}{Rate independence: the dissipation is a support function}\label{prop:pl-rateindep}
 Let $\varphi\ge0$ be convex, lower semicontinuous and positively homogeneous of
 degree one, and $\Esig=\partial\varphi(\vzero)=\{\vSig:\ \vSig\cdot\dot\vz\le\varphi(\dot\vz)\ \forall\dot\vz\}$.
 Then $\Esig$ is closed and convex, contains $\vzero$, and
@@ -1152,22 +1157,25 @@ Then $\Esig$ is closed and convex, contains $\vzero$, and
 where $I_{\Esig}$ is the indicator function of $\Esig$ ($0$ on $\Esig$,
 $+\infty$ outside) and $\pi_{\Esig}$ its support function. Conversely,
 every closed convex set containing $\vzero$ defines such a potential.
-\end{proposition}
-\begin{proof}
-For a given $\vSig$, the function $\dot\vz\mapsto\vSig\cdot\dot\vz-\varphi(\dot\vz)$
-is positively homogeneous. Either it is $\le0$ everywhere, and its supremum
-$\varphi^\ast(\vSig)$ is $0$ (value at $\dot\vz=\vzero$); or it is positive
-somewhere, and then $\varphi^\ast(\vSig)=+\infty$ by scaling. Hence
-$\varphi^\ast=I_{\Esig}$ with $\Esig$ as stated. As $\varphi$ is convex and
-lower semicontinuous, $\varphi=\varphi^{\ast\ast}=I_{\Esig}^\ast=\pi_{\Esig}$.
-\end{proof}
+\end{gbox}
+\paragraph{Why it works.} The conjugate is
+$\varphi^\ast(\vSig)=\sup_{\dot\vz}\bigl(\vSig\cdot\dot\vz-\varphi(\dot\vz)\bigr)$,
+and the bracket is positively homogeneous: doubling $\dot\vz$ doubles it. So
+there are only two possibilities. If the bracket is never positive, its
+largest value is $0$, reached at $\dot\vz=\vzero$. If it is positive
+somewhere, scaling that rate up sends it to $+\infty$. The conjugate takes
+only the values $0$ and $+\infty$: it is the indicator of the set where the
+bracket is never positive, which is $\Esig$. Conjugating back
+($\varphi=\varphi^{\ast\ast}$ for a convex lower semicontinuous function)
+gives $\varphi=I_{\Esig}^\ast=\pi_{\Esig}$. Figure~\ref{fig:pl-diss1d} shows the
+pair for the filament.
 The dual potential of a rate-independent material is the indicator of its
 elastic domain, and the normality rule~\eqref{eq:pl-normality} becomes
 $\dot\vz\in\partial I_{\Esig}(\vSig)$. Since $\partial\varphi(\lambda\dot\vz)=\partial\varphi(\dot\vz)$
 for $\lambda>0$, a change of time scale leaves the evolution unchanged: this
 is rate independence. The dissipation potential is the \emph{dissipation
-function} $\pi_{\Esig}$: by Proposition~\ref{prop:pl-gsm-CD} and the
-definition of $\Esig$, $\mathcal D=\pi_{\Esig}(\dot\vz)$ for the actual
+function} $\pi_{\Esig}$: by the Clausius--Duhem bound
+$\vSig\cdot\dot\vz\ge\varphi(\dot\vz)$ above and the definition of $\Esig$, $\mathcal D=\pi_{\Esig}(\dot\vz)$ for the actual
 process. For $J_2$ plasticity with isotropic hardening,
 $\pi_{\Esig}(\dot\eps^p,\dot\alpha)=\sY\dot\alpha$ on the admissible rates
 (Example~\ref{ex:pl-mises-pi}), in agreement
@@ -1183,7 +1191,8 @@ vertical walls of $\varphi^\ast$ at $\pm\sY$ carry the plastic rates:
 $\partial I_{[-\sY,\sY]}(\pm\sY)$ is the half-line of the rates of the sign
 of $\sigma$. The two forms of~\eqref{eq:pl-normality} are the flow
 rule~\eqref{eq:pl-1d-flow}--\eqref{eq:pl-1d-kt}, read from the rate or from
-the stress, and Proposition~\ref{prop:pl-1d-maxdiss} is their equivalence.
+the stress, and the maximum of the dissipated power
+(Section~\ref{prop:pl-1d-maxdiss}) is their equivalence.
 
 \begin{figure}[h]
 \centering
@@ -1258,8 +1267,8 @@ flow rule is the projection of a trial state onto $\Esig$ in this norm.
 %======================================================================
 \section{The principle of maximum plastic dissipation}\label{sec:pl-maxdiss}
 \index{maximum plastic dissipation}\index{Drucker's postulate}%
-The normality rule has a variational form, which extends
-Proposition~\ref{prop:pl-1d-maxdiss}: among all admissible generalized
+The normality rule has a variational form, which extends the filament result
+of Section~\ref{prop:pl-1d-maxdiss}: among all admissible generalized
 stresses, the actual one maximizes the dissipated power. It was postulated by
 Hill~\cite{Hill1950}; it also follows from Drucker's stability
 postulate~\cite{Drucker1951,Lubliner1990}. We first recall a few notions of
@@ -1293,10 +1302,14 @@ Section~\ref{sec:var-dual}; the last one is proved
 in~\cite[Sec.~23]{RockafellarConvex}.
 
 \subsection{The principle and its equivalent forms}\label{ssec:pl-maxdiss-thm}
-\begin{theorem}[Maximum plastic dissipation]\label{thm:pl-maxdiss}
+The filament gave the idea (Section~\ref{prop:pl-1d-maxdiss}): among all the
+stresses the material could carry, the actual one dissipates the most. The
+same sentence holds in every dimension, and it can be said in four other
+ways. Each form is useful somewhere in the next two chapters.
+\begin{gbox}{Maximum plastic dissipation}\label{thm:pl-maxdiss}
 Let $\Esig$ be closed and convex with $\vzero\in\Esig$, let $\vSig\in\Esig$ and
-let $\dot\vz$ be a generalized plastic strain rate. The following are
-equivalent.
+let $\dot\vz$ be a generalized plastic strain rate. The following statements
+say the same thing.
 \begin{enumerate}[label=(\alph*)]
   \item \emph{Maximum dissipation:} $\vSig\cdot\dot\vz\ge\vSig^\ast\cdot\dot\vz$
   for all $\vSig^\ast\in\Esig$.
@@ -1311,14 +1324,18 @@ $f(\vzero)<0$, they are equivalent to
   $\dot\vz=\gamma\,\partial_{\vSig}f(\vSig)$, $\gamma\ge0$, $f(\vSig)\le0$,
   $\gamma f(\vSig)=0$.
 \end{enumerate}
-\end{theorem}
-\begin{proof}
-(a)$\iff$(b): (a) reads $\dot\vz\cdot(\vSig^\ast-\vSig)\le0$ for all
-$\vSig^\ast\in\Esig$, the definition of the normal cone.
-(b)$\iff$(c)$\iff$(d): third item of the box above, with $\mathcal K=\Esig$,
-$\vx=\vSig$, $\vy=\dot\vz$.
-(b)$\iff$(e): fourth item, with $\vx_0=\vzero$.
-\end{proof}
+\end{gbox}
+\paragraph{Why it works.} Look at Figure~\ref{fig:pl-normality}. Statement
+(a) says that no admissible $\vSig^\ast$ beats $\vSig$, that is,
+$\dot\vz\cdot(\vSig^\ast-\vSig)\le0$: every chord of the domain from $\vSig$
+makes an obtuse angle with $\dot\vz$. That is exactly what ``$\dot\vz$ is an
+outward normal'' means, statement (b). The plane through $\vSig$ orthogonal to
+$\dot\vz$ then touches $\Esig$ without cutting it: the largest power over the
+domain is reached at $\vSig$, which is (d), and $\vSig$ is a slope of the
+support function at $\dot\vz$, which is (c) (third item of the box on normal
+cones). For a smooth yield function the outward normals are the positive
+multiples of the gradient, and only on the boundary: this is (e) (fourth
+item).
 
 \begin{figure}[h]
 \centering
@@ -1348,7 +1365,7 @@ lies in the cone of normals.}
 \label{fig:pl-normality}
 \end{figure}
 
-\begin{remark}[The Lagrangian of Simo and Hughes]\label{rem:pl-kkt}
+\paragraph{The plastic multiplier is a Lagrange multiplier.}\label{rem:pl-kkt}
 \index{Karush--Kuhn--Tucker conditions!plasticity}\index{Slater condition}\index{plastic multiplier!as a Lagrange multiplier}%
 Statement (a) is a constrained optimization problem: the actual $\vSig$
 minimizes $-\vSig^\ast\cdot\dot\vz$ under the constraint $f(\vSig^\ast)\le0$.
@@ -1357,7 +1374,6 @@ and its Karush--Kuhn--Tucker conditions (Section~\ref{sec:var-lagrange}) are
 statement (e): the plastic multiplier is the Lagrange multiplier of the yield
 constraint~\cite[Sec.~2.6]{SimoHughes1998}. The Slater condition $f(\vzero)<0$
 is the constraint qualification which guarantees that the multiplier exists.
-\end{remark}
 
 \subsection{Consequences}\label{ssec:pl-consequences}
 \paragraph{Convexity of the elastic domain.}
@@ -1372,14 +1388,15 @@ are indeed convex, and the measured plastic strain rates close to normal.
 
 \paragraph{Monotonicity.}
 \index{monotonicity!of the flow rule}%
-\begin{corollary}\label{cor:pl-monotone}
+\begin{gbox}{The flow rule is monotone}\label{cor:pl-monotone}
 If $\dot\vz_1\in N_{\Esig}(\vSig_1)$ and $\dot\vz_2\in N_{\Esig}(\vSig_2)$, then
 $(\vSig_1-\vSig_2)\cdot(\dot\vz_1-\dot\vz_2)\ge0$.
-\end{corollary}
-\begin{proof}
-By (a), $\vSig_1\cdot\dot\vz_1\ge\vSig_2\cdot\dot\vz_1$ and
-$\vSig_2\cdot\dot\vz_2\ge\vSig_1\cdot\dot\vz_2$. Add the two inequalities.
-\end{proof}
+\end{gbox}
+\noindent Use the maximum of dissipation twice. The state $\vSig_1$ beats
+$\vSig_2$ for the rate $\dot\vz_1$, and $\vSig_2$ beats $\vSig_1$ for the rate
+$\dot\vz_2$:
+$\vSig_1\cdot\dot\vz_1\ge\vSig_2\cdot\dot\vz_1$ and
+$\vSig_2\cdot\dot\vz_2\ge\vSig_1\cdot\dot\vz_2$. Add the two.
 The flow rule is a \emph{monotone} relation between forces and fluxes, the
 nonlinear analogue of a positive definite matrix. Monotonicity is the
 property behind the uniqueness of the stresses (Section~\ref{sec:pl-bvp})
@@ -1480,7 +1497,9 @@ nonlinear relation, and it is local.}
 
 \subsection{Uniqueness of the stresses}\label{ssec:pl-unique}
 \index{uniqueness!elastoplastic stresses}\index{function space!BD@$BD$}%
-\begin{theorem}\label{thm:pl-unique}
+Can a structure answer the same loading in two different ways? For the
+stresses, no.
+\begin{gbox}{The stresses are unique}\label{thm:pl-unique}
 Let $(\vu_i,\sig_i,\vz_i)$, $i=1,2$, be two smooth solutions of the evolution
 problem with the same data and the same initial state. Let $\bbC$ be
 symmetric positive definite, and $\bbD$ symmetric positive definite on the
@@ -1489,10 +1508,11 @@ $\vq_1=\vq_2$ at all times. For $J_2$ plasticity with $K>0$ or $H>0$ (keeping
 only the hardening variables whose modulus is positive) the
 plastic strains, the strains and, if $S_u$ prevents rigid motions, the
 displacements coincide too.
-\end{theorem}
-\begin{proof}
-Write $\Delta(\cdot)=(\cdot)_1-(\cdot)_2$ and consider the complementary energy
-of the difference,
+\end{gbox}
+\paragraph{Why it works.} Measure the gap between the two solutions by an
+energy, and show that the energy can only go down. Write
+$\Delta(\cdot)=(\cdot)_1-(\cdot)_2$ and take the complementary energy of the
+difference,
 $\displaystyle \mathcal E(t)=\frac12\int_\Omega\bigl(\Delta\sig:\bbS:\Delta\sig+\Delta\vq\cdot\bbD^{-1}\Delta\vq\bigr)\dd x$.
 By the state laws, $\bbS:\Delta\dot\sig=\Delta\dot\eps-\Delta\dot\eps^p$ and
 $\bbD^{-1}\Delta\dot\vq=-\Delta\dot\valpha$, so that
@@ -1503,16 +1523,16 @@ $\bbD^{-1}\Delta\dot\vq=-\Delta\dot\valpha$, so that
 The first integral vanishes: $\Delta\dot\vu\in\Kad(\vzero,S_u)$, and
 $\Delta\sig$ is self-equilibrated (zero body force, zero traction on $S_t$),
 so the weak form~\eqref{eq:pl-bvp-weak} applies with $\vv=\Delta\dot\vu$. The
-second integrand is $\Delta\vSig\cdot\Delta\dot\vz\ge0$ by
-Corollary~\ref{cor:pl-monotone}. Hence $\dot{\mathcal E}\le0$; since
-$\mathcal E(0)=0$ and $\mathcal E\ge0$, $\mathcal E\equiv0$. With hardening,
+second integrand is $\Delta\vSig\cdot\Delta\dot\vz\ge0$, because the flow
+rule is monotone. So $\dot{\mathcal E}\le0$: the gap energy starts at zero,
+never grows, and is never negative. It stays zero. With hardening,
 $\Delta\valpha=-\bbD^{-1}\Delta\vq=\vzero$. For $J_2$ plasticity this fixes the
 plastic strain: with kinematic hardening $\epsp=\valpha_{\mathrm{kin}}$; with
 isotropic hardening $\dot\eps^p=\gamma\tn$, where $\tn$ is given by the stress
 and $\gamma=\sqrt{3/2}\,\dot\alpha$. Hence $\Delta\epsp=\vzero$ and
 $\eps[\Delta\vu]=\bbS:\Delta\sig+\Delta\epsp=\vzero$, and $\Delta\vu$ is a rigid
 motion vanishing on $S_u$.
-\end{proof}
+
 Without hardening the stresses are still unique. The plastic strains and the
 displacements need not be: at the limit load, the body may flow along a
 mechanism of arbitrary amplitude
@@ -1527,13 +1547,14 @@ them~\cite{Temam1983,HanReddy2013}.
 At a given instant, with the current state known, the \emph{rate problem}
 determines the rates $(\dot\vu,\dot\vz)$ from the load rates. At each point
 where the state is on the yield surface, the rate of the plastic strain is
-given by Proposition~\ref{prop:pl-cep} and depends on the sign of
+given by the plastic multiplier~\eqref{eq:pl-gamma} and depends on the sign of
 $\partial_{\sig}f:\bbC:\eps[\dot\vu]$. The rate problem is therefore a
 piecewise linear problem: it behaves as an elasticity problem with moduli
 $\bbCep$ in the zones that load plastically and $\bbC$ elsewhere, but the
-zones are unknown. Hill~\cite{Hill1958} showed that it is a minimization.
+zones are unknown. Hill~\cite{Hill1958} showed that it is nevertheless a
+minimization~\cite{Nguyen2000}.
 
-\begin{theorem}[Hill~\cite{Hill1958,Nguyen2000}]\label{thm:pl-hill}
+\begin{gbox}{Hill's minimum principle for the rates}\label{thm:pl-hill}
 Let the current state $(\sig,\vq)$ be given, with $\bbC$ and $\bbD$ symmetric
 positive definite. Among the kinematically admissible velocity fields
 $\vv\in\Kad(\dot\vuD,S_u)$ and the generalized plastic strain rates
@@ -1545,7 +1566,7 @@ minimizes
   -\int_\Omega\dot\vfD\cdot\vv\dd x-\int_{S_t}\dot\vtD\cdot\vv\dd s ,
 \]
 where $\vect\zeta=(\vect\zeta_p,\vect\zeta_\alpha)$. The stress rates are unique.
-\end{theorem}
+\end{gbox}
 \noindent The functional is the potential energy of the rates, with the
 plastic strain rate as an unknown initial strain constrained to the normal
 cone. The minimization in $\vect\zeta$ at fixed $\vv$ is local, and its
@@ -1563,9 +1584,10 @@ convex set $P\subset\Sym$ of stresses. Under a load that increases
 proportionally, $\lambda\ell$ with $\ell(\vv)=\displaystyle\int_\Omega\vfD\cdot\vv\dd x+\int_{S_t}\vtD\cdot\vv\dd s$
 and $\vuD=\vzero$, the stresses must be at once statically admissible and
 plastically admissible. This is impossible beyond a critical value of
-$\lambda$, the limit load, and two convex programs bound it.
+$\lambda$, the limit load, and two convex programs bound
+it~\cite{Salencon2002,Temam1983}.
 
-\begin{theorem}[Static and kinematic bounds~\cite{Salencon2002,Temam1983}]\label{thm:pl-limit}
+\begin{gbox}{Static and kinematic bounds on the limit load}\label{thm:pl-limit}
 Let
 \begin{align*}
   \lambda^-&=\sup\Bigl\{\lambda\ :\ \exists\,\sig^\ast\ \text{with }
@@ -1573,14 +1595,18 @@ Let
   \sig^\ast(\vx)\in P\ \text{a.e.}\Bigr\},\\
   \lambda^+&=\inf\Bigl\{\int_\Omega\pi_P(\eps[\vv])\dd x\ :\ \vv\in\Kad(\vzero,S_u),\ \ell(\vv)=1\Bigr\}.
 \end{align*}
-Then $\lambda^-\le\lambda^+$.
-\end{theorem}
-\begin{proof}
-For admissible $(\lambda,\sig^\ast)$ and $\vv$ with $\ell(\vv)=1$,
-$\displaystyle \lambda=\lambda\,\ell(\vv)=\int_\Omega\sig^\ast:\eps[\vv]\dd x\le\int_\Omega\pi_P(\eps[\vv])\dd x$,
-because $\sig^\ast(\vx)\in P$ and $\pi_P$ is the support function of $P$. Take
-the supremum on the left and the infimum on the right.
-\end{proof}
+Then $\lambda^-\le\lambda^+$: every equilibrated admissible stress field
+gives a load below every collapse mechanism.
+\end{gbox}
+\paragraph{Why it works.} Put an admissible stress field and a mechanism into
+virtual work. For $\ell(\vv)=1$,
+\[
+  \lambda=\lambda\,\ell(\vv)=\int_\Omega\sig^\ast:\eps[\vv]\dd x\le\int_\Omega\pi_P(\eps[\vv])\dd x ,
+\]
+because at each point $\sig^\ast$ is in $P$, and $\pi_P$ is the largest power
+a stress of $P$ can produce. The left side is any static load, the right side
+any kinematic one: take the largest on the left and the smallest on the
+right.
 The \emph{static approach} ($\lambda^-$) uses stress fields that are in
 equilibrium and nowhere violate the criterion: any such field gives a load the
 structure can carry, a lower bound. The \emph{kinematic approach}
@@ -1953,7 +1979,7 @@ $250.1$, $251$ and $260$\,MPa for $c=10^{-4},10^{-3},10^{-2}\,\mathrm{s}^{-1}$.
 \index{Hill's minimum principle!exercise}%
 The filament with combined hardening is on the yield surface, with
 $s=\sign(\sigma-q)$, and the strain rate $\dot\varepsilon$ is given. Write the
-functional of Theorem~\ref{thm:pl-hill} for one material point, minimize it
+functional of Hill's principle (Section~\ref{thm:pl-hill}) for one material point, minimize it
 over the admissible plastic rates, and recover~\eqref{eq:pl-1d-comb-gamma}.
 \begin{solution}
 The normal cone at the current state contains the rates
@@ -2196,7 +2222,7 @@ $A=kc^2/(2b^2)$. Continuity of $\sigma_r$ at $r=c$ gives $p(c)$; $c=a$ gives
 $p_Y$ and $c=b$ gives the limit pressure. For $b=2a$: $p_Y=0.375\,k$ and
 $p_L=0.693\,k$; with $\sY=250$\,MPa and $k=2\sY/\sqrt3$: $p_Y=108.25$\,MPa and
 $p_L=200.09$\,MPa. The limit pressure is also obtained directly by the static
-approach of Theorem~\ref{thm:pl-limit}: the field of the plastic zone,
+approach (Section~\ref{thm:pl-limit}): the field of the plastic zone,
 extended to the whole tube, is statically and plastically admissible.
 Unloading by $-p$ adds the Lam\'e field
 $\displaystyle \Delta\sigma_{r,\theta}=-\frac{pa^2}{b^2-a^2}\Bigl(1\mp\frac{b^2}{r^2}\Bigr)$,

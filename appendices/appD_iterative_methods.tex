@@ -46,7 +46,7 @@ If $g$ is differentiable at $x^\ast$, the iteration converges near $x^\ast$
 when the spectral radius of the Jacobian $g'(x^\ast)$ is smaller than one, and
 the error is then multiplied asymptotically by that spectral radius at each
 iteration~\cite[Ch.~10]{OrtegaRheinboldt1970}. The initial-strain iteration
-of a fibre (Proposition~\ref{prop:cy-factor}) is such an iteration, with
+of a fibre (Section~\ref{prop:cy-factor}) is such an iteration, with
 $\kappa=E/(E+H)$.
 
 \begin{definition}[Order of convergence]\label{def:it-order}
@@ -65,8 +65,8 @@ solution: five or six iterations suffice from a good start.
 \section{Non-expansive maps and averaging}\label{sec:it-nonexp}
 \index{non-expansive map}\index{averaging (fixed-point iteration)}%
 In plasticity the natural maps are not contractions. The return map
-(Theorem~\ref{thm:pn-contract}) and the period map of cyclic loads
-(Proposition~\ref{prop:cy-nonexp}) only satisfy $\kappa=1$.
+(Section~\ref{thm:pn-contract}) and the period map of cyclic loads
+(Section~\ref{prop:cy-nonexp}) only satisfy $\kappa=1$.
 \begin{definition}\label{def:it-nonexp}
 In a Hilbert space, a map $g$ is \emph{non-expansive} if
 $\norm{g(x)-g(y)}\le\norm{x-y}$, and \emph{firmly non-expansive} if
@@ -97,7 +97,7 @@ non-expansive map has a fixed point if and only if one of its orbits is
 bounded, and $g^k(x)/k$ then tends to minus the element of least norm of the
 closure of the range of $I-g$~\cite{Pazy1971b}, the \emph{drift} per
 iteration. The relaxation $\mu$ of the LATIN method
-(Theorem~\ref{thm:cy-latin}) plays the role of the averaging; the drift is
+(Section~\ref{thm:cy-latin}) plays the role of the averaging; the drift is
 the ratchet of Section~\ref{sec:cy-period}.
 
 %======================================================================

@@ -63,10 +63,17 @@
   \fancyfoot[C]{\sffamily\small\thepage}}
 
 %---- boxes: light gray background, bold sans-serif title -----------------
+% A \label at the top of a gbox points to the box: \ref gives the number of the
+% current section, \nameref the title of the box. Key statements of the
+% plasticity chapters are cited this way ("the projection property,
+% Section~\ref{...}") instead of Theorem/Proposition numbers.
+\makeatletter
+\newcommand{\gboxname}[1]{\phantomsection\def\@currentlabelname{#1}}
+\makeatother
 \newtcolorbox{gbox}[1]{enhanced,breakable,colback=gray!12,colframe=gray!12,
   boxrule=0pt,arc=2pt,left=8pt,right=8pt,top=6pt,bottom=6pt,
   title={#1},fonttitle=\sffamily\bfseries,coltitle=black,colbacktitle=gray!12,
-  toptitle=3pt,bottomtitle=0pt,titlerule=0pt}
+  toptitle=3pt,bottomtitle=0pt,titlerule=0pt,before upper={\gboxname{#1}}}
 % untitled variant, used for take-home messages and short summaries
 \newtcolorbox{gbox*}{enhanced,breakable,colback=gray!12,colframe=gray!12,
   boxrule=0pt,arc=2pt,left=8pt,right=8pt,top=6pt,bottom=6pt}

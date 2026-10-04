@@ -44,7 +44,7 @@ show the computation itself, in time and in space, not only its result.
   order guarantees;
   \item program the direct cyclic method, recognize its convergence, its
   non-convergence (ratchetting) and its non-unique limits;
-  \item state the convergence theorem of the LATIN method, and explain the
+  \item state when the LATIN method converges, and explain the
   role of the search directions and of the relaxation;
   \item use Zarka's simplified analysis to estimate a shakedown state without
   following the history.
@@ -74,8 +74,8 @@ the chapter.
   \item Which search directions make the iteration on the whole history
   converge, and how fast? (Sections~\ref{sec:cy-latin}--\ref{sec:cy-zarka})
 \end{enumerate}
-The tools are the generalized standard materials and the uniqueness theorem of
-Chapter~\ref{ch:pl}, the return map and its contractivity of
+The tools are the generalized standard materials and the uniqueness of the
+stresses of Chapter~\ref{ch:pl}, the return map and its contractivity of
 Chapter~\ref{ch:pl-num}, and the residual stresses and shakedown of
 Example~\ref{ex:pl-bar}.
 \end{gbox}
@@ -288,7 +288,9 @@ The solution is the history that belongs to both: $s\in\Ad\cap\Gcon$. Every
 method of this chapter builds alternately a point of $\Ad$ (the \emph{global
 stage}) and a point of $\Gcon$ (the \emph{local stage}).
 
-\begin{proposition}[The two signs]\label{prop:cy-signs}
+The two sets pull in opposite directions, and this is the engine of every
+convergence argument in this chapter.
+\begin{gbox}{The two signs}\label{prop:cy-signs}
 Let $s$, $s'$ be two histories on $I=[t_0,t]$ with the same closure data. If
 $s,s'\in\Ad$, then
 \[
@@ -297,18 +299,18 @@ $s,s'\in\Ad$, then
 \]
 when $\vSig(t_0)=\vSig'(t_0)$. If $s,s'\in\Gcon$, the same integral is
 non-negative.
-\end{proposition}
-\begin{proof}
-For admissible histories, the computation of the proof of
-Theorem~\ref{thm:pl-unique} gives
+\end{gbox}
+\paragraph{Why it works.} For admissible histories, the computation made for
+the uniqueness of the stresses (Section~\ref{thm:pl-unique}) gives
 $\displaystyle \frac{\dd}{\dd t}\tfrac12\norm{\Delta\vSig}_E^2=-\int_\Omega\Delta\vSig\cdot\Delta\dot\vz\dd x$,
 because $\Delta\sig$ is self-equilibrated and $\Delta\dot\vu$ kinematically
 admissible with zero data; integrate in time. For constitutive histories the
-integrand is non-negative at every point by the monotonicity of the normal
-cone (Corollary~\ref{cor:pl-monotone}).
-\end{proof}
-The uniqueness theorem of Chapter~\ref{ch:pl} is the case where $s$ and $s'$
-are in both sets. The convergence proofs of
+integrand is non-negative at every point, because the flow rule is monotone
+(Section~\ref{cor:pl-monotone}). Equilibrium makes the power of the gap
+negative; the material makes it positive.
+
+The uniqueness of the stresses (Section~\ref{thm:pl-unique}) is the case where
+$s$ and $s'$ are in both sets. The convergence arguments of
 Section~\ref{sec:cy-latin} play the two signs against each other.
 
 \subsection{The Melan decomposition}
@@ -328,7 +330,7 @@ In finite elements, \eqref{eq:cy-eigen} is the system
 $\mat{K}\mat{w}=\sum_e\int\mat{B}\T\mat{C}\,\epsp$ with the \emph{elastic}
 stiffness, which is factorized once.
 
-\begin{proposition}[Melan decomposition]\label{prop:cy-melan}
+\begin{gbox}{Melan decomposition}\label{prop:cy-melan}
 Every admissible history is of the form
 \begin{equation}\label{eq:cy-melan}
   \eps=\eps^{el}+\Pop\epsp,\qquad
@@ -339,15 +341,15 @@ for the scalar product $\int_\Omega\vect a:\bbC:\vect b\dd x$. The residual
 stress $\vrho$ is self-equilibrated; $\Zop$ is symmetric, positive
 semi-definite, and its kernel is the set of compatible strains: a compatible
 plastic strain produces no residual stress.
-\end{proposition}
-\begin{proof}
-The problem is linear in the data $(\text{loads},\epsp)$; the elastic part
+\end{gbox}
+\paragraph{Why it works.} The problem is linear in the data $(\text{loads},\epsp)$; the elastic part
 gives $\eps^{el}$, the plastic part gives $\Pop\epsp$ by~\eqref{eq:cy-eigen}.
 By~\eqref{eq:cy-eigen}, $\vrho=\bbC:(\Pop\epsp-\epsp)$ satisfies
 $\displaystyle \int_\Omega\vrho:\eps[\vv]\dd x=0$ for all admissible $\vv$; it is
 self-equilibrated, and $\epsp-\Pop\epsp$ is orthogonal to the compatible strains.
-If $\epsp=\eps[\vv]$ is compatible, $\Pop\epsp=\epsp$ and $\vrho=\vzero$.
-\end{proof}
+If $\epsp=\eps[\vv]$ is compatible, $\Pop\epsp=\epsp$ and $\vrho=\vzero$: a
+plastic strain that fits together like a displacement field leaves no stress
+behind.
 For the truss, $\Zop$ is the rank-one map~\eqref{eq:cy-truss-res}; for the
 Bree vessel, $\Pop\varepsilon^p=\langle\varepsilon^p\rangle$ and
 $\Zop\varepsilon^p=\tilde E(\varepsilon^p-\langle\varepsilon^p\rangle)$
@@ -562,10 +564,10 @@ The implicit Euler scheme for a sweeping process, Moreau's \emph{catching-up
 algorithm}~\cite{Moreau1977}, is the return map; it is at the same time the
 proof of existence of the solution and the algorithm that computes it. Each
 step is the minimization of a strictly convex incremental potential
-(Theorem~\ref{thm:pn-W}), with a unique solution and a globally convergent
+(Section~\ref{thm:pn-W}), with a unique solution and a globally convergent
 Newton method; the next step starts from a converged state, close to the
 solution; and the return map is contractive
-(Theorem~\ref{thm:pn-contract}), so that an error made in a step is not
+(Section~\ref{thm:pn-contract}), so that an error made in a step is not
 amplified by the following ones. Consistency and stability give the
 convergence of the time discretization. Everything is local in time, and so
 are the guarantees.
@@ -576,9 +578,9 @@ The iteration of Box~6.2 is a fixed-point iteration on
 histories, $\epsp\gets\mathcal R_{[t_0,t_N]}(\eps^{el}+\Pop\epsp)$, and the
 properties of each step do not transfer to it.
 \begin{itemize}
-  \item No theorem covers the pair ``return map at fixed total strain, elastic
-  stiffness'' on a window. The LATIN theorem of Section~\ref{sec:cy-latin}
-  needs other directions and a relaxation.
+  \item Nothing guarantees the convergence of the pair ``return map at fixed
+  total strain, elastic stiffness'' on a window. The convergence of LATIN
+  (Section~\ref{sec:cy-latin}) needs other directions and a relaxation.
   \item Rate-independent plasticity has no fading memory. The return map is
   only non-expansive with respect to $\vz_{n-1}$, so that an error made at
   $t_n$ is carried unchanged to all later instants by the local sweep.
@@ -719,19 +721,19 @@ reach the solution in one iteration, the plastic branch being straight.}
 \label{fig:cy-directions}
 \end{figure}
 
-\begin{proposition}[Initial strain on the filament]\label{prop:cy-factor}
+\begin{gbox}{Initial-strain iteration on a fibre}\label{prop:cy-factor}
 For a fibre with linear kinematic hardening $H$, loaded by a force on its
 plastic branch, the initial-strain iteration multiplies the error on the
 strain by
 \[
   \kappa=1-\frac{E_t}{E}=\frac{E}{E+H},\qquad E_t=\frac{EH}{E+H}.
 \]
-\end{proposition}
-\begin{proof}
-On the plastic branch $\sigma(\varepsilon)$ is affine with slope $E_t$. The
-iteration is $\varepsilon_{k+1}=\varepsilon_k+(\Sigma-\sigma(\varepsilon_k))/E$,
-so that $\varepsilon_{k+1}-\varepsilon^\ast=(1-E_t/E)(\varepsilon_k-\varepsilon^\ast)$.
-\end{proof}
+\end{gbox}
+\noindent The iteration corrects the strain with the elastic stiffness,
+$\varepsilon_{k+1}=\varepsilon_k+(\Sigma-\sigma(\varepsilon_k))/E$, while the
+true slope of the plastic branch is $E_t$. Each step therefore removes the
+fraction $E_t/E$ of the error and keeps the rest:
+$\varepsilon_{k+1}-\varepsilon^\ast=(1-E_t/E)(\varepsilon_k-\varepsilon^\ast)$.
 Without hardening $\kappa=1$: a single fibre loaded by a force has no solution
 beyond the yield force. In a structure, the elastic parts that confine the
 plastic zone give the contraction: for the truss of Figure~\ref{fig:cy-truss}
@@ -743,19 +745,22 @@ when the hardening is strictly positive; Dang Van and
 Maitournam~\cite[Rem.~4.1]{DangVanMaitournam1993} use this result for their
 stationary method (Section~\ref{sec:cy-dcm}).
 
-\begin{theorem}[Conjugate directions~{\cite[Sec.~3.3.6]{LadevezeNCSM}}]\label{thm:cy-conjugate}
+Ladev\`eze~\cite[Sec.~3.3.6]{LadevezeNCSM} gives the condition on the two
+search directions under which the alternation always converges.
+\begin{gbox}{Conjugate directions converge}\label{thm:cy-conjugate}
 Let the constitutive relation $\sigma=\mathcal K(\varepsilon)$ of one step be
 strictly monotone, and take conjugate directions $L^+=L\T$, $L^-=L$ with $L$
 linear, symmetric and positive definite. Then the distance from the admissible
 iterates $s_k$ to $\Gcon$, measured by
 $d^2(s,\Gcon)=\int_\Omega(\sigma^+-\sigma^-):(\varepsilon^+-\varepsilon^-)\dd x$
 with $s^\pm\in\Gcon$ the points reached from $s$ along $E^\pm$, tends to zero.
-\end{theorem}
-The proof writes a quantity built from the error in the norm of $L$, shows
-that it decreases at each iteration by $d^2(s_{k+1},\Gcon)$, and sums: the
-two signs of Proposition~\ref{prop:cy-signs} make every term of the sum
-non-negative. The pairs ``vertical, tangent'' and ``vertical, elastic'' are
-not conjugate, and the theorem does not cover them: Newton's method needs its
+\end{gbox}
+\noindent The idea of the argument: measure the error in the norm of $L$,
+show that it decreases at each iteration by at least $d^2(s_{k+1},\Gcon)$,
+and add up. The error cannot decrease forever by fixed amounts, so the
+distances must go to zero. The two signs (Section~\ref{prop:cy-signs}) make
+every term of the sum non-negative. The pairs ``vertical, tangent'' and ``vertical, elastic'' are
+not conjugate, and this argument does not cover them: Newton's method needs its
 own local analysis~\cite{SauterWieners2011}, and the initial-strain method the
 hardening of Nguyen's theorem.
 
@@ -799,7 +804,9 @@ type, solved by marching in time with the modulus $E/(1+Eh)$.
 \end{enumerate}
 \end{gbox}
 
-\begin{theorem}[Ladev\`eze~{\cite[Sec.~4.5]{LadevezeNCSM}}]\label{thm:cy-latin}
+The convergence of the method is due to Ladev\`eze~\cite[Sec.~4.5]{LadevezeNCSM};
+we state it without proof.
+\begin{gbox}{Convergence of the LATIN method}\label{thm:cy-latin}
 Let the flow rule of the normal formulation be maximal monotone, the
 hardening operator $A=\bbD$ symmetric positive definite, and the directions
 conjugate, $h^+=h^-=h$, with $h$ symmetric, positive definite and bounded
@@ -811,7 +818,7 @@ with its inverse. Then:
   additional condition; in statics, under a stronger monotonicity assumption,
   only the averages $\tfrac12(s_k+s_{k+1})$ are shown to converge.
 \end{enumerate}
-\end{theorem}
+\end{gbox}
 Figure~\ref{fig:cy-latin} computes these statements on the truss, over two
 periods of the ratchetting load with hardening. With $\mu=0$ the indicator
 stalls at $3\times10^{-3}$, although the constitutive iterate is exact to
@@ -822,7 +829,7 @@ is the averaging of the Krasnosel'ski\u{\i}--Mann iteration of
 Appendix~\ref{app:iter}: it turns a map that is only non-expansive into one
 whose iterates converge. On this small problem the whole-history
 initial-strain iteration (Box~6.2) is faster still, 84 iterations; its
-convergence is not guaranteed by any theorem, that of LATIN is.
+convergence is not guaranteed, that of LATIN is.
 
 \begin{figure}[h]
 \centering
@@ -876,15 +883,15 @@ the Bree diagram show the three regimes with perfect plasticity; with $H>0$
 their ratchetting cases shake down.
 
 \subsection{The period map}
-\begin{definition}\label{def:cy-period}
+\begin{gbox}{The period map}\label{def:cy-period}
 The \emph{period map} $\Pi$ takes the internal variables at the beginning of a
 cycle to their values at its end, $\Pi:\vz(t_0)\mapsto\vz(t_0+T)$, the cycle
 being computed under the periodic load. The periodic states are the fixed
 points of $\Pi$; the cycle-by-cycle computation is the Picard iteration
 $\vz^{(k+1)}=\Pi\,\vz^{(k)}$.
-\end{definition}
+\end{gbox}
 
-\begin{proposition}[The period map does not expand]\label{prop:cy-nonexp}
+\begin{gbox}{The period map does not expand}\label{prop:cy-nonexp}
 For two initial states $\vz$, $\vz'$,
 \[
   \abs{\Pi\vz-\Pi\vz'}\le\abs{\vz-\vz'},\qquad
@@ -893,16 +900,15 @@ For two initial states $\vz$, $\vz'$,
 The quantity $\abs{\cdot}$ is a semi-norm. It vanishes on compatible plastic
 strains with $\valpha=\vzero$, and it is a norm on the plastic strains when
 the hardening is linear kinematic.
-\end{proposition}
-\begin{proof}
-The two solutions are admissible and constitutive. By
-Proposition~\ref{prop:cy-signs}, or the proof of Theorem~\ref{thm:pl-unique},
-$\norm{\Delta\vSig(t)}_E$ does not increase in time. At the beginning and at
+\end{gbox}
+\paragraph{Why it works.} Run two cycles side by side. Both histories are
+admissible and constitutive, so by the two signs
+(Section~\ref{prop:cy-signs}) the energy distance $\norm{\Delta\vSig(t)}_E$
+between them can only decrease in time. At the beginning and at
 the end of the cycle the loads are the same, so that
 $\Delta\vSig=(-\Zop\Delta\epsp,-\bbD\Delta\valpha)$ and, since
 $\Zop\bbS\Zop=\Zop$, $\norm{\Delta\vSig}_E^2=\abs{\Delta\vz}^2$. For linear
 kinematic hardening $\valpha=\epsp$, and $\abs{\vz}^2\ge\int_\Omega\epsp:\bbD\epsp\dd x$.
-\end{proof}
 Three consequences follow, on the two model problems.
 \begin{itemize}
   \item \emph{Ratchetting is a drift in the kernel.} Without hardening, the
@@ -1090,7 +1096,9 @@ reached by one plastic strain field and only one, given by a linear elastic
 problem with modified moduli. Self-equilibrium is no longer a constraint on
 $Y$: the problem has become local.
 
-\begin{theorem}[Elastic shakedown with linear kinematic hardening~\cite{MandelHalphenZarka1977}]\label{thm:cy-zarka}
+The transformed parameter turns the shakedown question into a local one. The
+answer is due to Mandel, Halphen and Zarka~\cite{MandelHalphenZarka1977}.
+\begin{gbox}{Elastic shakedown with linear kinematic hardening}\label{thm:cy-zarka}
 If at every point there is a $Y^\ast$ inside all the elastic domains of the
 cycle,
 \[
@@ -1099,7 +1107,7 @@ cycle,
 the structure shakes down elastically, whatever its initial state. The
 limit transformed parameter lies, at every point, in the intersection of the
 elastic domains of the cycle.
-\end{theorem}
+\end{gbox}
 The condition is local: in a fibre it reads
 $\max_t\sigma^{el}-\min_t\sigma^{el}<2\sY$; in three dimensions it asks that
 the path of $\dev\sig^{el}(x,t)$ fit in a ball of radius
@@ -1109,7 +1117,7 @@ The shakedown load of a structure with linear kinematic hardening is thus
 computed from its elastic solution alone.
 
 \subsection{The construction}
-Theorem~\ref{thm:cy-zarka} tells where the limit is, not which point of the
+The shakedown condition of Section~\ref{thm:cy-zarka} tells where the limit is, not which point of the
 intersection the history selects. Zarka's construction picks one by a
 projection.
 \begin{gbox}{Box 6.5\quad Zarka's construction (elastic shakedown)}
@@ -1274,7 +1282,7 @@ hardening $H$ and bars~1, 2 are elastic. Show that the initial-strain
 iteration multiplies the error on the displacement $u_1$ of $O$ by
 $\kappa=1-K_t/K$, where $K=(1+1/\sqrt2)ES/l$ and $K_t=(E_t+E/\sqrt2)S/l$ are
 the elastic and tangent stiffnesses of the truss in the direction $\vect e_1$.
-Compare with Proposition~\ref{prop:cy-factor} and discuss $H=0$.
+Compare with the factor of a single fibre (Section~\ref{prop:cy-factor}) and discuss $H=0$.
 \begin{solution}
 By symmetry $u_2=0$. Bar~3 has the strain $u_1/l$; bars~1 and~2 have
 $u_1/(2l)$ each and the projection factor $1/\sqrt2$ on $\vect e_1$. The
@@ -1294,7 +1302,7 @@ A linear map $x\mapsto -x$ has the unique fixed point $0$. (a) Show that its
 Picard iterates do not converge from $x_0\ne0$, but that their averages
 $\tfrac12(x_k+x_{k+1})$ do. (b) Show that the relaxed iteration
 $x_{k+1}=(1-\mu)(-x_k)+\mu x_k$ converges for $0<\mu<1$. (c) Relate (a) and (b)
-to Theorem~\ref{thm:cy-latin} and Figure~\ref{fig:cy-latin}.
+to the convergence of LATIN (Section~\ref{thm:cy-latin}) and Figure~\ref{fig:cy-latin}.
 \begin{solution}
 (a) $x_k=(-1)^kx_0$ oscillates; $\tfrac12(x_k+x_{k+1})=0$. (b)
 $x_{k+1}=(2\mu-1)x_k$ and $|2\mu-1|<1$. (c) Without relaxation, the LATIN
@@ -1385,15 +1393,15 @@ On the window of two periods of the third loading of the truss ($H=0.05E$),
 run Box~6.3 with $hE=1$ and $hE=4$, without and with the relaxation $\mu=0.3$.
 Compare the error indicator and the error of the constitutive iterate on the
 plastic strain with respect to the step-by-step solution, and explain the
-case $\mu=0$ with Theorem~\ref{thm:cy-latin}.
+case $\mu=0$ with the convergence statement of Section~\ref{thm:cy-latin}.
 \begin{solution}
 With $\mu=0.3$ the indicator reaches $10^{-10}$ in 107 iterations ($hE=1$) and
 266 ($hE=4$); the plastic strain agrees with the step-by-step solution to
 $10^{-9}\varepsilon_Y$. With $\mu=0$ the indicator stalls at $2.7\times10^{-3}$
 ($hE=1$) and $1.1\times10^{-3}$ ($hE=4$), constant over the last iterations,
 while the constitutive iterate is exact to $6\times10^{-13}\varepsilon_Y$: the
-admissible iterate oscillates around the solution, and in statics the theorem
-guarantees only the convergence of averages. The relaxation removes the
+admissible iterate oscillates around the solution, and in statics only the
+convergence of averages is guaranteed (Section~\ref{thm:cy-latin}). The relaxation removes the
 oscillation (Exercise~\ref{exo:cy-q-relax}).
 \lstinputlisting[firstline=4]{python/examples/ch6/exo_latin.py}
 \end{solution}
