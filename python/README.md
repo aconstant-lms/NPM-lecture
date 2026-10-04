@@ -27,6 +27,13 @@
                    incremental and whole-history solvers (direct cyclic method),
                    LATIN with relaxation, period map (Picard, Krasnoselskii-Mann,
                    Anderson) and Zarka's estimate
+    figures/ch7/   figures of Chapter 7 (truss identification, indented membrane,
+                   Norton relaxation)
+    examples/ch7/  id_core.py: return-map derivatives, truss with direct
+                   differentiation and discrete adjoint, Norton filament with
+                   sensitivities, indented membrane with the contact adjoint,
+                   Gauss-Newton identifiability; exercise scripts (exo_jax_truss.py
+                   needs jax, exo_openturns_truss.py needs openturns)
     examples/appE/ exercise of the appendix on iterative methods (Picard,
                    averaging, Anderson, Newton on two test problems)
 
