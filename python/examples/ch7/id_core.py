@@ -292,3 +292,61 @@ def gauss_newton(S, scale=None):
     C = np.linalg.pinv(G)                      # pseudo-inverse: G may be singular
     d = np.sqrt(np.maximum(np.diag(C), 1e-300))
     return G, lam, V, C / np.outer(d, d)
+
+
+# ------------------------------------------------ storage for the adjoint
+def adjoint_with_storage(T, p, um, uref, every=1, mode="recompute"):
+    """Adjoint gradient of the truss cost when the forward run keeps the state
+    (u_n, z_n) only at the checkpoints n = 0, every, 2 every, ...
+      mode = "recompute": between checkpoints, the steps are recomputed by Newton
+             from the checkpoint (exact gradient; extra step solves are counted);
+      mode = "interpolate": the states between checkpoints are interpolated
+             linearly in time (no extra solve; approximate gradient).
+    In both cases the return-map derivatives and the consistent tangent are
+    recomputed locally from the states (u_n, z_{n-1}).
+    Returns the gradient, the number of stored states and of recomputed steps."""
+    u, z, _ = T.forward(p)
+    N = T.N
+    ck = list(range(0, N + 1, every)) + ([N] if N % every else [])
+    us, zs = np.zeros_like(u), np.zeros_like(z)
+    extra = 0
+    if mode == "recompute":
+        B, w = T.B, T.w
+        for a, b in zip(ck[:-1], ck[1:]):          # rerun each segment from its checkpoint
+            un, zn = u[a].copy(), z[a].copy()
+            us[a], zs[a] = un, zn
+            for n in range(a + 1, b + 1):
+                F = T.Q(T.t[n])
+                for _ in range(60):
+                    rm = filament_kin(B @ un, zn, p)
+                    R = F - B.T @ (w * rm["sig"])
+                    if np.linalg.norm(R) <= 1e-13 * max(np.linalg.norm(F), p[1]):
+                        break
+                    un = un + np.linalg.solve(T.K(rm["sig_e"]), R)
+                zn = rm["z"]
+                us[n], zs[n] = un, zn
+                extra += 1
+    else:
+        for a, b in zip(ck[:-1], ck[1:]):
+            for n in range(a, b + 1):
+                th = (n - a) / (b - a)
+                us[n] = (1 - th) * u[a] + th * u[b]
+                zs[n] = (1 - th) * z[a] + th * z[b]
+    B, w = T.B, T.w
+    g, mu = np.zeros(3), np.zeros(3)
+    for n in range(N, 0, -1):
+        rm = filament_kin(B @ us[n], zs[n - 1], p)       # tangent recomputed from states
+        lam = np.linalg.solve(T.K(rm["sig_e"]).T, (us[n] - um[n]) / uref ** 2
+                              + B.T @ (rm["r_e"] * mu))
+        Wl = w * (B @ lam)
+        g += -Wl @ rm["sig_p"] + mu @ rm["r_p"]
+        mu = rm["r_z"] * mu - rm["sig_z"] * Wl
+    return g, len(ck), extra
+
+
+def active_sets(T, p):
+    """Distinct plastic patterns (one bit per Gauss point) along the history:
+    for linear hardening the consistent tangent depends on the pattern only."""
+    st = T.forward(p)[2]
+    pats = [tuple(st[n]["plastic"].astype(int)) for n in range(1, T.N + 1)]
+    return pats, sorted(set(pats))

@@ -36,7 +36,7 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
   the reaction (positive); keep this convention in every chapter.
 - New symbols go into the notation list `front/notation_list.tex` (after the table of contents) as well as
   `preamble/notation.tex`. Appendices in order: `app0_prerequisites` (A), `appA_function_spaces` (B),
-  `appB_variational_derivatives` (C), `appC_integration_by_parts` (D), `appD_iterative_methods` (E); always cite them by label.
+  `appB_variational_derivatives` (C), `appC_integration_by_parts` (D), `appD_iterative_methods` (E), `appE_minimization` (F, label `app:opt`); always cite them by label.
 - Each chapter ends with its own `chapterbib`; bibitem keys must be unique across the whole book.
 - Labels are prefixed per chapter: ch1 `sec:var-*`, ch2 `sec:el-*`/`sec:diff`, ch3 `*:rg-*`, ch4 `*:pl-*`, ch5 `*:pn-*`, ch6 `*:cy-*`, ch7 `*:id-*`, appendices `app:*`.
 - Author comments in the sources look like `%% AC: ...`; process them when asked, then delete them.

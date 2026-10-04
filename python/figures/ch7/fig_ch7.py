@@ -10,6 +10,8 @@ Generates the figures of Chapter 7:
                    by the adjoint against k, two meshes (kinks of the discrete problem)
   norton_id.pdf    Norton-Hoff relaxation test: (a) data and fits; (b) cost in the
                    (K, m) plane at the true E, sY, with the weakest Gauss-Newton direction
+  storage.pdf      truss adjoint with checkpoints: peak number of stored states and
+                   gradient error when the states are interpolated between checkpoints
 """
 import sys
 import numpy as np
@@ -18,7 +20,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize, least_squares
 sys.path.insert(0, "../../examples/ch7")
-from id_core import Truss, Membrane, norton_relax, relaxation_test, gauss_newton
+from id_core import (Truss, Membrane, norton_relax, relaxation_test, gauss_newton,
+                     adjoint_with_storage)
 
 blue, green, orange, red = "#1F5AC8", "#14963C", "#D9822B", "#B03030"
 OUT = "../../../figures/ch7/"
@@ -186,3 +189,32 @@ fig.savefig(OUT + "norton_id.pdf", bbox_inches="tight")
 J_other = 0.5 * np.sum(((norton_relax(other, tt, ee, False) - s) / 200.0) ** 2)
 print("Norton fit", np.round(pfit / pn, 3), "| other point", np.round(other / pn, 3), "rms gap",
       200 * np.sqrt(2 * J_other / (len(s) - 1)), "MPa")
+
+# ---------------------------------------------------------------- storage
+T.nsolve = 0
+p1 = p_true * np.array([0.9, 1.2, 1.5])
+g_all = T.gradient_adjoint(p1, um, uref)
+cs = np.array([1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 27, 40])
+mem, err = [], []
+for c in cs:
+    n_ck = adjoint_with_storage(T, p1, um, uref, c, "recompute")[1]
+    g_i = adjoint_with_storage(T, p1, um, uref, c, "interpolate")[0]
+    mem.append(n_ck + (c - 1 if c > 1 else 0))
+    err.append(np.abs(g_i - g_all).max() / np.abs(g_all).max())
+fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.7))
+axs[0].plot(cs, mem, "o-", color=blue, ms=3, lw=1.2, label="checkpoints + one segment")
+axs[0].axhline(81, color="0.5", ls=":", lw=0.9)
+axs[0].text(14, 73, "all 81 states stored", fontsize=7, color="0.4")
+axs[0].plot(cs, 2 * np.sqrt(80) * np.ones_like(cs), color=orange, lw=0.9, ls="--",
+            label=r"$2\sqrt{N}$")
+axs[0].set_xlabel("checkpoint spacing $c$ (steps)")
+axs[0].set_ylabel("states held in memory")
+axs[0].set_title("(a) recomputation: exact gradient", fontsize=9)
+axs[0].legend(fontsize=6.5)
+axs[1].loglog(cs[1:], np.array(err[1:]), "o-", color=red, ms=3, lw=1.2)
+axs[1].set_xlabel("checkpoint spacing $c$ (steps)")
+axs[1].set_ylabel("relative error of the gradient")
+axs[1].set_title("(b) linear interpolation of the states", fontsize=9)
+fig.tight_layout()
+fig.savefig(OUT + "storage.pdf", bbox_inches="tight")
+print("storage: memory", mem, "errors", np.round(err, 4))

@@ -32,8 +32,9 @@
     examples/ch7/  id_core.py: return-map derivatives, truss with direct
                    differentiation and discrete adjoint, Norton filament with
                    sensitivities, indented membrane with the contact adjoint,
-                   Gauss-Newton identifiability; exercise scripts (exo_jax_truss.py
+                   Gauss-Newton identifiability, adjoint with checkpoints; exercise scripts (exo_jax_truss.py
                    needs jax, exo_openturns_truss.py needs openturns)
+    examples/appF/ Rosenbrock comparison of six minimization methods (Appendix F)
     examples/appE/ exercise of the appendix on iterative methods (Picard,
                    averaging, Anderson, Newton on two test problems)
 
