@@ -12,11 +12,14 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, "../../examples/ch5")
 from ci_core import return_map_1d, forward_euler_1d
 
+# MPa; K isotropic and H kinematic hardening moduli; strain path in units of eY
 E, sY, K, H = 200e3, 250.0, 10e3, 10e3
 eY = sY / E
 path = [0.0, 4 * eY, -4 * eY]
 
 
+# nstep steps per branch; scheme 'BE' = return map (Box 5.1),
+# 'FE' = forward Euler with the continuum tangent. Returns eps/eY and sigma (MPa)
 def run(nstep, scheme):
     eps_all, sig_all = [0.0], [0.0]
     ep = al = q = 0.0
@@ -36,6 +39,8 @@ def run(nstep, scheme):
 
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
 fig, ax = plt.subplots(figsize=(5.6, 3.6))
+# Exact response: the return map is exact on monotone steps, so many small steps
+# of backward Euler give the exact curve
 e, s = run(2000, "BE")
 ax.plot(e, s, color="0.6", lw=1.2, label="exact")
 e, s = run(3, "BE")

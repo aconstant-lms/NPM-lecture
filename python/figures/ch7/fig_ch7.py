@@ -12,6 +12,9 @@ Generates the figures of Chapter 7:
                    (K, m) plane at the true E, sY, with the weakest Gauss-Newton direction
   storage.pdf      truss adjoint with checkpoints: peak number of stored states and
                    gradient error when the states are interpolated between checkpoints
+Where in the book: Figures 7.3 (truss_id), 7.5 (indentation), 7.2 (norton_id) and
+7.6 (storage); the data are those of Exercises 7.9-7.12.
+Run from this directory: the module id_core is imported from the examples of ch7.
 """
 import sys
 import numpy as np
@@ -27,6 +30,7 @@ blue, green, orange, red = "#1F5AC8", "#14963C", "#D9822B", "#B03030"
 OUT = "../../../figures/ch7/"
 
 # ------------------------------------------------------------------ truss
+# truss of Section 7.1.2: E, sY, H in MPa, 1% noise, start p0 = (0.7, 1.2, 3.0) p_true
 E, sY, H = 200e3, 200.0, 10e3
 p_true = np.array([E, sY, H])
 Q = lambda t: np.array([2.3 * sY * np.sin(t), 0.8 * sY * np.sin(2 * t)])
@@ -54,6 +58,8 @@ def tracked(label):
     return J
 
 
+# the three minimizations of Section 7.3 in q = log(p / p0), each with its own
+# record of the best cost against the number of forward solves
 T.nsolve = 0
 Jnm = tracked("Nelder--Mead")
 minimize(Jnm, np.zeros(3), method="Nelder-Mead",
@@ -101,6 +107,8 @@ fig.tight_layout()
 fig.savefig(OUT + "truss_id.pdf", bbox_inches="tight")
 
 # ------------------------------------------------------------ indentation
+# membrane of Section 7.5, (k_f, T_m) = (4, 1), depth U = 0.2; the adjoint field w
+# is v_hat of (7.14) with the unit datum on the contact zone
 Mb = Membrane(n=81)
 pm = np.array([4.0, 1.0])
 U = 0.2
@@ -119,6 +127,7 @@ axs[0].plot(x[act], -u[act], "o", ms=2.5, color=red, label="contact zone")
 axs[0].set_xlabel("$x$")
 axs[0].set_title("(a) direct and adjoint fields", fontsize=9)
 axs[0].legend(fontsize=6)
+# (b) force and contact half-width against the depth
 Us = np.linspace(0.0, 0.25, 51)
 Fs, aw = [], []
 for Uk in Us:
@@ -132,6 +141,7 @@ ax2.set_ylabel("contact half-width", color=orange, fontsize=8)
 axs[1].set_xlabel("depth $U$")
 axs[1].set_ylabel("$F$", color=blue)
 axs[1].set_title("(b) force--depth curve", fontsize=9)
+# (c) adjoint dF/dk_f at U = 0.1 on two meshes: kinks, Section 7.5.3
 ks = np.linspace(2.0, 6.0, 401)
 for n, c in [(81, blue), (161, green)]:
     M = Membrane(n=n)
@@ -145,6 +155,7 @@ fig.tight_layout()
 fig.savefig(OUT + "indentation.pdf", bbox_inches="tight")
 
 # ----------------------------------------------------------------- Norton
+# Norton filament, hold of 1000 s: E, sY (MPa), K (MPa s^(1/m)), m; 1% noise
 pn = np.array([200e3, 200.0, 500.0, 5.0])
 tt, ee = relaxation_test(t_hold=1000.0)
 s, ds = norton_relax(pn, tt, ee)
@@ -160,6 +171,7 @@ r = least_squares(resid, np.log([1.3, 0.5, 2.0, 0.6]), jac=jac, method="lm",
 pfit = pn * np.exp(r.x)
 axs[0].plot(tt[1:], norton_relax(pfit, tt, ee, False)[1:], color=blue, lw=1.3,
             label="fit: $p/p_{\\mathrm{true}}=(%.2f, %.2f, %.2f, %.2f)$" % tuple(pfit / pn))
+# a parameter set along the weakest Gauss-Newton direction (log p + 0.4 v_1)
 V4 = gauss_newton(ds[1:] / 200.0, scale=pn)[2]
 other = pn * np.exp(0.4 * V4[:, 0])               # along the weakest direction
 axs[0].plot(tt[1:], norton_relax(other, tt, ee, False)[1:], color=orange, lw=1.0, ls="--",
@@ -169,6 +181,8 @@ axs[0].set_xlabel("time (s)")
 axs[0].set_ylabel(r"$\sigma$ (MPa)")
 axs[0].set_title("(a) relaxation test", fontsize=9)
 axs[0].legend(fontsize=6, loc="lower left")
+# (b) cost on a (K, m) grid at the true E, sY, noise-free data, and the weakest
+# direction of the 2 x 2 Gauss-Newton matrix of (K, m)
 Kg = np.linspace(250, 900, 61)
 mg = np.linspace(3.0, 8.0, 61)
 JJ = np.array([[0.5 * np.sum(((norton_relax([pn[0], pn[1], k, m], tt, ee, False) - s)
@@ -191,6 +205,7 @@ print("Norton fit", np.round(pfit / pn, 3), "| other point", np.round(other / pn
       200 * np.sqrt(2 * J_other / (len(s) - 1)), "MPa")
 
 # ---------------------------------------------------------------- storage
+# adjoint with checkpoints every c steps at p1 = (0.9, 1.2, 1.5) p_true, Section 7.6.4
 T.nsolve = 0
 p1 = p_true * np.array([0.9, 1.2, 1.5])
 g_all = T.gradient_adjoint(p1, um, uref)

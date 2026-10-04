@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Figure 4.6: emax = 4 eY; K + H = 20 GPa in the three cases (same monotonic curve)
 E, sY = 200e3, 250.0            # MPa
 eY = sY / E
 emax = 4 * eY
@@ -17,13 +18,16 @@ emax = 4 * eY
 
 def response(K, H, path, nstep=400):
     """Stress along a piecewise linear strain path (exact return map)."""
+    # State: plastic strain eps^p, back stress q, accumulated plastic strain alpha
     ep, q, al, eps_prev = 0.0, 0.0, 0.0, 0.0
     eps_all, sig_all = [0.0], [0.0]
     for a, b in zip(path[:-1], path[1:]):
         for eps in np.linspace(a, b, nstep)[1:]:
+            # Elastic predictor and yield test f = |sigma - q| - (sY + K alpha), (4.11)
             s_tr = E * (eps - ep)
             f_tr = abs(s_tr - q) - (sY + K * al)
             if f_tr > 0:
+                # Plastic corrector, Delta gamma = f_trial / (E + K + H) (Box 5.1)
                 dg = f_tr / (E + K + H)
                 n = np.sign(s_tr - q)
                 ep += dg * n
@@ -41,6 +45,7 @@ blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
 
 fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.3), sharey=True)
 for ax, (name, K, H) in zip(axes, cases):
+    # thin grey line: perfectly plastic response (K = H = 0)
     e0, s0 = response(0.0, 0.0, path)
     ax.plot(e0 / eY, s0, color="0.7", lw=1.0)
     e, s = response(K, H, path)
@@ -59,4 +64,4 @@ fig.tight_layout()
 fig.savefig("../../../figures/ch4/filament_cycles.pdf")
 # isotropic peaks: [ 318.18 -442.15  543.58]
 # kinematic peaks: [ 318.18 -318.18  318.18]
-# combined peaks:  [ 318.18 -380.17  436.51]
+# combined peaks: [ 318.18 -380.17  436.51]

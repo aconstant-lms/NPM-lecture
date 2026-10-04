@@ -1,8 +1,10 @@
 """
-Generates figures_notesC1/notes_coercivity.pdf
+Generates figures/ch1/notes_coercivity.pdf
 Notes C1, Exercise (positive definiteness): the same coercivity/boundedness
 bounding-lines plot as ex3_coercivity.pdf, regenerated for the stand-alone
 notes document with its own variable names (x, lambda_min, lambda_max).
+Not included in the book (Figure 1.17 uses ex3_coercivity.pdf instead).
+Run: cd python/figures/ch1 && python3 fig_notes_coercivity.py
 """
 import numpy as np
 import matplotlib
@@ -10,15 +12,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 K = np.array([[2,-1,0],[-1,2,-1],[0,-1,2]], dtype=float)
+# Spring chain matrix; Rayleigh bounds lambda_min |u|^2 <= u^T K u <= lambda_max |u|^2.
 eigvals = np.linalg.eigvalsh(K)
 lam_min, lam_max = eigvals[0], eigvals[-1]
 
+# 300 random vectors (same seed as fig3_coercivity.py) and their quadratic forms.
 rng = np.random.default_rng(0)
 n_samples = 300
 u_samples = rng.normal(size=(n_samples, 3))
 norm_sq = np.sum(u_samples**2, axis=1)
 xtKx = np.einsum("ij,jk,ik->i", u_samples, K, u_samples)
 
+# Both bounds hold for every sample.
 assert np.all(xtKx >= lam_min*norm_sq - 1e-9)
 assert np.all(xtKx <= lam_max*norm_sq + 1e-9)
 

@@ -4,22 +4,28 @@ integration with Gauss points"). Bilinear map x(xi) = sum_a N_a(xi) x_a from
 the reference square [-1,1]^2 to a quadrilateral element: coordinate lines,
 the 2 x 2 Gauss points and, at one point, the columns of the Jacobian matrix
 J = dx/dxi (tangent vectors to the coordinate lines).
+Figure 2.12 (Section 2.7.4 "Finite elements").
+Run: cd python/figures/ch2 && python3 fig_reference_map.py
 """
 import numpy as np
 from matplotlib.patches import FancyArrowPatch
 from style_ch2 import plt, BLUE, ORANGE, GREEN, GRAY, OUT
 
+# Node coordinates x_a of the quadrilateral, and the corners of the reference square.
 Xa = np.array([[0.0, 0.0], [2.4, 0.35], [2.75, 2.1], [0.35, 1.7]])  # nodes 1..4
 xa = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]], float)
 
 def N(xi, eta):
+    """The four bilinear shape functions N_a = (1 +- xi)(1 +- eta)/4 of Q4."""
     return 0.25 * np.array([(1 - xi) * (1 - eta), (1 + xi) * (1 - eta),
                             (1 + xi) * (1 + eta), (1 - xi) * (1 + eta)])
 
 def x_of(xi, eta):
+    """The map x(xi) = sum_a N_a(xi) x_a."""
     return np.tensordot(N(xi, eta), Xa, axes=(0, 0))
 
 def jac(xi, eta):
+    """Jacobian matrix J = dx/dxi = sum_a x_a (grad_xi N_a)^T."""
     dN = 0.25 * np.array([[-(1 - eta), -(1 - xi)], [(1 - eta), -(1 + xi)],
                           [(1 + eta), (1 + xi)], [-(1 + eta), (1 - xi)]])
     return Xa.T @ dN                       # J[i, k] = d x_i / d xi_k
@@ -27,9 +33,12 @@ def jac(xi, eta):
 fig, axes = plt.subplots(1, 2, figsize=(6.4, 2.8),
                          gridspec_kw=dict(width_ratios=[1, 1.25]))
 t = np.linspace(-1, 1, 50)
+# 2 x 2 Gauss points (+-1/sqrt 3, +-1/sqrt 3), all with weight 1.
 g = 1 / np.sqrt(3)
 gp = [(-g, -g), (g, -g), (g, g), (-g, g)]
 p0 = (0.35, -0.3)                          # point where J is drawn
+# Left: the reference square; right: its image. Same coordinate lines, Gauss points
+# and, at the point p0, the two columns of J (identity on the left).
 for ax, mapped in [(axes[0], False), (axes[1], True)]:
     f = (lambda a, b: x_of(a, b).T) if mapped else (lambda a, b: np.array([a + 0 * b, b + 0 * a]))
     for c in np.linspace(-1, 1, 9):
@@ -65,4 +74,5 @@ fig.text(0.472, 0.66, r"$\boldsymbol{x}(\boldsymbol{\xi})$", ha="center", fontsi
 fig.text(0.472, 0.36, r"$\mathbf{J}=\partial\boldsymbol{x}/\partial\boldsymbol{\xi}$",
          ha="center", fontsize=8)
 fig.savefig(OUT + "reference_map.pdf")
+# det J > 0 at the Gauss points: the map is invertible (element not distorted).
 print("det J at the Gauss points:", [round(np.linalg.det(jac(a, b)), 3) for a, b in gp])

@@ -1,11 +1,17 @@
 """Directional Young's modulus E(d) of tungsten, copper and zinc (Chapter 2).
 Run: cd python/figures/ch2 && python3 fig_young_surface.py
+
+Generates figures/ch2/young_surface.pdf (Figure 2.3, Section 2.3.2 "Anisotropy and
+isotropy"): the surface r = E(d) d over all unit directions d. Compliances of
+Nye (as in elastic_constants.py, Exercise 2.12), in 1e-11 1/Pa; E in GPa.
 """
 import numpy as np
 from style_ch2 import plt, OUT
 from matplotlib import cm, colors
 
 def S_voigt(s11, s12, s13, s33, s44, s66):
+    """6x6 Voigt compliance matrix of a crystal with the 3-axis as main axis
+    (cubic: s33 = s11, s13 = s12, s66 = s44)."""
     S = np.diag([s11, s11, s33, s44, s44, s66])
     S[0, 1] = S[1, 0] = s12
     S[0, 2] = S[2, 0] = S[1, 2] = S[2, 1] = s13
@@ -13,6 +19,8 @@ def S_voigt(s11, s12, s13, s33, s44, s66):
 
 def young(S, d):
     """1/E(d) = (d x d) : S : (d x d), compliances in 1e-11 1/Pa -> E in GPa."""
+    # Uniaxial stress sigma = d x d in Voigt form (shear components not doubled,
+    # since S gives engineering shear strains); then 1/E = s^T S s.
     d1, d2, d3 = d
     s = np.array([d1**2, d2**2, d3**2, d2 * d3, d3 * d1, d1 * d2])
     return 100.0 / np.einsum("i...,ij,j...->...", s, S, s)
@@ -20,8 +28,10 @@ def young(S, d):
 crystals = [  # Nye (1985), 1e-11 1/Pa
     ("tungsten (cubic)", S_voigt(0.257, -0.073, -0.073, 0.257, 0.660, 0.660)),
     ("copper (cubic)", S_voigt(1.49, -0.63, -0.63, 1.49, 1.33, 1.33)),
+    # zinc: transverse isotropy, s66 = 2 (s11 - s12).
     ("zinc (hexagonal)", S_voigt(0.84, 0.11, -0.78, 2.87, 2.64, 2 * (0.84 - 0.11))),
 ]
+# Unit directions d(theta, phi) on a 91 x 181 grid of the sphere.
 th, ph = np.meshgrid(np.linspace(0, np.pi, 91), np.linspace(0, 2 * np.pi, 181))
 d = np.array([np.sin(th) * np.cos(ph), np.sin(th) * np.sin(ph), np.cos(th)])
 Es = [young(S, d) for _, S in crystals]
@@ -29,6 +39,7 @@ Es = [young(S, d) for _, S in crystals]
 fig = plt.figure(figsize=(7.0, 2.6))
 for k, ((name, S), E) in enumerate(zip(crystals, Es)):
     ax = fig.add_subplot(1, 3, k + 1, projection="3d")
+    # Surface r = E(d) d, coloured by E (each panel its own scale).
     x, y, z = E * d
     span = max(E.max() - E.min(), 1e-6 * E.max())   # each panel its own colour scale
     c = cm.viridis(0.15 + 0.8 * (E - E.min()) / span)

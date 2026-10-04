@@ -1,5 +1,5 @@
 """
-Generates figures/ch5/isoerror.pdf (Chapter 5, Section 5.8).
+Generates figures/ch5/isoerror.pdf (Chapter 5, Section 5.9).
 Iso-error map of the radial return, perfect J2 plasticity: start on the yield
 surface at uniaxial tension, apply in ONE step the strain increment
 de = (a n + b t) R/(2 mu), n normal, t a unit deviatoric tangent, R the radius
@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, "../../examples/ch5")
 from ci_core import radial_return, Linear, dev, norm, R23
 
+# Material (MPa), perfect plasticity; R = sqrt(2/3) sY, radius of the von Mises circle
 E, nu, sY = 200e3, 0.3, 250.0
 mu, kappa = E / (2 * (1 + nu)), E / (3 * (1 - 2 * nu))
 hard, R = Linear(sY, 0.0), R23 * sY
@@ -23,6 +24,8 @@ eps0 = R / (2 * mu) * n                                    # on the yield surfac
 ep0 = np.zeros(6)
 
 
+# Deviatoric stress after the increment de, applied in nsub equal sub-steps of
+# the radial return (Box 5.2)
 def stress(de, nsub):
     ep = ep0
     for k in range(1, nsub + 1):
@@ -30,6 +33,8 @@ def stress(de, nsub):
     return dev(s)
 
 
+# Grid of normal (a) and tangential (b) increments, in units of the yield strain
+# R/(2 mu); error in % against 1000 sub-steps
 A = np.linspace(0, 6, 41)
 B = np.linspace(0, 6, 41)
 err = np.zeros((len(B), len(A)))

@@ -16,6 +16,7 @@ fig, axes = plt.subplots(1, 2, figsize=(8.6, 3.6))
 for ax, kind in zip(axes, ["isotropic", "kinematic"]):
     ax.plot(np.cos(th), np.sin(th), color="0.55", lw=1.2, ls="--",
             label="initial surface")
+    # isotropic: circle of radius A centred at 0; kinematic: radius 1, centre A - 1
     if kind == "isotropic":
         c, r = 0.0, A
     else:

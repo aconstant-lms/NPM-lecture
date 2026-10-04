@@ -12,6 +12,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Figure 4.13; sigma_Y = 1 in both panels (schematic, no numbers)
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
 fig, axes = plt.subplots(1, 2, figsize=(7.6, 2.9))
 

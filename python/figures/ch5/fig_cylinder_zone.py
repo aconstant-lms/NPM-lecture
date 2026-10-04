@@ -15,6 +15,7 @@ from ci_core import Linear
 from ci_fem import solve, p_of_c
 
 blue, orange = "#1F5AC8", "#D9822B"
+# Material (MPa) and radii (mm); k = 2 sY/sqrt3, limit pressure p_L = k ln(b/a)
 E, nu, sY = 200e3, 0.3, 250.0
 mu, kappa = E / (2 * (1 + nu)), E / (3 * (1 - 2 * nu))
 a, b = 100.0, 200.0
@@ -22,9 +23,12 @@ k = 2 * sY / np.sqrt(3.0)
 pL = k * np.log(b / a)
 pe = p_of_c(a, a, b, k)                      # first yield at the bore
 
+# Closed form p(c) of the Tresca-type solution (ci_fem.p_of_c)
 c = np.linspace(a, b, 200)
 fig, ax = plt.subplots(figsize=(5.0, 3.4))
 ax.plot(p_of_c(c, a, b, k) / pL, c, "-", color=orange, lw=1.8, label="closed form")
+# Finite elements: one computation per pressure, 20 steps, 200 elements;
+# the front c is the outer node of the last element with alpha > 0
 fr = np.array([0.56, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.98])
 cfe = []
 for f in fr:

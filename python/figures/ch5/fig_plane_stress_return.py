@@ -16,24 +16,30 @@ sys.path.insert(0, "../../examples/ch5")
 from ci_core import plane_stress_return, Linear
 
 blue, orange, green = "#1F5AC8", "#D9822B", "#14963C"
+# Plane-stress moduli C and von Mises matrix P of Section 5.7 (vectors [s11, s22, s12])
 E, nu, sY = 200e3, 0.3, 250.0
 mu = E / (2 * (1 + nu))
 C = E / (1 - nu**2) * np.array([[1, nu, 0], [nu, 1, 0], [0, 0, (1 - nu) / 2]])
 P = np.array([[2, -1, 0], [-1, 2, 0], [0, 0, 6]]) / 3.0
 
+# Box 5.5 with a uniaxial trial stress 2.6 sY, perfect plasticity
 s_tr = np.array([2.6, 0.0, 0.0]) * sY                 # trial stress: uniaxial
 eps = np.linalg.solve(C, s_tr)                        # strain giving this trial
 s, ep, al, dg = plane_stress_return(eps, np.zeros(3), 0.0, E, nu, Linear(sY, 0.0))
+# Radial point: the trial stress scaled onto the ellipse (not the solution)
 lam = sY / np.sqrt(1.5 * s_tr @ P @ s_tr)             # radial point
 s_rad = lam * s_tr
 print(f"trial {s_tr[:2] / sY}, return {s[:2] / sY}, radial {s_rad[:2] / sY}, dg = {dg:.3e}")
 
+# Yield ellipse s11^2 - s11 s22 + s22^2 = sY^2, in units of sY
 th = np.linspace(0, 2 * np.pi, 400)                   # ellipse, principal axes at 45 deg
 u = np.sqrt(2.0) * np.cos(th)                         # (s11 + s22)/sqrt2 semi-axis sqrt2
 v = np.sqrt(2.0 / 3.0) * np.sin(th)                   # (s11 - s22)/sqrt2 semi-axis sqrt(2/3)
 x, y = (u + v) / np.sqrt(2), (u - v) / np.sqrt(2)
 
 fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.3), gridspec_kw=dict(width_ratios=[1.25, 1]))
+# Dotted curve (I + dg C P)^-1 sigma_trial for dg >= 0, through the modes A, B of
+# Box 5.5; nrm is the Euclidean normal P sigma_{n+1}
 d = np.concatenate([np.linspace(0, 5 * dg, 300), np.linspace(5 * dg, 400 * dg, 300)])
 A = 1 + E * d / (3 * (1 - nu)); B = 1 + 2 * mu * d
 S, D = (s_tr[0] + s_tr[1]) / A, (s_tr[0] - s_tr[1]) / B

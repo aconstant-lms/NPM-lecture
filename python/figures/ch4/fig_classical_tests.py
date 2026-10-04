@@ -16,6 +16,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Figure 4.9. Shaded: the band between the two criteria. Stresses in units of sY.
 blue, orange, grey = "#1F5AC8", "#D9822B", "0.6"
 fig, axes = plt.subplots(1, 3, figsize=(8.4, 3.05))
 

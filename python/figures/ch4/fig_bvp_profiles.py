@@ -16,14 +16,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Figure 4.17, for Exercises 4.24 (cylinder), 4.25 (torsion) and 4.26 (bending).
+# Residual stresses = stresses under load minus the elastic solution for the same
+# load (elastic unloading).
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
 fig, axes = plt.subplots(1, 3, figsize=(8.4, 3.3))
 
 # (a) thick cylinder, units: r/a, stresses/k
 a, b, c = 1.0, 2.0, 1.5
+# pressure p(c)/k = ln(c/a) + (1 - c^2/b^2)/2 for a plastic front at r = c
 p = np.log(c / a) + 0.5 * (1 - c**2 / b**2)            # pressure for front c
 r = np.linspace(a, b, 400)
 A = c**2 / (2 * b**2)
+# plastic zone r <= c: sigma_t - sigma_r = k; elastic zone: Lame with A = c^2/(2 b^2)
 sr = np.where(r <= c, -p + np.log(r / a), A * (1 - b**2 / r**2))
 st = np.where(r <= c, -p + np.log(r / a) + 1, A * (1 + b**2 / r**2))
 L = p * a**2 / (b**2 - a**2)                           # Lame, pressure p
@@ -51,6 +56,7 @@ print(f"  residual at r=b: sigma_t/k = {st_res[-1]:.4f}")
 # (b) torsion, units: r/R, tau/k
 rr = np.linspace(0, 1, 400)
 ax = axes[1]
+# elastic core r < c (tau = k r/c), plastic ring tau = k; torque T(c)
 for cc, col, lab in ((0.5, blue, r"$c=R/2$"), (0.0, orange, "limit")):
     tau = np.where(rr < cc, rr / cc if cc > 0 else 1.0, 1.0)
     T = 2 * np.pi / 3 * (1 - cc**3 / 4)                # T/(k R^3)
@@ -72,6 +78,7 @@ ax.set_title("(b) torsion of a shaft", fontsize=9)
 # (c) bending, units: y/(h/2), sigma/sigma_Y; eps = -kappa y
 y = np.linspace(-1, 1, 801)
 ax = axes[2]
+# elastic core |y| < c (linear stress), plastic layers sigma = -sign(y) sigma_Y
 for cc, col, lab in ((0.5, blue, r"$c=h/4$"), (0.0, orange, r"$M_p$")):
     sig = np.where(np.abs(y) < cc, -y / cc if cc > 0 else -np.sign(y),
                    -np.sign(y))

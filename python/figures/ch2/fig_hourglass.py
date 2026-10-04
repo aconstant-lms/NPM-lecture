@@ -4,6 +4,9 @@ part (c)). Bilinear square element (Q4) integrated with one Gauss point:
 (a) the hourglass mode u = delta xi eta e_1 of one element, with zero strain
 at the centre; (b) the same mode repeated with alternating signs over a
 4 x 4 mesh: a global zero-energy mode.
+Figure 2.15, Exercise 2.18 (c): with one Gauss point at the centre, the
+hourglass mode has zero strain there, so it costs no energy.
+Run: cd python/figures/ch2 && python3 fig_hourglass.py
 """
 import numpy as np
 from style_ch2 import plt, BLUE, ORANGE, GRAY, OUT
@@ -17,6 +20,8 @@ def q4_edges(Xn):
 fig, axes = plt.subplots(1, 2, figsize=(6.4, 2.9),
                          gridspec_kw=dict(width_ratios=[1, 1.35]))
 # (a) one element
+# Nodes of the reference square [-1, 1]^2; u_1 = delta xi eta is +-delta at the
+# corners and its gradient vanishes at xi = eta = 0 (the one Gauss point).
 ax = axes[0]
 xi = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]], float)
 u = d * xi[:, 0] * xi[:, 1]                # u_1 = delta xi eta at the nodes
@@ -42,6 +47,8 @@ ax = axes[1]
 n, h = 4, 1.0
 I, J = np.meshgrid(np.arange(n + 1), np.arange(n + 1), indexing="ij")
 X0, Y0 = I * h, J * h
+# Alternating nodal values: in every element the field is again the hourglass
+# mode, so the strain vanishes at every element centre (crosses).
 U = 0.5 * d * (-1.0) ** (I + J)
 for X, Y, col, lw, ls in [(X0, Y0, GRAY, 0.8, "--"), (X0 + U, Y0, BLUE, 1.3, "-")]:
     for k in range(n + 1):

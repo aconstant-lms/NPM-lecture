@@ -10,6 +10,9 @@ truss_process: (a) plastic strain of bar 1 over one period, iterates of the dire
   (c) convergence of the period: residual against the number of local
   evaluations (return maps) for cycle-by-cycle (Picard), Anderson and the direct
   cyclic method.
+Where in the book: Figures 6.6 (truss_lattice) and 6.7 (truss_process), Section 6.3
+("When it pays"); the lattice of computations (t_n, k) is that of Figure 6.5c-d.
+Run from this directory: the module cy_core is imported from the examples of ch6.
 """
 import sys
 import numpy as np
@@ -21,8 +24,9 @@ sys.path.insert(0, "../../examples/ch6")
 from cy_core import three_bar_truss, incremental, global_local, period_map, fixed_point
 
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
-E, sY = 200e3, 200.0
-eY = sY / E
+E, sY = 200e3, 200.0                               # modulus, yield stress (MPa)
+eY = sY / E                                        # yield strain, unit of the plots
+# third loading of Section 6.1.1 with kinematic hardening H = 0.05 E (N0 = sY)
 S = three_bar_truss(E=E, sY=sY, H=0.05 * E,
                     Q=lambda t: np.array([1.2 * sY * np.sin(t), 1.0 * sY]))
 
@@ -30,6 +34,8 @@ S = three_bar_truss(E=E, sY=sY, H=0.05 * E,
 ts2 = np.linspace(0, 4 * np.pi, 81)                 # two periods, 40 steps each
 _, _, ep_inc, iters, rec = incremental(S, ts2, np.zeros(3), "initial_strain",
                                        tol=1e-9, record=True)
+# (a) incremental initial-strain iteration (Box 6.1), "for n, for k": the size of
+# the plastic correction max_i |Delta ep_i| of each iteration k at each step n
 kmax = 40
 A = np.full((kmax, len(ts2) - 1), np.nan)
 for n, steps in enumerate(rec):                      # correction of iteration k at step n
@@ -38,6 +44,8 @@ for n, steps in enumerate(rec):                      # correction of iteration k
         np.array([np.max(np.abs(steps[0] - ep_inc[n]))])
     m = min(len(d), kmax)
     A[:m, n] = d[:m] / eY
+# (b) whole-history iteration (Box 6.2, initial condition), "for k, for n":
+# exactly kmax = 40 iterations (tol = 0), change of ep between iterations
 out = global_local(S, ts2, closure="initial", kmax=kmax, tol=0.0, record=True)
 R = np.array(out["rec_ep"])                          # (k, N+1, nf)
 Bm = np.full((kmax, len(ts2) - 1), np.nan)
@@ -61,6 +69,8 @@ cb.set_label(r"$\max_i|\Delta\varepsilon^p_i|/\varepsilon_Y$", fontsize=8)
 fig.savefig("../../../figures/ch6/truss_lattice.pdf", bbox_inches="tight")
 
 # ------------------------------------------------------------ process figure
+# one period of 40 steps; periodic state by three methods: Picard and Anderson on
+# the period map Pi (Section 6.5.2), and the direct cyclic method (Box 6.2, periodic)
 ts = np.linspace(0, 2 * np.pi, 41)
 Pi = period_map(S, ts)
 Zp, rp = fixed_point(Pi, np.zeros(3), "picard", kmax=300, tol=1e-9 * eY)
@@ -75,11 +85,13 @@ for c in range(len(rp)):
     cost_cycle.append(it_c.sum())
     z = ep_c[-1]
 cost_cycle = np.cumsum(cost_cycle)
+# errors on ep(0) with respect to the cycle-by-cycle limit zstar, in eY
 zstar = Zp[-1]
 Rd = np.array(dcm["rec_ep"])
 res_dcm = np.max(np.abs(Rd[:, 0] - zstar), axis=1) / eY
 res_pic = np.max(np.abs(Zp[:len(cost_cycle)] - zstar), axis=1) / eY
 
+# (a) direct cyclic iterates, (b) cycles, (c) error against local evaluations
 fig, axs = plt.subplots(1, 3, figsize=(7.6, 2.6))
 tt = ts / (2 * np.pi)
 cmap = plt.get_cmap("Blues")
@@ -105,7 +117,7 @@ axs[1].legend(fontsize=6, loc="lower right")
 for ax in axs[:2]:
     ax.set_xlabel("$t/T$")
 axs[0].set_ylabel(r"$\varepsilon^p_1/\varepsilon_Y$")
-N = len(ts) - 1
+N = len(ts) - 1                                  # one DCM sweep = N local evaluations
 axs[2].semilogy(cost_cycle[:len(res_pic) - 1], np.maximum(res_pic[1:], 1e-12), color=green, lw=1.3,
                 label="cycle by cycle")
 axs[2].semilogy(cost_cycle[:len(ra)], np.maximum(ra / eY, 1e-12), color=orange, lw=1.3,

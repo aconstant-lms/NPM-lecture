@@ -3,6 +3,14 @@
 Run from anywhere:   python3 python/figures/appB/fig_gateaux_frechet.py
 Output: figures/appB/gateaux_frechet.pdf
 Notation follows the book: bold vectors (mathtext \\mathbf), matrices upright bold.
+
+The source file appB_variational_derivatives is printed as Appendix C: this is
+Figure C.1 of Section C.2 "Gateaux and Frechet derivatives". Two functions of
+(x, y), both 0 at the origin:
+  g_1 = x^2 y / (x^2 + y^2): directional derivatives exist but are not linear
+        in the direction;
+  g_2 = x^3 y / (x^4 + y^2): Gateaux derivative 0 along every straight line, but
+        g_2 = x/2 along the parabola y = x^2, so it is not Frechet differentiable.
 """
 import os
 import numpy as np
@@ -23,15 +31,18 @@ plt.rcParams.update({
 })
 BLUE, ORANGE, GREEN, RED, GRAY = "#1f5ac8", "#d9822b", "#14963c", "#b22222", "#777777"
 
+# Repository root (four levels up from this file), so the script runs from anywhere.
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 APA = os.path.join(ROOT, "figures", "appB")
 os.makedirs(APA, exist_ok=True)
 
+# Spring-chain matrix and load (not used by the figure below).
 K = np.array([[2, -1, 0], [-1, 2, -1], [0, -1, 2]], dtype=float)
 f = np.ones(3)
 
 
 def save(fig, path):
+    """Save the figure to path, close it and print the path."""
     fig.savefig(path)
     plt.close(fig)
     print("wrote", os.path.relpath(path, ROOT))
@@ -39,10 +50,13 @@ def save(fig, path):
 
 # ---------------------------------------------------------------- Gateaux vs Frechet
 def gateaux():
+    """Surfaces of g_1 (left) and g_2 (right) on [-1, 1]^2."""
     fig = plt.figure(figsize=(7.2, 3.0))
     n = 161
     a = np.linspace(-1, 1, n)
     X, Y = np.meshgrid(a, a)
+    # Values on the grid; the origin (0/0) is set to 0. Note: the array G1 holds g_2
+    # and G2 holds g_1 (the panels are drawn in the order of the book).
     with np.errstate(invalid="ignore", divide="ignore"):
         G1 = np.where((X == 0) & (Y == 0), 0.0, X ** 3 * Y / (X ** 4 + Y ** 2))
         G2 = np.where((X == 0) & (Y == 0), 0.0, X ** 2 * Y / (X ** 2 + Y ** 2))
@@ -52,6 +66,7 @@ def gateaux():
     ]):
         ax = fig.add_subplot(1, 2, k + 1, projection="3d")
         ax.plot_surface(X, Y, G, cmap="coolwarm", linewidth=0, rstride=2, cstride=2, alpha=0.95)
+        # On g_2: the curve (t, t^2, t/2), the values of g_2 along the parabola y = x^2.
         if k == 1:
             t = np.linspace(-1, 1, 200)
             ax.plot(t, t ** 2, t / 2, color="k", lw=1.5)

@@ -1,6 +1,7 @@
 """
-Generates figures/ch1/spaces.pdf (Chapter 1, Section "Function spaces in a
-nutshell", Table "Examples and counterexamples of finite-energy functions").
+Generates figures/ch1/spaces.pdf (Figure 1.8; Chapter 1, Section 1.3 "Function
+spaces in a nutshell", Table 1.1 "Examples and counterexamples of finite-energy
+functions").
 (a) hat function and its derivative (a step): H^1, not H^2;
 (b) step function, whose derivative is a Dirac mass: L^2, not H^1;
 (c) x^alpha on (0,1): in H^1 iff alpha > 1/2;
@@ -23,6 +24,7 @@ axs = [fig.add_subplot(gs[0, k]) for k in range(4)]
 
 
 def clean(ax):
+    """Remove the top and right frame lines, small tick labels."""
     ax.spines[["top", "right"]].set_visible(False)
     ax.tick_params(labelsize=7)
 
@@ -72,6 +74,7 @@ clean(ax)
 
 # (e) crack-tip field, surface
 ax = fig.add_subplot(gs[1, :2], projection="3d")
+# Polar grid on the unit disc, theta in [-pi, pi]: the crack is the cut theta = +-pi.
 R, T = np.meshgrid(np.linspace(0, 1, 60), np.linspace(-np.pi, np.pi, 121))
 X, Y, U = R * np.cos(T), R * np.sin(T), np.sqrt(R) * np.cos(T / 2)
 ax.plot_surface(X, Y, U, cmap=cm.viridis, rstride=4, cstride=4, lw=0.25,
@@ -100,6 +103,8 @@ ax.set_title(r"(f) level lines: $|\nabla u|=\frac{1}{2\sqrt{r}}$,"
 fig.tight_layout()
 fig.savefig("../../../figures/ch1/spaces.pdf")
 # energy of the crack-tip field in the disc of radius rho: int |grad u|^2 = pi*rho/2
+# (in polar coordinates: int_0^2pi int_0^rho 1/(4r) r dr dtheta, the r of the area
+# element cancels the singularity).
 rho = 1.0
 rr = np.linspace(1e-8, rho, 200001)
 print("int_B |grad u|^2 =", 2 * np.pi * np.trapezoid(1 / (4 * rr) * rr, rr),

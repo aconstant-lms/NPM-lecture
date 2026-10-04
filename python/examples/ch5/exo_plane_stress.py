@@ -1,20 +1,26 @@
 """Exercise "The plane-stress projected return" (ch5) of the lecture notes.
 Run: cd python/examples/ch5 && python3 exo_plane_stress.py
 """
+# Projected return of plane stress (Box 5.5, Section 5.7): eigenvalues of C P,
+# one-step tests against closed forms, and the error on a strain-driven path.
 import numpy as np
 from scipy.optimize import brentq
 from ci_core import plane_stress_return, Linear
-E, nu, sY, K = 200e3, 0.3, 250.0, 2e3
+E, nu, sY, K = 200e3, 0.3, 250.0, 2e3          # MPa, -, MPa, MPa (isotropic hardening)
+# plane-stress moduli C and von Mises matrix P of Section 5.7, vectors [s11, s22, s12]
 hard, C = Linear(sY, K), E / (1 - nu**2) * np.array([[1, nu, 0], [nu, 1, 0], [0, 0, (1 - nu) / 2]])
 P = np.array([[2, -1, 0], [-1, 2, 0], [0, 0, 6]]) / 3.0
+# (a) C P has the eigenvalues E/(3(1-nu)) on (1,1,0) and 2 mu (twice)
 print("eigenvalues of CP:", np.round(np.sort(np.linalg.eigvals(C @ P).real), 2),
       f"| E/(3(1-nu)) = {E/(3*(1-nu)):.2f}, 2 mu = {E/(1+nu):.2f}")
-z = (np.zeros(3), 0.0)
-# (a) uniaxial stress, eps11 = 0.01 in ONE step (eps22 such that s22 = 0)
+z = (np.zeros(3), 0.0)                         # virgin state (eps^p, alpha)
+# (b) uniaxial stress, eps11 = 0.01 in ONE step (eps22 such that s22 = 0);
+#     closed form (sY + K eps11)/(1 + K/E) = 270/1.01
 s22 = lambda e22: plane_stress_return([0.01, e22, 0], *z, E, nu, hard)[0][1]
 s = plane_stress_return([0.01, brentq(s22, -0.02, 0.02, xtol=1e-14), 0], *z, E, nu, hard)[0]
 print(f"uniaxial, 1 step: s11 = {s[0]:.6f}, closed form {270/1.01:.6f} MPa")
-# (b) balanced biaxial, eps11 = eps22 = 0.005 in one step
+# (b) balanced biaxial, eps11 = eps22 = 0.005 in one step;
+#     closed form (sY + 2 K eps11)/(1 + 2 K (1-nu)/E) = 270/1.014
 s = plane_stress_return([0.005, 0.005, 0], *z, E, nu, hard)[0]
 print(f"balanced biaxial, 1 step: s11 = s22 = {s[0]:.6f}, closed form {270/1.014:.6f} MPa")
 
@@ -22,6 +28,7 @@ print(f"balanced biaxial, 1 step: s11 = s22 = {s[0]:.6f}, closed form {270/1.014
 # (c) strain-driven path: plane strain (eps22 = 0) to eps11 = 0.01, then balanced
 #     biaxial increments to (0.02, 0.01); n steps per stage
 def two_stage(n, stages=2):
+    """n steps per stage on the first `stages` segments; returns sigma, alpha."""
     ep, al = z
     pts = [np.zeros(3), np.array([0.01, 0, 0]), np.array([0.02, 0.01, 0])]
     for k in range(stages):
@@ -31,6 +38,8 @@ def two_stage(n, stages=2):
     return s, al
 
 
+# a proportional strain path is not a proportional stress path: one step is not
+# exact. stages = 1: plane strain only (part (c)); stages = 2: both segments.
 for stages in (1, 2):
     sr, ar = two_stage(20000, stages)
     errs = [np.abs(two_stage(n, stages)[0] - sr).max() for n in (1, 10, 100, 1000)]

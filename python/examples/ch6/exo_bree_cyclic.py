@@ -4,17 +4,22 @@ Run: cd python/examples/ch6 && python3 exo_bree_cyclic.py
 import numpy as np
 from cy_core import bree_vessel, cycle, period_map, fixed_point, dcm_sweep_map, melan
 
+# Exercise 6.10: Bree case (a), X = sigma_P/sY = 0.7, Y = sigma_T/sY = 1.5
+# (Figure 6.4), 100 layers, 40 steps per cycle. Sections 6.5 and 6.6.
 s0, Ep = 280.0, 200e3 / 0.7                           # sigma_0, plane modulus E/(1-nu)
-eY = s0 / Ep
+eY = s0 / Ep                                          # yield strain, unit of ep
 lam = lambda t: abs(np.sin(t))                        # heat flux switched on and off
 ts = np.linspace(0, np.pi, 41)                        # one thermal cycle, 40 steps
 
 
 def vessel(X, Y, Hr):
+    """Bree vessel with sigma_P = X s0, sigma_T = Y s0 and H = Hr E (MPa)."""
     return bree_vessel(X * s0, Y * s0, lam, E=Ep, sY=s0, H=Hr * Ep, nlay=100)
 
 
 # 1. ratchetting, H = 0: drift of the mean, constant residual stress
+# The drift is the uniform part <ep>, in the kernel of Z: rho = -Z ep does not
+# see it (Melan decomposition, (6.10)).
 S = vessel(0.7, 1.5, 0.0)
 _, Z = melan(S)
 z = np.zeros(S.nf)
@@ -24,6 +29,8 @@ for c in range(20):
 print(f"X=0.7, Y=1.5, H=0: drift of <ep> per cycle {dmean / eY:.4f} eY, "
       f"change of residual stress {drho / s0:.1e} s0")
 # 2. slow shakedown, H = 0.02 E: three iterations on the period map, and DCM
+# Period map Pi: ep(0) -> ep(T) (Section 6.5.2), iterated by Picard (cycle by
+# cycle), Krasnoselskii-Mann (theta = 1/2) and Anderson with depth 5 (Appendix E).
 S = vessel(0.7, 1.5, 0.02)
 Pi, z0 = period_map(S, ts), np.zeros(S.nf)
 for scheme in ["picard", "km", "anderson"]:
@@ -31,12 +38,16 @@ for scheme in ["picard", "km", "anderson"]:
     print(f"period map, {scheme:8s}: {len(r):3d} cycles, residual {r[-1] / eY:.1e} eY")
     if scheme == "picard":
         zP = Zs[-1]                                    # cycle-by-cycle limit
+# Direct cyclic method (Box 6.2, periodic closure) as a map on the whole history,
+# plain (Picard on sweeps) and accelerated by Anderson (Algorithm 6.1)
 M = dcm_sweep_map(S, ts)
 for scheme in ["picard", "anderson"]:
     H_, r = fixed_point(M, np.zeros(len(ts) * S.nf), scheme, m=5, kmax=400,
                         tol=1e-10 * eY)
-    zD = H_[-1].reshape(len(ts), S.nf)[0]
+    zD = H_[-1].reshape(len(ts), S.nf)[0]              # ep(t_0) of the last iterate
     print(f"direct cyclic, {scheme:8s}: {len(r):3d} sweeps, residual {r[-1] / eY:.1e} eY")
+# 3. two periodic states: both are fixed points of Pi; they differ by a nearly
+# uniform plastic strain (kernel of Z) and slightly in the residual stress
 d = zD - zP                                            # two periodic states
 print(f"DCM+Anderson vs cycles: |Pi(zD)-zD| = {np.max(np.abs(Pi(zD) - zD)) / eY:.1e} eY, "
       f"mean difference {d.mean() / eY:.3f} eY, "

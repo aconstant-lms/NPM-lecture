@@ -5,6 +5,8 @@ import numpy as np
 import openturns as ot
 from id_core import Truss
 
+# Exercise 7.13 (b): the truss of Exercise 7.9 (same data and noise), moduli in MPa.
+# OpenTURNS is the driver; the direct solver and the derivative layer are ours.
 E, sY, H = 200e3, 200.0, 10e3
 p_true = np.array([E, sY, H])
 Q = lambda t: np.array([2.3 * sY * np.sin(t), 0.8 * sY * np.sin(2 * t)])
@@ -16,7 +18,7 @@ rng = np.random.default_rng(0)
 um = u_true + 0.01 * np.abs(u_true).max() * rng.standard_normal(u_true.shape)
 p0 = p_true * np.array([0.7, 1.2, 3.0])           # start, q = log(p / p0) = 0
 
-cache = {}
+cache = {}                     # DDM sensitivities at the last parameter point
 
 
 def sensitivities(q):                             # one DDM sweep per parameter point
@@ -38,11 +40,15 @@ def gradient(x):               # OpenTURNS convention: (input dim) x (output dim
     return G.tolist()
 
 
+# observation map: input (n, q), output (u_1, u_2)(t_n) / uref; the parameters q
+# are frozen in a ParametricFunction so that the calibration only sees n
 f = ot.PythonFunction(4, 2, model, gradient=gradient)
 g = ot.ParametricFunction(f, [1, 2, 3], [0.0, 0.0, 0.0])   # parameters q, input n
 x_obs = ot.Sample([[n] for n in range(1, len(ts))])
 y_obs = ot.Sample((um[1:] / uref).tolist())
 
+# nonlinear least squares from q = 0, i.e. p = p0; without bootstrap the posterior
+# is a Gaussian approximation at the minimum, to compare with Section 7.2.2
 T.nsolve = 0
 calib = ot.NonLinearLeastSquaresCalibration(g, x_obs, y_obs, [0.0, 0.0, 0.0])
 calib.setBootstrapSize(0)                         # no bootstrap: Gaussian posterior

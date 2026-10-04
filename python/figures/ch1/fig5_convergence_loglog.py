@@ -1,5 +1,5 @@
 """
-Generates figures/ch1/ex5_convergence_loglog.pdf (Chapter 1, Exercise conv).
+Generates figures/ch1/ex5_convergence_loglog.pdf (Figure 1.18, Exercise 1.13).
 -u'' = sin(pi x) on (0,1), u(0) = u(1) = 0, solved with the matrix
 (1/h) tridiag(-1,2,-1) and two loads:
   lumped     F_i = h f(x_i)        (the finite-difference scheme),
@@ -16,18 +16,23 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Reuse the solver of the exercise (it returns h, nodal, L2 and H1 errors);
+# its printed table is silenced on import.
 sys.path.insert(0, "../../examples/ch1")
 import contextlib, io
 with contextlib.redirect_stdout(io.StringIO()):
     from exo_conv import solve                       # same solver as the exercise
 
 BLUE, GREEN, ORANGE, GRAY = "#1F5AC8", "#14963C", "#D85A30", "#666666"
+# Meshes with n interior nodes, h = 1/(n+1) = 1/4 ... 1/128; columns of lump
+# and cons: h, max nodal error, L2 error, H1-seminorm error.
 ns = [3, 7, 15, 31, 63, 127]
 lump = np.array([solve(n, "lumped") for n in ns])
 cons = np.array([solve(n, "consistent") for n in ns])
 h = lump[:, 0]
 
 fig, (ax, bx) = plt.subplots(1, 2, figsize=(9, 3.4))
+# (a) Nodal error of the lumped load (finite differences), with a slope-2 guide.
 ax.loglog(h, lump[:, 1], "o-", color=BLUE, ms=4,
           label="lumped load (finite differences)")
 ax.loglog(h, lump[0, 1] * (h / h[0])**2, "--", color=GRAY, lw=0.9,
@@ -42,6 +47,7 @@ ax.text(0.97, 0.05, "consistent load: nodal error\n"
 ax.legend(frameon=False, fontsize=8, loc="upper left")
 ax.grid(True, which="both", alpha=0.3)
 
+# (b) Consistent load (finite elements): H1 error O(h) (Cea), L2 error O(h^2).
 bx.loglog(h, cons[:, 3], "s-", color=ORANGE, ms=4,
           label=r"$|u-u_h|_{H^1}$ (C\'ea)".replace("\\'e", "é"))
 bx.loglog(h, cons[:, 2], "o-", color=GREEN, ms=4,
@@ -56,6 +62,7 @@ bx.grid(True, which="both", alpha=0.3)
 
 fig.tight_layout()
 fig.savefig("../../../figures/ch1/ex5_convergence_loglog.pdf")
+# Observed rates log2(e(h)/e(h/2)) on the two finest meshes.
 for name, t in [("lumped", lump), ("consistent", cons)]:
     r = np.log(t[:-1, 1:] / t[1:, 1:]) / np.log(2)
     print(name, "rates (nodal, L2, H1):", np.round(r[-1], 2))

@@ -19,12 +19,19 @@
 *
 * STEP 2  mesh: two blocks separated by the diagonal, graded from the hole
 *
+* a: hole radius, ll: half side of the plate (side 40a), s: remote tension.
+* nt: cells along the quarter hole (nt2 per block), nr: cells along a radius.
+* dh: cell size on the hole (arc length a pi/2 divided by nt).
   a = 1.; ll = 20.; s = 1.;
   nt = 24;  nt2 = nt / 2;  nr = 48;
   dh = (a * 3.14159) / (2. * nt);
+* Points: centre o, p1 and p5 on the hole, p2 p3 p4 corners of the plate,
+* pm on the hole at 45 degrees (Cast3M angles are in degrees).
   o  = 0. 0.;
   p1 = a 0.;  p2 = ll 0.;  p3 = ll ll;  p4 = 0. ll;  p5 = 0. a;
   pm = (a * (cos 45.)) (a * (sin 45.));
+* Lines: DINI / DFIN are the first and last cell sizes (geometric grading,
+* small at the hole). cerc: arc of circle with centre o.
   l12 = droi nr p1 p2 'DINI' dh 'DFIN' (ll / nt2);
   l23 = droi nt2 p2 p3;
   l3m = droi nr p3 pm 'DINI' (ll / nt2) 'DFIN' dh;
@@ -32,6 +39,8 @@
   l34 = droi nt2 p3 p4;
   l45 = droi nr p4 p5 'DINI' (ll / nt2) 'DFIN' dh;
   c5m = cerc nt2 p5 o pm;
+* dall: transfinite mesh of the quadrangle bounded by four lines; elim merges
+* the coincident nodes of the two blocks along the diagonal p3-pm.
   dom1 = dall l12 l23 l3m (inve c1m);
   dom2 = dall (inve l3m) l34 l45 c5m;
   dom  = dom1 et dom2;
@@ -40,6 +49,7 @@
 *
 * STEP 3  model, material, stiffness
 *
+* Isotropic linear elasticity, E = 1, nu = 0.3; kk is the stiffness matrix K.
   mo = mode dom mecanique elastique isotrope;
   ma = mate mo 'YOUN' 1. 'NU' 0.3;
   kk = rigi mo ma;
@@ -47,11 +57,15 @@
 * STEP 4  boundary conditions (Lagrange multipliers) and load:
 *         a negative pressure on x = L is a tension s
 *
+* Symmetry: UY = 0 on y = 0 (line l12), UX = 0 on x = 0 (line l45). bloq adds
+* the constraints with Lagrange multipliers (the reactions, Section 2.7.2).
   bc = (bloq uy l12) et (bloq ux l45);
   ff = pres mass mo (-1. * s) l23;
 *
 * STEP 5  solution, stresses at the Gauss points, nodal stresses
 *
+* Solve (K + constraints) u = F; sigm gives the stresses at the Gauss points,
+* chan 'CHPO' averages them at the nodes (as in the Python version).
   u   = reso (kk et bc) ff;
   sig = sigm mo ma u;
   sgn = chan 'CHPO' mo sig;
@@ -61,6 +75,8 @@
 *
 * STEP 6  hoop stress on the hole against Kirsch, s (1 - 2 cos 2 theta)
 *
+* Loop over the nodes of the hole: theta = atan(y/x) in degrees, hoop stress
+* sigma_tt = sx sin^2 + sy cos^2 - 2 sxy sin cos, and Kirsch's value.
   hole = chan poi1 (c1m et c5m);
   lth = prog;  lfe = prog;  lki = prog;
   repe bou (nbno hole);
@@ -76,6 +92,7 @@
     lfe = lfe et (prog stt);
     lki = lki et (prog (s * (1. - (2. * (cos (2. * th))))));
   fin bou;
+* Curves sigma_tt(theta): finite elements (red) and Kirsch (blue).
   evfe = evol rouge manu 'THETA' lth 'SIGTT' lfe;
   evki = evol bleu  manu 'THETA' lth 'SIGTT' lki;
   dess (evfe et evki);

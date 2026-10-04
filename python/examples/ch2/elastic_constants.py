@@ -1,24 +1,33 @@
 """Exercise "From compliances to stiffnesses" (ch2) of the lecture notes.
 Run: python3 python/examples/ch2/elastic_constants.py
 """
+# Exercise 2.12 (b)-(c): build the 6x6 Voigt compliance matrices S of the crystals
+# of Table 2.3 from Nye's compliances, invert them into stiffnesses C = S^-1, check
+# that C is positive definite, and invert the measured stiffnesses of cadmium.
 import numpy as np
 
 def voigt(a11, a12, a13, a33, a44, a66, a14=0.0, shear=1.0):
     """Symmetric 6x6 Voigt matrix with the 3-axis as main axis (cubic,
     tetragonal 4/mmm, hexagonal, trigonal 32 or 3m). The trigonal term a56 is
     2 a14 for compliances (shear = 2) and a14 for stiffnesses (shear = 1)."""
+    # Diagonal, then the upper triangle; trigonal: a24 = -a14, a56 = shear * a14.
     A = np.diag([a11, a11, a33, a44, a44, a66])
     A[0, 1], A[0, 2], A[1, 2] = a12, a13, a13
     A[0, 3], A[1, 3], A[4, 5] = a14, -a14, shear * a14
+    # Symmetrize: copy the upper triangle into the lower one.
     return np.triu(A) + np.triu(A, 1).T
 
 def S_matrix(cls, s11, s12, s44, s33=None, s13=None, s66=None, s14=0.0):
+    """Voigt compliance matrix of a crystal class from Nye's independent
+    compliances; the dependent ones follow from the symmetry of the class."""
     if cls == "cubic":                     # s33 = s11, s13 = s12, s66 = s44
         s33, s13, s66 = s11, s12, s44
     elif cls in ("hexagonal", "trigonal"): # transverse isotropy in the plane 12
+        # Part (a) of the exercise: s66 = 2 (s11 - s12).
         s66 = 2 * (s11 - s12)
     return voigt(s11, s12, s13, s33, s44, s66, s14, shear=2.0)
 
+# Compliances s_ij of Nye, in units of 1e-11 1/Pa (i.e. 1e-2 1/GPa).
 data = [  # Nye (1985), compliances in 1e-11 1/Pa
     ("NaCl", "cubic", dict(s11=2.21, s12=-0.45, s44=7.83)),
     ("aluminium", "cubic", dict(s11=1.59, s12=-0.58, s44=3.52)),
@@ -31,16 +40,21 @@ data = [  # Nye (1985), compliances in 1e-11 1/Pa
     ("quartz", "trigonal", dict(s11=1.27, s12=-0.17, s44=2.01, s33=0.97, s13=-0.15, s14=-0.43)),
     ("tourmaline", "trigonal", dict(s11=0.40, s12=-0.10, s44=1.51, s33=0.63, s13=-0.016, s14=-0.058)),
 ]
+# (b) Stiffnesses C = S^-1 in GPa, and the stability test: C positive definite
+# (all eigenvalues > 0, Section 2.3.3).
 print("GPa          c11  c12  c13  c33  c44  c66  c14")
 for name, cls, s in data:
     C = 100 * np.linalg.inv(S_matrix(cls, **s))   # 1/(1e-11 1/Pa) = 100 GPa
     assert np.linalg.eigvalsh(C).min() > 0         # stability
+    # Voigt indices (0-based) of the printed constants c11 ... c14.
     ij = [(0, 0), (0, 1), (0, 2), (2, 2), (3, 3), (5, 5), (0, 3)]
     print(f"{name:11s}", " ".join(f"{C[i, j]:4.0f}" for i, j in ij))
 
-# cadmium (hexagonal): measured adiabatic stiffnesses at 300 K, in GPa
+# (c) cadmium (hexagonal): measured adiabatic stiffnesses at 300 K, in GPa
 c11, c33, c44, c13, c66 = 114.5, 50.85, 19.85, 39.9, 37.5
+# Transverse isotropy, part (a): c66 = (c11 - c12)/2.
 c12 = c11 - 2 * c66
+# Compliances S = C^-1, back in 1e-11 1/Pa, to compare with Nye.
 S = 100 * np.linalg.inv(voigt(c11, c12, c13, c33, c44, c66))
 print("cadmium c12 =", c12, "GPa; s11 s12 s13 s33 s44 =",
       np.round([S[0, 0], S[0, 1], S[0, 2], S[2, 2], S[3, 3]], 2), "1e-11/Pa")

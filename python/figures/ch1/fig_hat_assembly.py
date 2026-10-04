@@ -1,6 +1,6 @@
 """
-Generates figures/ch1/hat_assembly.pdf (Chapter 1, Section "Galerkin
-approximation and finite elements").
+Generates figures/ch1/hat_assembly.pdf (Figure 1.13; Chapter 1, Section 1.9.1
+"Linear finite elements in one dimension").
 (a) The hat functions of linear finite elements on (0,1), 4 elements.
 (b) Element-by-element assembly: each element e adds its 2x2 matrix
     k^e = (1/h) [[1,-1],[-1,1]] to the rows and columns of its two nodes;
@@ -16,12 +16,15 @@ from matplotlib.patches import Rectangle
 
 BLUE, GREEN, ORANGE, GRAY = "#1F5AC8", "#14963C", "#D85A30", "#666666"
 ECOL = ["#1F5AC8", "#14963C", "#D85A30", "#7F3FBF"]   # one colour per element
+# Mesh: nel elements of size h on (0, 1), nodes x_0 = 0, ..., x_nel = 1.
 nel = 4
 h = 1.0 / nel
 xn = np.linspace(0, 1, nel + 1)
 
 # assembly, printed for the record
 K = np.zeros((nel + 1, nel + 1))
+# Element stiffness k^e_ij = int_e phi_i' phi_j' dx = (1/h) [[1, -1], [-1, 1]],
+# added to the rows and columns of the nodes e and e+1.
 ke = np.array([[1, -1], [-1, 1]]) / h
 for e in range(nel):
     K[e:e + 2, e:e + 2] += ke
@@ -33,6 +36,7 @@ fig, (ax, bx) = plt.subplots(1, 2, figsize=(10, 3.4),
 
 # (a) hat functions
 x = np.linspace(0, 1, 801)
+# phi_i(x) = max(0, 1 - |x - x_i| / h); slopes +-1/h.
 for i in range(nel + 1):
     phi = np.clip(1 - np.abs(x - xn[i]) / h, 0, None)
     interior = 0 < i < nel
@@ -65,6 +69,8 @@ ax.set_title("(a) hat functions; the end ones (dotted) are removed by "
              r"$u(0)=u(1)=0$", fontsize=9)
 
 # (b) assembly of the global matrix
+# Draw the 5x5 global matrix h K: one coloured square per element block; the
+# diagonal entries of interior nodes receive two contributions ("1+1").
 n = nel + 1
 for e in range(nel):
     pad = 0.06 + 0.04 * (e % 2)
@@ -82,6 +88,7 @@ for i in range(n):
         boundary = i in (0, n - 1) or j in (0, n - 1)
         bx.text(j + 0.5, i + 0.5, txt, ha="center", va="center",
                 fontsize=11, color=GRAY if boundary else "black")
+# Frame the interior block (boundary rows/columns, in grey, are removed).
 bx.add_patch(Rectangle((1, 1), 3, 3, fc="none", ec="black", lw=1.8, zorder=5))
 for k in (0, n - 1):
     bx.add_patch(Rectangle((0, k), n, 1, fc=GRAY, alpha=0.10, lw=0))

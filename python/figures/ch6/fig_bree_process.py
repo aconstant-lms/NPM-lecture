@@ -1,7 +1,7 @@
 """
 Generates the Bree figures of Chapter 6 (thin vessel, Maitournam Sec. 4.5):
   bree_diagram.pdf   asymptotic regimes computed cycle by cycle (perfect plasticity)
-                     against Bree's boundaries, with the three cases used below
+                     against Bree's boundaries, with the two cases (a), (b) used below
   bree_process.pdf   case X = 0.7, Y = 1.5, H = 0.02 E (slow shakedown): stress and
                      plastic strain through the wall, iterates of the direct cyclic
                      method and successive cycles
@@ -9,7 +9,10 @@ Generates the Bree figures of Chapter 6 (thin vessel, Maitournam Sec. 4.5):
                      mean plastic strain drifts, the residual stress converges
   bree_nonunique.pdf case X = 0.2, Y = 3 (alternating plasticity), H = 0.02 E:
                      two exact periodic states, cycle by cycle and direct cyclic
-X = sigma_P / sigma_0, Y = sigma_T / sigma_0.
+X = sigma_P / sigma_0, Y = sigma_T / sigma_0 (sigma_0 = sY = 280 MPa).
+Where in the book: Figures 6.4 (diagram), 6.12 (process), 6.13 (ratchet) and 6.10
+(nonunique); Sections 6.1.2, 6.5 and 6.6.
+Run from this directory: the module cy_core is imported from the examples of ch6.
 """
 import sys
 import numpy as np
@@ -21,7 +24,7 @@ from cy_core import (bree_vessel, incremental, global_local, period_map, fixed_p
                      melan, cycle)
 
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
-s0, Ep = 280.0, 200e3 / 0.7
+s0, Ep = 280.0, 200e3 / 0.7                       # sY (MPa), plane modulus E/(1-nu)
 eY = s0 / Ep
 lam = lambda t: abs(np.sin(t))
 ts = np.linspace(0, np.pi, 41)                     # one thermal cycle 0 -> 1 -> 0
@@ -30,11 +33,15 @@ OUT = "../../../figures/ch6/"
 
 
 def vessel(X, Y, Hr, nlay=100):
+    """Bree vessel with sigma_P = X s0, sigma_T = Y s0, H = Hr E, nlay layers."""
     return bree_vessel(X * s0, Y * s0, lam, E=Ep, sY=s0, H=Hr * Ep, nlay=nlay)
 
 
 # --------------------------------------------------------------- diagram
 def regime(X, Y, ncyc=30):
+    """Regime after ncyc cycles of 20 steps, 40 layers, H = 0 (Section 6.5.1):
+    0 elastic, 1 elastic shakedown, 2 alternating plasticity, 3 ratchetting
+    (drift of the mean plastic strain from one cycle to the next)."""
     S = vessel(X, Y, 0.0, nlay=40)
     z = np.zeros(S.nf)
     for _ in range(ncyc):
@@ -48,6 +55,7 @@ def regime(X, Y, ncyc=30):
     return 1 if np.max(np.abs(z)) > 0 else 0
 
 
+# 50 x 60 grid of load pairs; lines: Bree's boundaries X+Y=1, Y=2, X+Y/4=1, XY=1
 Xs, Ys = np.linspace(0.01, 0.99, 50), np.linspace(0.02, 4.0, 60)
 R = np.array([[regime(X, Y) for X in Xs] for Y in Ys])
 fig, ax = plt.subplots(figsize=(4.4, 3.6))
@@ -76,6 +84,8 @@ fig.savefig(OUT + "bree_diagram.pdf", bbox_inches="tight")
 print("diagram done")
 
 # --------------------------------------------------- process, slow shakedown
+# case (a) with H = 0.02 E: cycle by cycle (Picard on Pi) and direct cyclic method
+# (Box 6.2, periodic closure), recording the iterates
 S = vessel(0.7, 1.5, 0.02)
 x = S.x
 Pi = period_map(S, ts)
@@ -113,6 +123,8 @@ fig.tight_layout()
 fig.savefig(OUT + "bree_process.pdf", bbox_inches="tight")
 
 # --------------------------------------------------------- ratchetting
+# case (a) with H = 0: the direct cyclic iterates do not converge; the mean <ep>
+# (kernel of Z) drifts while rho = -Z ep converges (Section 6.6.1)
 S = vessel(0.7, 1.5, 0.0)
 _, Z = melan(S)
 dcm = global_local(S, ts, closure="periodic", kmax=60, tol=0.0, record=True)
@@ -140,6 +152,8 @@ fig.savefig(OUT + "bree_ratchet.pdf", bbox_inches="tight")
 print("ratchet: mean drift per iteration", np.diff(mean)[-5:], "last drho", drho[-1])
 
 # ------------------------------------------------------- non-uniqueness
+# case (b) with H = 0.02 E: two exact periodic states (Section 6.5.2), one from
+# the virgin state cycle by cycle, one from the direct cyclic method
 S = vessel(0.2, 3.0, 0.02)
 _, Z = melan(S)
 Pi = period_map(S, ts)

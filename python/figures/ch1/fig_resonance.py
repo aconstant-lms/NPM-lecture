@@ -1,9 +1,10 @@
 """
-Generates figures/resonance_example.pdf
-Linear resonance example (remark after Section 4 of
-variational_formulations.tex): the solvability test for
--u''-pi^2 u = f (two right-hand sides), and the resulting one-parameter
-family of solutions for the compatible case.
+Generates figures/ch1/resonance_example.pdf (Figure 1.10 of Chapter 1).
+Linear resonance example of Section 1.6 ("What goes wrong without
+coercivity", paragraph (a) A linear resonance): the solvability test for
+-u''-pi^2 u = f, u(0) = u(1) = 0 (two right-hand sides), and the resulting
+one-parameter family of solutions for the compatible case.
+Run: cd python/figures/ch1 && python3 fig_resonance.py
 """
 import numpy as np
 import matplotlib
@@ -13,6 +14,7 @@ import matplotlib.pyplot as plt
 x = np.linspace(0, 1, 400)
 eig = np.sin(np.pi*x)          # the kernel / first eigenfunction
 
+# Fredholm alternative: a solution exists iff int_0^1 f sin(pi x) dx = 0.
 f1 = np.ones_like(x)                 # f = 1: incompatible
 f2 = np.sin(2*np.pi*x)               # f = sin(2 pi x): compatible
 
@@ -21,6 +23,7 @@ prod2 = f2*eig
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.6))
 
+# Left: the integrand f sin(pi x) of the test; net area 2/pi for f = 1, 0 for f2.
 ax = axes[0]
 ax.plot(x, prod1, color="#D85A30", label=r"$f=1$: $f(x)\sin(\pi x)$")
 ax.fill_between(x, prod1, 0, color="#D85A30", alpha=0.18)
@@ -37,6 +40,7 @@ ax.text(0.5, -0.55, "positive and negative\nlobes cancel exactly:\nnet area $=0$
 ax.legend(frameon=False, fontsize=8, loc="upper left")
 ax.grid(alpha=0.3)
 
+# Right: u_c = sin(2 pi x)/(3 pi^2) + c sin(pi x), a solution for every c.
 ax = axes[1]
 cs = [-0.15, -0.075, 0.0, 0.075, 0.15]
 colors = ["#993C1D", "#D85A30", "#534AB7", "#7F77DD", "#26215C"]

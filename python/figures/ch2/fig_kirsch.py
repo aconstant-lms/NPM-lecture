@@ -5,6 +5,8 @@ with a hole of radius a under remote tension s along x, linear triangles
 (python/examples/ch2/kirsch_fem.py, 48 cells along the hole):
 (a) the mesh near the hole, (b) hoop stress on the hole, (c) sigma_xx on the
 ligament x = 0, FEM against the Kirsch solution of the infinite plate.
+Figure 2.18, Exercise 2.21. Units: a = 1, sigma = 1.
+Run: cd python/figures/ch2 && python3 fig_kirsch.py
 """
 import sys
 import numpy as np
@@ -12,6 +14,7 @@ from style_ch2 import plt, BLUE, ORANGE, GRAY, OUT
 sys.path.insert(0, "../../examples/ch2")
 from kirsch_fem import solve, mesh, kirsch
 
+# Solve with 48 cells along the hole (the n_theta = 48 column of the table).
 nt = 48
 X, sig, ndof = solve(nt)
 fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.5),
@@ -30,6 +33,8 @@ ax = axes[1]
 hole = np.arange(nt + 1)                   # nodes i = 0
 th = np.arctan2(X[hole, 1], X[hole, 0])
 c, s = np.cos(th), np.sin(th)
+# Hoop stress sigma_tt = e_t . sigma e_t with e_t = (-sin th, cos th), from the
+# nodal (averaged) stresses; Kirsch on the hole: 1 - 2 cos 2 theta.
 stt = sig[hole, 0] * s**2 + sig[hole, 1] * c**2 - 2 * sig[hole, 2] * s * c
 tt = np.linspace(0, np.pi / 2, 200)
 ax.plot(np.degrees(tt), kirsch(1.0, tt)[1], color="k", lw=1.3, label="Kirsch")
@@ -43,6 +48,7 @@ ax.set_title(r"(b) hoop stress on the hole")
 # (c) sigma_xx along the ligament x = 0
 ax = axes[2]
 lig = np.where(np.isclose(X[:, 0], 0) & (X[:, 1] <= 6))[0]
+# Kirsch on x_1 = 0 (theta = pi/2): sigma_11 = 1 + a^2/(2 x_2^2) + 3 a^4/(2 x_2^4).
 y = np.linspace(1, 6, 200)
 ax.plot(y, 1 + 0.5 / y**2 + 1.5 / y**4, color="k", lw=1.3)
 ax.plot(X[lig, 1], sig[lig, 0], "o", color=BLUE, ms=3, mfc="none")

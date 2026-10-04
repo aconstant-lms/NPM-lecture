@@ -12,6 +12,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Figure 4.8; the Lode angle is defined in equation (4.23)
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
 fig = plt.figure(figsize=(8.0, 3.9))
 

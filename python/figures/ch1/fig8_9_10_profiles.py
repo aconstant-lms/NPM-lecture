@@ -1,9 +1,11 @@
 """
-Generates figures/ex8_9_10_profiles.pdf
-Exercises 8-10 (Part II of variational_formulations.tex): three-panel
-solution-profile comparison -- the non-unique pure-Neumann family, the
-reaction-diffusion solution, and the linear-vs-nonlinear (p-Laplacian)
-comparison.
+Generates figures/ch1/ex8_9_10_profiles.pdf (Figure 1.19 of Chapter 1).
+Exercises 1.18-1.20 ("From energy to strong form, through the weak form"):
+three-panel solution-profile comparison -- the non-unique pure-Neumann family
+(Exercise 1.18, f = 1, g = -1), the reaction-diffusion solution (Exercise 1.19,
+c = 2, f = x), and the linear-vs-nonlinear (p-Laplacian, p = 4) comparison
+(Exercise 1.20, f = 6).
+Run: cd python/figures/ch1 && python3 fig8_9_10_profiles.py
 """
 import numpy as np
 from scipy.special import cbrt
@@ -15,9 +17,11 @@ import matplotlib.pyplot as plt
 x = np.linspace(0, 1, 200)
 
 # --- Exercise 8: pure Neumann problem, family u(x) = -x^2/2 + C ---
+# (Exercise 1.18: u' = -x; E does not see the constant C.)
 Cs = [-0.1, 0.0, 0.1]
 
 # --- Exercise 9: -u'' + 2u = x, u(0)=u(1)=0 (evaluate the exact solution) ---
+# (Exercise 1.19 with c = 2, f = x; sympy solves the ODE with its two conditions.)
 import sympy as sp
 xs = sp.symbols('x')
 u9 = sp.Function('u')
@@ -26,13 +30,17 @@ u9_func = sp.lambdify(xs, sol9, "numpy")
 y9 = u9_func(x)
 
 # --- Exercise 10: nonlinear -( (u')^3 )' = 6 vs linear -u''=6, both u(0)=u(1)=0 ---
+# (Exercise 1.20.) Integrating once: (u')^3 = 3 - 6x, the constant fixed by
+# symmetry; then u(x) = int_0^x u'(t) dt by quadrature.
 f10 = 6.0
 up10 = lambda t: cbrt(3 - f10*t)          # u'(x) = (3-6x)^(1/3), from symmetry u'(1/2)=0
 y10_nonlin = np.array([quad(up10, 0, xi)[0] for xi in x])
 y10_lin = f10/2 * x*(1-x)                  # -u''=6, u(0)=u(1)=0 -> u = 3x(1-x)
 
+# Check of the second boundary condition u(1) = 0.
 print("nonlinear u(1) (should be ~0):", quad(up10, 0, 1)[0])
 
+# Three panels, left to right: Exercises 1.18, 1.19, 1.20.
 fig, axes = plt.subplots(1, 3, figsize=(11, 3.4))
 
 ax = axes[0]

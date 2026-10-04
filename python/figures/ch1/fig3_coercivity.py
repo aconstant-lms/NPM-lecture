@@ -1,10 +1,11 @@
 """
-Generates figures/ex3_coercivity.pdf
-Exercise 3 (Section 4 of variational_formulations.tex): verifies BOTH the
+Generates figures/ch1/ex3_coercivity.pdf (Figure 1.17 of Chapter 1).
+Exercise 1.11 "Lax-Milgram constants from eigenvalues": verifies BOTH the
 coercivity lower bound alpha*||u||^2 and the boundedness upper bound
 M*||u||^2 on 300 random vectors, plotted against ||u||^2 so both bounding
-lines have simple slopes alpha and M. (Corrected version -- the original
-plot only showed the coercivity line.)
+lines have simple slopes alpha and M (the two hypotheses of the Lax-Milgram
+theorem, Section 1.6).
+Run: cd python/figures/ch1 && python3 fig3_coercivity.py
 """
 import numpy as np
 import matplotlib
@@ -12,9 +13,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 K = np.array([[2,-1,0],[-1,2,-1],[0,-1,2]], dtype=float)
+# Spring chain matrix; alpha = lambda_min (coercivity), M = lambda_max (boundedness).
 eigvals = np.linalg.eigvalsh(K)
 alpha, M = eigvals[0], eigvals[-1]
 
+# 300 random vectors u and the points (|u|^2, a(u,u)) with a(u,u) = u^T K u.
 rng = np.random.default_rng(0)
 n_samples = 300
 u_samples = rng.normal(size=(n_samples, 3))
@@ -25,6 +28,7 @@ a_uu = np.einsum("ij,jk,ik->i", u_samples, K, u_samples)      # a(u,u)
 assert np.all(a_uu >= alpha*norm_sq - 1e-9)
 assert np.all(a_uu <= M*norm_sq + 1e-9)
 
+# Plot: the band between the lines of slopes alpha and M, and the random points.
 fig, ax = plt.subplots(figsize=(5.4, 3.8))
 
 xmax = norm_sq.max()*1.05

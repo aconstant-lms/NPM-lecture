@@ -1,9 +1,10 @@
 """
-Generates figures/doublewell_bistability.pdf
-Double-well potential example (remark after Section 4 of
-variational_formulations.tex): the potential W(u) = (1/4)(u^2-1)^2 and the
-gradient flow du/dt = u - u^3 from several perturbations of the unstable
-state u=0, showing bistability.
+Generates figures/ch1/doublewell_bistability.pdf (Figure 1.11 of Chapter 1).
+Double-well example of Section 1.6 ("What goes wrong without coercivity",
+paragraph (b) A nonlinear double well): the potential W(u) = (1/4)(u^2-1)^2
+and the gradient flow du/dt = u - u^3 from several perturbations of the
+unstable state u=0, showing bistability.
+Run: cd python/figures/ch1 && python3 fig_doublewell.py
 """
 import numpy as np
 from scipy.integrate import odeint
@@ -15,16 +16,20 @@ import matplotlib.pyplot as plt
 u = np.linspace(-1.6, 1.6, 400)
 W = 0.25*(u**2 - 1)**2
 
-# --- Panel 2: gradient flow du/dt = -W'(u) = u - u^3, from perturbations of the unstable state u=0 ---
+# --- Panel 2: gradient flow du/dt = -W'(u) = u - u^3, ---
+# --- from perturbations of the unstable state u=0 ---
 def rhs(u, t):
+    """Right-hand side of the gradient flow du/dt = -W'(u) = u - u^3."""
     return u - u**3
 
 t = np.linspace(0, 8, 400)
+# Initial values on both sides of u = 0; odeint integrates up to t = 8.
 inits = [0.30, 0.10, 0.02, -0.02, -0.10, -0.30]
 trajectories = {u0: odeint(rhs, u0, t).flatten() for u0 in inits}
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.6))
 
+# Left: the potential with its two wells (stable) and the hump (unstable).
 ax = axes[0]
 ax.plot(u, W, color="#0F6E56", lw=2)
 for pt, lab in [(-1, "stable\nminimum"), (0, "unstable\nmaximum"), (1, "stable\nminimum")]:
@@ -39,6 +44,7 @@ ax.set_xlabel("$u$"); ax.set_ylabel(r"$W(u)=\frac{1}{4}(u^2-1)^2$")
 ax.set_title("the double-well potential")
 ax.grid(alpha=0.3)
 
+# Right: the trajectories; the sign of the perturbation decides the well.
 ax = axes[1]
 colors = plt.cm.coolwarm(np.linspace(0, 1, len(inits)))
 for (u0, traj), c in zip(trajectories.items(), colors):

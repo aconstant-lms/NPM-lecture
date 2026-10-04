@@ -13,6 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Figure 4.10. Stresses in units of the cohesion c.
 blue, orange, green = "#1F5AC8", "#D9822B", "#14963C"
 phi, coh = np.deg2rad(30.0), 1.0
 p_apex = coh / np.tan(phi)                      # apex on the hydrostatic axis
@@ -20,6 +21,8 @@ h = np.array([1, 1, 1]) / np.sqrt(3)            # hydrostatic axis
 e1 = np.array([2, -1, -1]) / np.sqrt(6)         # basis of the pi-plane
 e2 = np.array([0, 1, -1]) / np.sqrt(2)
 
+# For each direction om of the pi-plane: the unit deviator, its ordered principal
+# values, and the factor a such that MC reads rho a = 2 sin(phi) (p_apex - p)
 om = np.linspace(0, 2 * np.pi, 361)
 dirs = np.outer(np.cos(om), e1) + np.outer(np.sin(om), e2)   # unit deviators
 srt = -np.sort(-dirs, axis=1)                                 # s1>=s2>=s3

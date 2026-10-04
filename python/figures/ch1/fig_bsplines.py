@@ -1,5 +1,5 @@
 """
-Generates figures/ch1/bsplines.pdf (Chapter 1, Section "B-splines").
+Generates figures/ch1/bsplines.pdf (Figure 1.15; Chapter 1, Section 1.9.4 "B-splines").
 B-spline basis functions computed with the Cox-de Boor recursion on open
 uniform knot vectors with 5 knot spans:
   (a) p = 1: the hat functions of linear finite elements;
@@ -20,16 +20,20 @@ BLUE, GREEN, ORANGE, GRAY = "#1F5AC8", "#14963C", "#D85A30", "#666666"
 def bspline_basis(knots, p, xi):
     """All N_{i,p}(xi), i = 0..n-1, by the Cox-de Boor recursion (0/0 := 0).
     The last span is closed on the right so that N_{n-1,p}(xi_end) = 1."""
+    # Returns an array N[i, k] = N_{i,p}(xi_k).
     knots = np.asarray(knots, float)
     m = len(knots) - 1
     xi = np.atleast_1d(xi).astype(float)
     N = np.zeros((m, xi.size))
     for i in range(m):                      # degree 0
         N[i] = (knots[i] <= xi) & (xi < knots[i + 1])
+    # Close the last nonempty span on the right, so that the sum is 1 at xi_end.
     last = np.max(np.nonzero(knots[:-1] < knots[1:]))
     N[last, xi == knots[-1]] = 1.0
     for q in range(1, p + 1):               # degrees 1..p
         Nq = np.zeros((m - q, xi.size))
+        # N_{i,q} = (xi - xi_i)/d1 N_{i,q-1} + (xi_{i+q+1} - xi)/d2 N_{i+1,q-1};
+        # a term with d = 0 (repeated knot) is dropped.
         for i in range(m - q):
             d1 = knots[i + q] - knots[i]
             d2 = knots[i + q + 1] - knots[i + 1]
@@ -42,9 +46,12 @@ def bspline_basis(knots, p, xi):
 
 
 def open_uniform(p, nel):
+    """Open uniform knot vector on [0, nel]: the end knots 0 and nel are
+    repeated p + 1 times, the interior knots 1 .. nel-1 are simple."""
     return np.r_[np.zeros(p), np.arange(nel + 1), np.full(p, nel)]
 
 
+# Five knot spans (elements) on [0, 5]; panels (a)-(c) for p = 1, 2, 3.
 nel = 5
 xi = np.linspace(0, nel, 1001)
 fig, axes = plt.subplots(2, 2, figsize=(10, 5.6))
@@ -57,6 +64,7 @@ for ax, p in zip([axes[0, 0], axes[0, 1], axes[1, 0]], [1, 2, 3]):
     for i, Ni in enumerate(N):
         end = i in (0, len(N) - 1)
         ax.plot(xi, Ni, color=ORANGE if end else BLUE, lw=1.6 if end else 1.2)
+    # Shade one interior function and mark its support: p + 1 knot spans.
     k = p + 1 if p > 1 else 2               # an interior function, shaded
     ax.fill_between(xi, N[k], color=GREEN, alpha=0.25, lw=0)
     sup = knots[[k, k + p + 1]]
@@ -64,6 +72,7 @@ for ax, p in zip([axes[0, 0], axes[0, 1], axes[1, 0]], [1, 2, 3]):
                 arrowprops=dict(arrowstyle="<->", color=GREEN, lw=1))
     ax.text(sup.mean(), -0.24, f"support: {p + 1} knot spans",
             color=GREEN, ha="center", va="top", fontsize=8)
+    # Partition of unity (dashed line at 1) and the knots (ticks).
     ax.plot(xi, N.sum(axis=0), "--", color=GRAY, lw=0.9)
     ax.text(nel - 0.6, 1.03, r"$\sum_i N_{i,p}=1$", color=GRAY,
             ha="right", va="bottom", fontsize=8)
@@ -81,11 +90,13 @@ for ax, p in zip([axes[0, 0], axes[0, 1], axes[1, 0]], [1, 2, 3]):
 # (d) quadratic B-spline curve with its control polygon
 ax = axes[1, 1]
 p, knots = 2, open_uniform(2, 4)
+# Curve C(t) = sum_i N_{i,2}(t) P_i with six control points P_i, four spans.
 P = np.array([[0, 0], [0.6, 1.4], [1.8, 1.6], [2.6, 0.2], [3.6, 0.6], [4.2, 1.6]])
 t = np.linspace(0, 4, 801)
 curve = bspline_basis(knots, p, t).T @ P
 ax.plot(P[:, 0], P[:, 1], "o--", color=GRAY, lw=0.9, ms=5, mfc="white")
 ax.plot(curve[:, 0], curve[:, 1], color=BLUE, lw=1.8)
+# Images of the knots: the element ends on the curve.
 tk = np.arange(5)
 ck = bspline_basis(knots, p, tk.astype(float)).T @ P
 ax.plot(ck[:, 0], ck[:, 1], "s", color=BLUE, ms=3.5)

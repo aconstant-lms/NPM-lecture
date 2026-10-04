@@ -17,6 +17,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
+# Figure 4.2. The von Mises surface is the circle |x - c| = R in the plane
+# (sigma, sqrt3 tau); initial surface: c = 0, R = 1 (units of sY).
 blue, green, orange, grey = "#1F5AC8", "#14963C", "#D9822B", "0.55"
 th = np.linspace(0, 2 * np.pi, 400)
 A = np.array([1.3, 0.0])
@@ -31,10 +33,14 @@ def run(beta, n=4000):
     for k, x in enumerate(path):
         d = x - c
         r = np.linalg.norm(d)
+        # outside the current circle: the overshoot e is taken by hardening, a fraction
+        # beta by expansion (R) and 1 - beta by translation of the centre c along the
+        # normal (Prager's rule)
         if r > R:
             e, nrm = r - R, d / r
             R += beta * e
             c = c + (1 - beta) * e * nrm
+            # store the loading point and the normal at A, half-way to B, and at B
             if k in (n - 1, n - 1 + n // 2, 2 * n - 2):
                 normals.append((x.copy(), nrm.copy()))
         if k == n - 1:
