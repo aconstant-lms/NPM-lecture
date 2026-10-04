@@ -1,0 +1,87 @@
+*
+* Strang's chain of springs with bar elements: K = B^T C B,
+* imposed displacements by Lagrange multipliers, reactions,
+* reciprocity (Chapter 1, Section "A discrete prelude: springs";
+* companion exercise C1.1)
+*
+* STATUS: UNTESTED. Written against the operator notices; not run.
+*
+* Four springs of stiffness c = EA/L = 1 between two walls, three
+* free nodes (masses). Reference values (Chapter 1,
+* python/examples/ch1/springs_constraint.py and exo_primal_dual.py):
+*   (a) loads f = (1, 1, 1): u = (1.5, 2, 1.5),
+*       spring forces (1.5, 0.5, -0.5, -1.5), wall reactions -1.5,
+*       W(u) = 1/2 u.K.u - f.u = -2.5
+*   (b) no load, u_3 = 1 imposed by a multiplier:
+*       u = (1/3, 2/3, 1), multiplier lambda = 4/3 (the reaction)
+*   (c) flexibility: S_13 = S_31 = 1/4 (Maxwell-Betti)
+*
+* Units: none (c = 1).  andrei.constantinescu@polytechnique.edu
+*
+* STEP 1  the chain along x: 4 bar elements of length 1
+*
+  opti dime 2 elem seg2 echo 0;
+  p0 = 0. 0.;  p4 = 4. 0.;
+  ch = droi 4 p0 p4;
+  n1 = ch poin 'PROC' (1. 0.);
+  n2 = ch poin 'PROC' (2. 0.);
+  n3 = ch poin 'PROC' (3. 0.);
+*
+* STEP 2  bar model, E = 1, section 1: each element is a spring
+*         c = EA/L = 1; RIGI assembles K = B^T C B
+*
+  mo = mode ch mecanique elastique barr;
+  ma = (mate mo 'YOUN' 1. 'NU' 0.) et (cara mo 'SECT' 1.);
+  kk = rigi mo ma;
+*
+* walls (u = 0 at both ends) and no transverse motion
+  bw = bloq ux (p0 et p4);
+  bt = bloq uy ch;
+*
+*----------------------------------------------------------------
+* (a) three unit loads
+*----------------------------------------------------------------
+  ff = (forc 'FX' 1. n1) et (forc 'FX' 1. n2) et (forc 'FX' 1. n3);
+  u = reso (kk et bw et bt) ff;
+  mess '(a) u = ' (extr u 'UX' n1) (extr u 'UX' n2)
+       (extr u 'UX' n3) '   (1.5 2 1.5)';
+* spring forces: the axial force EFFX of each element
+  sg = sigm mo ma u;
+  repeter be 4;
+    mess '    force in spring ' &be ': ' (extr sg 'EFFX' 1 &be 1);
+  fin be;
+* reactions of the walls (support forces)
+  rw = reac bw u;
+  mess '    wall reactions ' (extr rw 'FX' p0) (extr rw 'FX' p4)
+       '   (-1.5 -1.5)';
+* energy at equilibrium: W(u) = 1/2 u.K.u - f.u = -1/2 f.u
+  fu = (extr u 'UX' n1) + (extr u 'UX' n2) + (extr u 'UX' n3);
+  mess '    W(u) = -f.u/2 = ' (-0.5 * fu) '   (-2.5)';
+*
+*----------------------------------------------------------------
+* (b) u_3 = 1 imposed by a Lagrange multiplier (BLOQ + DEPI)
+*     The system solved by RESO is the saddle-point system of
+*     Chapter 2, [[K, -P^T], [-P, 0]] up to the sign of lambda.
+*----------------------------------------------------------------
+  b3 = bloq ux n3;
+  d3 = depi b3 1.;
+  u = reso (kk et bw et bt et b3) d3;
+  r3 = reac b3 u;
+  mess '(b) u = ' (extr u 'UX' n1) (extr u 'UX' n2)
+       (extr u 'UX' n3) '   (1/3 2/3 1)';
+  mess '    reaction at node 3: ' (extr r3 'FX' n3)
+       '   (lambda = 4/3, the force the support applies)';
+* the multiplier itself is stored on the extra unknown LX
+  mess '    multiplier unknowns:';
+  list (exco u 'LX');
+*
+*----------------------------------------------------------------
+* (c) reciprocity: unit load at node 1, read u_3; and back
+*----------------------------------------------------------------
+  u1 = reso (kk et bw et bt) (forc 'FX' 1. n1);
+  u3 = reso (kk et bw et bt) (forc 'FX' 1. n3);
+  mess '(c) S_31 = ' (extr u1 'UX' n3) '  S_13 = '
+       (extr u3 'UX' n1) '   (0.25 0.25)';
+*
+  opti donn 5;
+fin;

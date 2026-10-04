@@ -1,0 +1,100 @@
+*
+* The elastoplastic filament under a strain cycle: isotropic and
+* kinematic hardening with PASAPAS on one bar element
+* (Chapter 4, "Cyclic loading and the Bauschinger effect";
+* companion exercise C4.2)
+*
+* STATUS: UNTESTED. Written against the operator notices; not run.
+*
+* Data of python/examples/ch4/exo_cyclic_1d.py: E = 200 GPa,
+* sY = 250 MPa, strain path 0 -> 3 eY -> -3 eY -> 3 eY,
+* eY = sY / E. Stresses at the three turning points (MPa):
+*   (i)  isotropic, K = 3 GPa : 257.389  -271.949  286.079
+*   (ii) kinematic, H = 3 GPa : 257.389  -257.389   257.389
+* The return map is exact on each monotone branch, so these values
+* do not depend on the number of steps. The kinematic case also
+* tells which modulus Cast3M calls H, from the first value: 257.389
+* if H is the uniaxial plastic modulus of the notes (q = H eps^p),
+* 254.95 if the uniaxial modulus is 2H/3, 261.00 if it is 3H/2.
+* (The turning-point values of linear kinematic hardening are
+* symmetric whatever the modulus; the reverse yield itself occurs
+* at 257.389 - 2 sY = -242.611.)
+*
+* Units: mm, N, MPa (section 1 mm2: the force EFFX is the stress).
+* andrei.constantinescu@polytechnique.edu
+*
+* STEP 1  one bar element of length 1 along x
+*
+  opti dime 2 elem seg2 echo 0;
+  p1 = 0. 0.;  p2 = 1. 0.;
+  bar = droi 1 p1 p2;
+*
+* STEP 2  material data and the two models
+*
+  you = 200000.;  sy = 250.;  kk = 3000.;  hh = 3000.;
+  ey = sy / you;
+*
+* (i) isotropic hardening given by the tensile curve
+*     (total strain, stress): elastic up to eY, then slope
+*     E K / (E + K) (the elastoplastic tangent of Section 4.2)
+  etan = (you * kk) / (you + kk);
+  emx = 1.;
+  ctr = evol manu 'EPS' (prog 0. ey emx)
+        'SIG' (prog 0. sy (sy + (etan * (emx - ey))));
+  moi = mode bar mecanique elastique plastique isotrope barr;
+  mai = (mate moi 'YOUN' you 'NU' 0.3 'TRAC' ctr)
+        et (cara moi 'SECT' 1.);
+*
+* (ii) linear kinematic hardening
+  mok = mode bar mecanique elastique plastique cinematique barr;
+  mak = (mate mok 'YOUN' you 'NU' 0.3 'SIGY' sy 'H' hh)
+        et (cara mok 'SECT' 1.);
+*
+* STEP 3  boundary conditions and strain path: u(p2) = eps(t),
+*         times 0, 1, 3, 5 at the turning points, 100 steps per
+*         unit of time
+*
+  bl2 = bloq ux p2;
+  aa = (bloq ux p1) et (bloq uy (p1 et p2)) et bl2;
+  ud = depi bl2 1.;
+  ev = evol manu 'TEMPS' (prog 0. 1. 3. 5.)
+       'DIMP' (prog 0. (3. * ey) (-3. * ey) (3. * ey));
+  ch = char 'DIMP' ud ev;
+*
+* STEP 4  PASAPAS for each model; the stress at t = 1, 3, 5 is
+*         the force EFFX of the element (section 1)
+*
+  lmod = table;  lmod . 1 = moi;  lmod . 2 = mok;
+  lmat = table;  lmat . 1 = mai;  lmat . 2 = mak;
+  lnom = mots 'ISOTROPE' 'CINEMATIQUE';
+  ldes = table;
+  repeter bm 2;
+    tab = table;
+    tab . 'MODELE' = lmod . &bm;
+    tab . 'CARACTERISTIQUES' = lmat . &bm;
+    tab . 'BLOCAGES_MECANIQUES' = aa;
+    tab . 'CHARGEMENT' = ch;
+    tab . 'TEMPS_CALCULES' = 0.01 * (prog 0. pas 1. 500.);
+    pasapas tab;
+    leps = prog;  lsig = prog;
+    repeter bt (dime (tab . 'CONTRAINTES'));
+      ii = &bt - 1;
+      leps = leps et (prog (extr (tab . 'DEPLACEMENTS' . ii)
+             'UX' p2));
+      lsig = lsig et (prog (extr (tab . 'CONTRAINTES' . ii)
+             'EFFX' 1 1 1));
+    fin bt;
+    mess (extr lnom &bm) ': sigma(t=1,3,5) = '
+         (extr lsig 101) (extr lsig 301) (extr lsig 501);
+    si (&bm ega 1);
+      ldes . 1 = evol rouge manu 'eps' leps 'sigma' lsig;
+    sinon;
+      ldes . 2 = evol bleu manu 'eps' leps 'sigma' lsig;
+    finsi;
+  fin bm;
+  mess 'Python: isotropic 257.389 -271.949 286.079,'
+       ' kinematic 257.389 -257.389 257.389';
+  dess ((ldes . 1) et (ldes . 2));
+*
+  opti donn 5;
+fin;

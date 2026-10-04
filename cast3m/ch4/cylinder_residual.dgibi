@@ -1,0 +1,93 @@
+*
+* Thick-walled cylinder: loading beyond first yield, unloading and
+* residual stresses (Chapter 4, "Thick-walled cylinder under
+* internal pressure"; companion exercise C4.3)
+*
+* STATUS: UNTESTED. Written against the operator notices; not run.
+*
+* a = 100, b = 200 mm, plane strain, E = 200 GPa, nu = 0.3, von
+* Mises perfect plasticity, sY = 250 MPa, k = 2 sY / sqrt 3. The
+* closed form of the exercise (sigma_t - sigma_r = k in the plastic
+* zone) gives
+*   first yield   pY = (k/2)(1 - a^2/b^2)          = 108.253 MPa
+*   front c = 1.5 a at p = k ln(c/a) + (k/2)(1 - c^2/b^2)
+*                                                  = 180.195 MPa
+*   limit load    pL = k ln(b/a)                   = 200.094 MPa
+*   residual hoop stress after unloading from c = 1.5 a:
+*     r = a: -0.6646 k = -191.85 MPa,  r = b: +0.1464 k = 42.25 MPa
+* The closed form is exact for von Mises only if sigma_z is the mean
+* of sigma_r and sigma_t (incompressible plastic flow): expect the
+* finite element front a little beyond 1.5 a (Exercise C5.2).
+*
+* Units: mm, MPa.  andrei.constantinescu@polytechnique.edu
+*
+* STEP 1  axisymmetric slice, 100 elements through the wall
+*
+  opti dime 2 mode axis elem qua4 echo 0;
+  a = 100.;  b = 200.;  h = 1.;  nr = 100;
+  p1 = a 0.;  p2 = b 0.;  p3 = b h;  p4 = a h;
+  l12 = droi nr p1 p2;  l23 = droi 1 p2 p3;
+  l34 = droi nr p3 p4;  l41 = droi 1 p4 p1;
+  dom = dall l12 l23 l34 l41;
+*
+* STEP 2  perfect plasticity, plane strain (UZ = 0 on both faces)
+*
+  you = 200000.;  nu = 0.3;  sy = 250.;
+  k = (2. * sy) / (3. ** 0.5);
+  mo = mode dom mecanique elastique isotrope plastique parfait;
+  ma = mate mo 'YOUN' you 'NU' nu 'SIGY' sy;
+  aa = (bloq uz l12) et (bloq uz l34);
+*
+* STEP 3  pressure 0 -> p1c -> 0, p1c puts the front at 1.5 a
+*
+  c = 1.5 * a;
+  p1c = (k * (log (c / a))) + ((k / 2.) * (1. - ((c * c) / (b * b))));
+  mess 'pressure for c = 1.5 a: ' p1c ' MPa   (180.195)';
+  fp = pres 'MASS' mo 1. l41;
+  ev = evol manu 'TEMPS' (prog 0. 1. 2.) 'P' (prog 0. p1c 0.);
+  tab = table;
+  tab . 'MODELE' = mo;
+  tab . 'CARACTERISTIQUES' = ma;
+  tab . 'BLOCAGES_MECANIQUES' = aa;
+  tab . 'CHARGEMENT' = char 'MECA' fp ev;
+  tab . 'TEMPS_CALCULES' = 0.05 * (prog 0. pas 1. 40.);
+  pasapas tab;
+*
+* STEP 4  at the peak (index 20): plastic front, the largest radius
+*         where the cumulated plastic strain EPSE is positive
+*
+  rg = chan 'CHAM' (coor 1 dom) mo 'STRESSES';
+  ep = exco (tab . 'VARIABLES_INTERNES' . 20) 'EPSE' 'SCAL';
+  cfe = maxi ((masq ep 'SUPERIEUR' 0.) * rg);
+  mess 'plastic front at the peak: ' cfe ' mm   (closed form 150)';
+*
+* STEP 5  after unloading (index 40): residual stresses, nodal
+*         values (Gauss values averaged at the nodes)
+*
+  sres = chan 'CHPO' mo (tab . 'CONTRAINTES' . 40);
+  sta = extr sres 'SMTT' p1;
+  stb = extr sres 'SMTT' p2;
+  sra = extr sres 'SMRR' p1;
+  mess 'residual hoop stress r = a: ' sta '  (-191.85)';
+  mess 'residual hoop stress r = b: ' stb '  (+42.25)';
+  mess 'residual radial stress r = a: ' sra '  (0)';
+  epe = exco (tab . 'VARIABLES_INTERNES' . 40) 'EPSE' 'SCAL';
+  mess 'max EPSE change during unloading: '
+       (maxi (abs (epe - ep))) '  (0: elastic unloading)';
+*
+* STEP 6  profiles of the residual stresses through the wall
+*
+  lr = prog;  lt = prog;  lrr = prog;  lz = prog;
+  repeter bn (nr + 1);
+    pp = poin l12 &bn;
+    lr  = lr  et (prog (coor 1 pp));
+    lt  = lt  et (prog (extr sres 'SMTT' pp));
+    lrr = lrr et (prog (extr sres 'SMRR' pp));
+    lz  = lz  et (prog (extr sres 'SMZZ' pp));
+  fin bn;
+  dess ((evol rouge manu 'r' lr 'sigma_t' lt)
+     et (evol bleu  manu 'r' lr 'sigma_r' lrr)
+     et (evol vert  manu 'r' lr 'sigma_z' lz));
+*
+  opti donn 5;
+fin;

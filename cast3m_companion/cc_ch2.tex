@@ -1,0 +1,118 @@
+%======================================================================
+%  Companion to Chapter 2 -- Elliptic problems: diffusion and elasticity
+%======================================================================
+\chapter{Elliptic problems: diffusion and elasticity}\label{cc:ch2}
+
+\framepart{Outline}
+
+Chapter~\ref{B-ch:elliptic} of the notes ends with the plate with a hole,
+computed with linear triangles in Python and compared with Kirsch's
+solution. Its part~(d) asks for the same computation with Cast3M and other
+elements. This chapter does it with four element types and three meshes, and
+adds the check that the support reactions balance the applied load. You
+should then be able to run a convergence study inside one gibiane file, with
+the mesh built in a procedure.
+
+\section{Where Cast3M enters Chapter 2}\label{cc:sec2-map}
+\index{Cast3M!Chapter 2}%
+
+\begin{gbox}{Chapter 2 of the notes and Cast3M}\label{cc:tab2}
+\small
+\begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
+Kirsch, Ex.~\ref{B-exo:kirsch} (d)
+ & \textbf{Exercise \ref{exo:cc-kirsch}}: \texttt{TRI3}, \texttt{TRI6}, \texttt{QUA4},
+   \texttt{QUA8}; $n_\theta=12,24,48$; $\sigma_{11}(0,a)$, $\sigma_{22}(a,0)$.\\[1mm]
+Multipliers as reactions, Sec.~\ref{B-ssec:ritz-lagrange},
+Ex.~\ref{B-exo:lagrange-el}
+ & \textbf{Exercise \ref{exo:cc-kirsch}}: the reactions on $x=0$ sum to $-sL$.\\[1mm]
+Diffusion Lagrangian, Sec.~\ref{B-ssec:diff-lagrangian}
+ & To do: the thermal model with an imposed temperature; \op{reac} gives the
+   flux $\mu=\vect{p}\cdot\vn$ through the boundary, and its sum balances the
+   source.\\[1mm]
+Zero-energy modes, Ex.~\ref{B-exo:q-modes}
+ & To do: one free \texttt{QUA4} element, the eigenvalues of its stiffness
+   (\op{vibr} with a unit mass): three zero modes.\\[1mm]
+Anisotropy, Ex.~\ref{B-exo:stiffness}
+ & To do: \op{mate} \texttt{ANISOTROPE} with the constants of cadmium, a
+   homogeneous test giving $s_{13}$ and $s_{33}$.\\
+\end{tabular}
+\end{gbox}
+
+\section{A convergence study in one file}\label{cc:sec2-loop}
+\index{convergence!Cast3M}%
+\begin{castemcom}
+The mesh of the quarter plate is built in a procedure whose arguments are the
+element type and the number of cells along the hole. \op{opti elem} inside
+the procedure sets the type of the elements that \op{droi}, \op{cerc} and
+\op{dall} create: \texttt{SEG2} lines give \texttt{TRI3} or \texttt{QUA4}
+surfaces, \texttt{SEG3} lines \texttt{TRI6} or \texttt{QUA8}.
+
+The two loops then rebuild the model, the stiffness and the solution for each
+mesh. \op{resu} sums the reactions of the symmetry line $x=0$: whatever the
+mesh, they balance the traction $s$ on the edge $x=L$, $\sum F_x=-sL$.
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+debproc plaque typ*mot nt*entier;
+  opti elem typ;
+  ...
+finproc dom l12 l23 l45 p1 p5;
+
+repeter bty (dime ltyp);
+  typ = extr ltyp &bty;
+  repeter bnt (dime lnt);
+    nt = extr lnt &bnt;
+    dom l12 l23 l45 p1 p5 =
+        plaque typ nt;
+    ...
+    u  = reso (kk et bx et by) ff;
+    rx = resu (exco (reac bx u) 'FX');
+  fin bnt;
+fin bty;
+\end{verbatim}
+\end{castemlines}
+
+\framepart{Summary}
+
+\begin{gbox*}
+\begin{itemize}
+\item \textbf{A mesh built in a procedure} turns a convergence study into two
+  loops: element type, mesh size.
+\item \textbf{The element type is a mesh option}: \op{opti elem} decides
+  linear or quadratic, triangles or quadrangles.
+\item \textbf{The reactions check the computation}: their sum balances the
+  applied load on every mesh, an exact identity of the discrete problem
+  (Exercise~\ref{B-exo:lagrange-el}).
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+
+\exercise{Kirsch with four elements}\label{exo:cc-kirsch}
+\index{Kirsch problem!Cast3M}%
+Take the quarter plate of Exercise~\ref{B-exo:kirsch} ($L=20a$, plane
+stress, $E=1$, $\nu=0.3$, tension $s=1$ on $x=L$). For \texttt{TRI3},
+\texttt{TRI6}, \texttt{QUA4} and \texttt{QUA8} and $n_\theta=12$, 24, 48 cells
+on the quarter hole, compute the nodal stresses $\sigma_{11}(0,a)$ and
+$\sigma_{22}(a,0)$, the number of unknowns, and the sum of the reactions on
+$x=0$. How many unknowns does each element need for $1\%$ on the stress
+concentration factor?
+\begin{solution}
+Reference values with linear triangles (Python,
+\texttt{kirsch\_fem.py}): $\sigma_{11}(0,a)=2.970$, 3.013, 3.020 and
+$\sigma_{22}(a,0)=-0.722$, $-0.871$, $-0.946$ for $n_\theta=12$, 24, 48,
+against Kirsch's 3 and $-1$ (the plate is finite: with $L=160a$ the factor
+is $3.00$). The reactions sum to $-sL=-20$ on every mesh. Expect the
+quadratic elements to reach $1\%$ on $\sigma_{11}(0,a)$ with far fewer
+unknowns than \texttt{TRI3}; the run gives the numbers. The compressive
+$\sigma_{22}(a,0)$ converges slowly with linear triangles (still $5\%$ off at
+$n_\theta=48$): it is the harder test.
+\untested{\texttt{cast3m/ch2/kirsch\_elements.dgibi}}
+\lstinputlisting[style=gibstyle,firstline=22]{cast3m/ch2/kirsch_elements.dgibi}
+\end{solution}
+
+\begin{chapterbib}{9}
+\bibitem{cc-kirsch} G.~Kirsch, Die Theorie der Elastizit\"at und die
+  Bed\"urfnisse der Festigkeitslehre, \emph{Zeitschrift des Vereines deutscher
+  Ingenieure} 42 (1898) 797--807.
+\end{chapterbib}

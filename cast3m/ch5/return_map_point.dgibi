@@ -1,0 +1,284 @@
+*
+* Radial return of Box 5.2 programmed on Gauss-point fields
+* Chapter 5: "Radial return with combined and nonlinear
+* hardening" and "Simple shear, then a non-proportional path"
+* (companion exercise C5.1)
+*
+* STATUS: UNTESTED. Written against the operator notices (VMIS,
+* MASQ, EXCO, SIGM, ZERO, EXP); not run. See cast3m/README.md for
+* the constructions to check first.
+*
+* Reference values, python/examples/ch5/exo_shear.py
+* (E = 200 GPa, nu = 0.3, sY = 250 MPa, K = 2 GPa, plane strain):
+*   (a) simple shear gamma = 2 e12 = 0.01 in one step:
+*       s12 = 149.706775 MPa (exact: proportional path)
+*   (b) shear to e12 = 0.002 in 500 steps, then e11: 0 -> 0.004
+*       in n steps; reference (200000 steps)
+*       s11 = 834.8243, s12 = 26.0140 MPa, alpha = 3.114637e-3
+*       error on s12: 30.07 (n=1), 4.941 (10), 0.5281 (100),
+*       0.05293 MPa (1000): first order.
+*
+* One QUA4 element whose nodes all move with u = eps . x: the
+* strain is homogeneous, there is no equilibrium to iterate, the
+* element is a material-point driver. The return map only sees
+* fields at the Gauss points: it would run unchanged on a mesh.
+*
+* Units: mm, MPa. Gibiane evaluates from left to right without
+* operator precedence: keep the parentheses.
+*
+* andrei.constantinescu@polytechnique.edu
+*
+*----------------------------------------------------------------
+* PROCEDURE smul: product of a scalar field cc (component SCAL)
+*   by every component of the field x named in the list lcp
+*----------------------------------------------------------------
+debproc smul cc*mchaml x*mchaml lcp*listmots;
+  repeter bsm (dime lcp);
+    nm = extr lcp &bsm;
+    yi = exco (cc * (exco x nm 'SCAL')) 'SCAL' nm;
+    si (&bsm ega 1);
+      y = yi;
+    sinon;
+      y = y et yi;
+    finsi;
+  fin bsm;
+finproc y;
+*
+*----------------------------------------------------------------
+* PROCEDURE devia: deviator of a symmetric tensor field x;
+*   ldia: names of the diagonal components (3 of them, also in
+*   2D: SMZZ or SMTT), loff: names of the off-diagonal ones
+*----------------------------------------------------------------
+debproc devia x*mchaml ldia*listmots loff*listmots;
+  nd = dime ldia;
+  repeter bd1 nd;
+    nm = extr ldia &bd1;
+    si (&bd1 ega 1);
+      tr = exco x nm 'SCAL';
+    sinon;
+      tr = tr + (exco x nm 'SCAL');
+    finsi;
+  fin bd1;
+  pm = (1. / 3.) * tr;
+  repeter bd2 nd;
+    nm = extr ldia &bd2;
+    di = exco ((exco x nm 'SCAL') - pm) 'SCAL' nm;
+    si (&bd2 ega 1);
+      y = di;
+    sinon;
+      y = y et di;
+    finsi;
+  fin bd2;
+  repeter bd3 (dime loff);
+    nm = extr loff &bd3;
+    y = y et (exco x nm);
+  fin bd3;
+finproc y;
+*
+*----------------------------------------------------------------
+* PROCEDURE hard: isotropic hardening R(alpha) and R'(alpha)
+*   tm . 'LOI' = 'LINE': R = sY + K alpha
+*   tm . 'LOI' = 'VOCE': R = sinf - (sinf - sY) exp(-delta alpha)
+*   un: field of ones on the same Gauss points
+*----------------------------------------------------------------
+debproc hard al*mchaml un*mchaml tm*table;
+  sy = tm . 'SIGY';
+  si ((tm . 'LOI') ega 'VOCE');
+    sinf = tm . 'SINF';
+    del  = tm . 'DELT';
+    ee = exp ((-1. * del) * al);
+    rr = (sinf * un) - ((sinf - sy) * ee);
+    rp = (del * (sinf - sy)) * ee;
+  sinon;
+    kk = tm . 'K';
+    rr = (sy * un) + (kk * al);
+    rp = kk * un;
+  finsi;
+finproc rr rp;
+*
+*----------------------------------------------------------------
+* PROCEDURE rrj2: radial return of Box 5.2 at all Gauss points
+*   input : model mo, trial stress sigtr = sig_n + C:(eps - eps_n),
+*           back stress bet_n, cumulated plastic strain al_n,
+*           table tm of material data (MU, H, SIGY, LOI, K or
+*           SINF and DELT, DIAG, OFFD; optional ETA and DT for
+*           the Perzyna update of Section 5.7)
+*   output: sigma, beta, alpha at t_n+1, the increment dp of
+*           alpha (component SCAL) and the trial function ftr
+*   In the variables of Box 5.2, dp = sqrt(2/3) Delta gamma and
+*   q = sqrt(3/2) |dev(sigma - beta)|; the scalar equation
+*     q_tr - (3 mu + H + 3/2 eta/dt) dp - R(alpha_n + dp) = 0
+*   is solved by Newton at every plastic Gauss point at once.
+*----------------------------------------------------------------
+debproc rrj2 mo*mmodel sigtr*mchaml bet*mchaml al*mchaml
+             tm*table;
+  mu = tm . 'MU';
+  hh = tm . 'H';
+  sy = tm . 'SIGY';
+  ldia = tm . 'DIAG';
+  loff = tm . 'OFFD';
+  lcp  = ldia et loff;
+  visc = 0.;
+  si (exis tm 'ETA');
+    visc = 1.5 * ((tm . 'ETA') / (tm . 'DT'));
+  finsi;
+  a3 = (3. * mu) + hh + visc;
+* relative stress, von Mises norm of its deviator (SCAL)
+  eta = sigtr - bet;
+  qtr = vmis mo eta;
+* un: ones; pla: 1 at the Gauss points where f_trial > 0
+  un  = masq qtr 'SUPERIEUR' -1.;
+  rr0 rp0 = hard al un tm;
+  ftr = qtr - rr0;
+  pla = masq ftr 'SUPERIEUR' 0.;
+* local Newton from dp = 0 (one iteration for linear hardening,
+* monotone convergence for Voce, Box 5.2 step 4)
+  dp = 0. * un;
+  repeter bnw 30;
+    rr rp = hard (al + dp) un tm;
+    gg = pla * (qtr - (a3 * dp) - rr);
+    si ((maxi (abs gg)) < (1.e-10 * sy));
+      quitter bnw;
+    finsi;
+    dp = dp + (gg / ((a3 * un) + rp));
+    si (&bnw ega 30);
+      mess 'rrj2: local Newton not converged, max |g| = '
+           (maxi (abs gg));
+    finsi;
+  fin bnw;
+* update along the radial direction n = eta_dev / |eta_dev|:
+*   sigma = sigma_tr - 3 mu dp eta_dev / q
+*   beta  = beta_n   + H    dp eta_dev / q
+* (qs: q shifted by 1e-12 sY to avoid 0/0 where dp = 0)
+  qs  = qtr + ((1.e-12 * sy) * un);
+  ed  = devia eta ldia loff;
+  sig = sigtr - (smul ((3. * mu) * (dp / qs)) ed lcp);
+  bet2 = bet + (smul (hh * (dp / qs)) ed lcp);
+  al2  = al + dp;
+finproc sig bet2 al2 dp ftr;
+*
+*----------------------------------------------------------------
+* PROCEDURE uhom: displacement u = eps . x of a homogeneous
+*   plane strain (e11, e22, e12 tensorial) on the nodes (xx, yy)
+*----------------------------------------------------------------
+debproc uhom xx*chpoint yy*chpoint e11*flottant e22*flottant
+             e12*flottant;
+  ux = exco ((e11 * xx) + (e12 * yy)) 'SCAL' 'UX';
+  uy = exco ((e12 * xx) + (e22 * yy)) 'SCAL' 'UY';
+  uu = ux et uy;
+finproc uu;
+*
+*----------------------------------------------------------------
+* PROCEDURE chem: strain path from ea to eb (lists e11 e22 e12)
+*   in nst equal steps; the state table st holds SIG, BET, ALP
+*   and is updated in place (z_n -> z_n+1 at every step)
+*----------------------------------------------------------------
+debproc chem mo*mmodel ma*mchaml tm*table st*table
+             xx*chpoint yy*chpoint ea*listreel eb*listreel
+             nst*entier;
+  de = eb - ea;
+  repeter bst nst;
+    t0 = (flot (&bst - 1)) / (flot nst);
+    t1 = (flot &bst) / (flot nst);
+    e0 = ea + (t0 * de);
+    e1 = ea + (t1 * de);
+    u0 = uhom xx yy (extr e0 1) (extr e0 2) (extr e0 3);
+    u1 = uhom xx yy (extr e1 1) (extr e1 2) (extr e1 3);
+*   elastic predictor from the converged state of t_n
+    sgt = (st . 'SIG') + (sigm mo ma (u1 - u0));
+    s b a dp ft = rrj2 mo sgt (st . 'BET') (st . 'ALP') tm;
+    st . 'SIG' = s;
+    st . 'BET' = b;
+    st . 'ALP' = a;
+  fin bst;
+finproc;
+*
+*----------------------------------------------------------------
+* STEP 1  options: plane strain, one QUA4 element
+*----------------------------------------------------------------
+  opti dime 2 mode plan defo elem qua4 echo 0;
+  p1 = 0. 0.;  p2 = 1. 0.;  p3 = 1. 1.;  p4 = 0. 1.;
+  dom = dall (droi 1 p1 p2) (droi 1 p2 p3)
+             (droi 1 p3 p4) (droi 1 p4 p1);
+  xx = coor 1 dom;
+  yy = coor 2 dom;
+*
+*----------------------------------------------------------------
+* STEP 2  model and elastic material (only used by SIGM, i.e. by
+*         the elastic predictor); plastic data in the table tm
+*----------------------------------------------------------------
+  you = 200000.;  nu = 0.3;
+  mo = mode dom mecanique elastique isotrope;
+  ma = mate mo 'YOUN' you 'NU' nu;
+*
+  tm = table;
+  tm . 'MU'   = you / (2. * (1. + nu));
+  tm . 'H'    = 0.;
+  tm . 'SIGY' = 250.;
+  tm . 'LOI'  = 'LINE';
+  tm . 'K'    = 2000.;
+  tm . 'DIAG' = mots 'SMXX' 'SMYY' 'SMZZ';
+  tm . 'OFFD' = mots 'SMXY';
+*
+*----------------------------------------------------------------
+* STEP 3  virgin state: zero stress and back stress, alpha = 0
+*----------------------------------------------------------------
+debproc virg mo*mmodel;
+  st = table;
+  s0 = zero mo 'CONTRAIN';
+  st . 'SIG' = s0;
+  st . 'BET' = s0;
+  st . 'ALP' = 0. * (masq (vmis mo s0) 'SUPERIEUR' -1.);
+finproc st;
+*
+*----------------------------------------------------------------
+* STEP 4  (a) simple shear gamma = 0.01: one step and 1000 steps
+*----------------------------------------------------------------
+  o3 = prog 0. 0. 0.;
+  sh = prog 0. 0. 0.005;
+  repeter bsh 2;
+    nst = 1;
+    si (&bsh ega 2);
+      nst = 1000;
+    finsi;
+    st = virg mo;
+    chem mo ma tm st xx yy o3 sh nst;
+    s12 = extr (st . 'SIG') 'SMXY' 1 1 1;
+    mess 'simple shear, ' nst ' steps: s12 = ' s12
+         '   (closed form 149.706775)';
+  fin bsh;
+*
+*----------------------------------------------------------------
+* STEP 5  (b) shear to e12 = 0.002, then e11: 0 -> 0.004 at fixed
+*         shear in n steps: the normal turns, first-order error
+*----------------------------------------------------------------
+  ea = prog 0. 0. 0.002;
+  eb = prog 0.004 0. 0.002;
+  lisn = lect 1 10 100 1000;
+  ln = prog;  ls11 = prog;  ls12 = prog;  lal = prog;
+  repeter bn (dime lisn);
+    n = extr lisn &bn;
+    st = virg mo;
+    chem mo ma tm st xx yy o3 ea 500;
+    chem mo ma tm st xx yy ea eb n;
+    s11 = extr (st . 'SIG') 'SMXX' 1 1 1;
+    s12 = extr (st . 'SIG') 'SMXY' 1 1 1;
+    a1  = extr (st . 'ALP') 'SCAL' 1 1 1;
+    ln   = ln   et (prog (flot n));
+    ls11 = ls11 et (prog s11);
+    ls12 = ls12 et (prog s12);
+    lal  = lal  et (prog a1);
+    mess 'n = ' n ': s11 = ' s11 ' s12 = ' s12 ' alpha = ' a1;
+  fin bn;
+  mess 'reference: s11 = 834.8243  s12 = 26.0140'
+       '  alpha = 3.114637e-3';
+*
+* error on s12 against the number of steps (log-log: slope -1)
+  nn = dime ln;
+  lref = prog nn * 26.0140;
+  err = abs (ls12 - lref);
+  ev = evol manu 'n' ln '|s12 - ref|' err;
+  dess ev 'LOGX' 'LOGY';
+*
+  opti donn 5;
+fin;

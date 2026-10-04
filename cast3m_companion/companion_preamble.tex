@@ -1,0 +1,70 @@
+%======================================================================
+%  companion_preamble.tex -- what the Cast3M companion adds to the
+%  shared preamble of the notes (preamble/style.tex, notation.tex)
+%======================================================================
+
+% Exercises numbered C<chapter>.<n>, so that they never collide with the
+% exercises of the book they refer to (Exercise 5.12 vs Exercise C5.2).
+\renewcommand{\theexo}{C\thechapter.\arabic{exo}}
+
+% A gibiane operator or keyword in the running text (as in the Cast3M
+% introduction).
+\providecommand{\op}[1]{\texttt{#1}}
+
+%---- gibiane listings ----------------------------------------------------
+% Comments are the lines with a * in the first column (fixed-column comment
+% of listings); keywords are case-insensitive, as in gibiane.
+\lstdefinelanguage{gibiane}{%
+  sensitive=false,
+  morecomment=[f][\color{gray}][0]{*},
+  morestring=[b]',
+  morekeywords={opti,debproc,finproc,repeter,fin,si,sinon,finsi,quitter,
+    mess,table,prog,mots,lect,et,ega,dime,extr,exco,masq,vmis,sigm,bsig,
+    reso,rigi,mode,mate,cara,bloq,depi,reac,pres,forc,char,evol,pasapas,
+    droi,dall,cerc,coor,chan,zero,manu,dess,trac,abs,maxi,exp,log,flot,
+    exis,poin,ipol,rela,elim,resu,nbno,sin,cos,inve,index,vale,chai,mot},
+  keywordstyle=\color{blue!60!black}}
+\lstdefinestyle{gibstyle}{language=gibiane,
+  basicstyle=\ttfamily\scriptsize,
+  stringstyle=\color{green!45!black},
+  backgroundcolor=\color{gray!6},frame=none,
+  breaklines=true,showstringspaces=false,columns=fixed,
+  xleftmargin=0.6em,aboveskip=4pt,belowskip=4pt}
+\lstdefinestyle{shstyle}{language=bash,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{blue!60!black},commentstyle=\color{gray},
+  backgroundcolor=\color{gray!6},frame=none,
+  breaklines=true,showstringspaces=false,
+  xleftmargin=0.6em,aboveskip=4pt,belowskip=4pt}
+
+%---- worked examples: explanation on the left, gibiane on the right ------
+% Copied from the Cast3M introduction (preamble/style.tex, "Cast3M-specific"),
+% so that the two documents show gibiane the same way. Keep castemcom and
+% castemlines adjacent, with NO blank line between them. Lines of at most
+% about 50 characters fit the 92 mm box.
+\colorlet{CodeGray}{gray!12}
+\newlength{\castemcomwidth}   \setlength{\castemcomwidth}{65.mm}
+\newlength{\castemlineswidth} \setlength{\castemlineswidth}{92.mm}
+\newlength{\codeboxsep}       \setlength{\codeboxsep}{5.pt}
+\newsavebox{\castemsavebox}
+\newenvironment{castemlines}
+{\begin{lrbox}{\castemsavebox}%
+ \begin{minipage}[t]{\dimexpr\castemlineswidth-2\codeboxsep\relax}%
+ \begin{small}}
+{\end{small}%
+ \end{minipage}%
+ \end{lrbox}%
+ {\setlength{\fboxsep}{\codeboxsep}\colorbox{CodeGray}{\usebox{\castemsavebox}}}%
+ \par\medskip\noindent}
+\newenvironment{castemcom}
+{\par\vspace*{3.mm}%
+ \noindent
+ \begin{minipage}[t]{\castemcomwidth}%
+ \begin{small}}
+{\end{small}%
+ \end{minipage}%
+ \hspace*{4.mm}}
+
+% Status of a file that has not been run yet (shown under \drafttrue)
+\newcommand{\untested}[1]{\draftnote{#1 has not been run with Cast3M yet:
+  the values above are the references it must reproduce.}}

@@ -1,0 +1,237 @@
+%======================================================================
+%  Companion to Chapter 7 -- Identification problems in plasticity
+%======================================================================
+\chapter{Identification problems in plasticity}\label{cc:ch7}
+
+\framepart{Outline}
+
+Section~\ref{B-sec:id-tools} of the notes splits an identification into five
+pieces: the experiment, the cost, the direct solver, the derivative layer and
+the driver. In the 1990s all five were written in gibiane. Today the driver is
+a library, and the direct solver is called as a black box. This chapter makes
+Cast3M the direct solver of the truss identification of
+Exercise~\ref{B-exo:id-truss}, and drives it four ways: a shell loop, SciPy,
+OpenTURNS, and a JAX program. The derivatives are central differences of Cast3M
+runs; the last exercise shows where a derivative computed by Cast3M itself
+would enter.
+
+You should then be able to wrap a Cast3M computation as a function of its
+parameters, run it safely many times, and hand it to an optimizer, a
+calibration library or an automatic-differentiation framework.
+
+\section{Where Cast3M enters Chapter 7}\label{cc:sec7-map}
+\index{Cast3M!Chapter 7}%
+
+\begin{gbox}{Chapter 7 of the notes and Cast3M}\label{cc:tab7}
+\small
+\begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
+Truss, Sec.~\ref{B-ssec:id-models}; Ex.~\ref{B-exo:id-truss}
+ & \textbf{Exercises \ref{exo:cc-id-sweep}--\ref{exo:cc-id-jax}}: \texttt{truss.template} (three bars,
+   kinematic hardening, \op{pasapas}) as the direct solver.\\[1mm]
+Finite differences, Sec.~\ref{B-ssec:id-fd}; Ex.~\ref{B-exo:id-q-fd}
+ & \textbf{Exercises \ref{exo:cc-id-scipy}--\ref{exo:cc-id-jax}}: central differences in $\log\vp$, six runs
+   in parallel; the step against the tolerance of \op{pasapas}.\\[1mm]
+Calibration drivers, Ex.~\ref{B-exo:id-tools}
+ & \textbf{Exercises \ref{exo:cc-id-ot}, \ref{exo:cc-id-jax}}: OpenTURNS around Cast3M; Cast3M inside a
+   JAX program (\texttt{custom\_vjp}).\\[1mm]
+Direct differentiation, Box~7.3
+ & To do: after each converged step of the truss, the tangent of the bars
+   ($E$ or $EH/(E+H)$), the pseudo-loads $\hat\sig_{,\vp}$, one solve per
+   parameter; target: the gradient of Table~\ref{B-tab:id-fd}. It replaces the
+   function \texttt{jacobian\_fd} of the drivers and nothing else.\\[1mm]
+Indentation, Sec.~\ref{B-sec:id-contact}; Ex.~\ref{B-exo:id-indent}
+ & To do: the membrane is a 1D thermal problem (conductivity $T_m$, exchange
+   $k_f$); the active-set loop in the driver, Cast3M for the Dirichlet
+   problems, the adjoint $\hat v=1$ on the contact zone.\\[1mm]
+Norton relaxation, Ex.~\ref{B-exo:id-norton}
+ & To do: one element, a viscoplastic model of Cast3M (check whether its
+   Norton law has a threshold), the Gauss--Newton eigenvalues against the hold
+   time.\\
+\end{tabular}
+\end{gbox}
+
+\section{Cast3M as a function of its parameters}\label{cc:sec7-blackbox}
+\index{Cast3M!as a black box}%
+A driver needs a function $\vp\mapsto\vu(\vp)$. Four rules make one out of a
+Cast3M file; the module \texttt{castem\_run.py} applies them, and the shell
+script applies the same rules with \texttt{sed} and \texttt{awk}.
+
+\begin{gbox}{A Cast3M run as a function}\label{cc:box-run}
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=1.6em]
+\item \textbf{A template.} The \texttt{.dgibi} file is complete except for
+  placeholders, \texttt{\_\_E\_\_}, \texttt{\_\_SY\_\_}, \texttt{\_\_H\_\_}, that
+  cannot occur in gibiane by accident.
+\item \textbf{One directory per run.} Cast3M writes its \texttt{fort.*} files
+  where it runs; separate directories allow parallel runs (the six runs of a
+  central-difference Jacobian).
+\item \textbf{Check the output, not the exit status.} Cast3M returns success
+  even when the computation fails: look for \texttt{ERREUR} and for the result
+  file.
+\item \textbf{Results in a CSV file with a header}, written by the procedure
+  \texttt{EXPORTCSV} of the Cast3M introduction; a cache on the parameters
+  saves the runs that an optimizer or a finite difference repeats.
+\end{enumerate}
+\end{gbox}
+
+\noindent The template keeps the loads fixed, $N_0=200$\,N, the value of
+$S\sY$ at the true parameters: see Exercise~\ref{exo:cc-id-q-scale}. The measurements are those
+of the notes (same model, seed and noise), written by
+\texttt{make\_measurements.py} into \texttt{truss\_measurements.csv}.
+
+\begin{castemcom}
+The bars are \texttt{SEG2} elements sharing the node \texttt{o}; the model
+\texttt{BARR} with linear kinematic hardening, section 1\,mm$^2$. The loads
+are two unit forces at \texttt{o} times the histories $Q_1(t)$, $Q_2(t)$;
+\op{sin} takes degrees. A tight \texttt{PRECISION} keeps the solver error
+below the finite-difference steps of the drivers.
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+yo = __E__;  sy = __SY__;  hh = __H__;
+mo = mode st mecanique elastique
+     plastique cinematique barr;
+ma = (mate mo 'YOUN' yo 'NU' 0.3
+       'SIGY' sy 'H' hh)
+     et (cara mo 'SECT' 1.);
+n0  = 200.;
+lq1 = (2.3 * n0) * (sin (deg * lt));
+lq2 = (0.8 * n0)
+      * (sin ((2. * deg) * lt));
+...
+tab . 'PRECISION' = 1.e-10;
+pasapas tab;
+...
+exportcsv tev 'truss_u.csv';
+\end{verbatim}
+\end{castemlines}
+
+\framepart{Summary}
+
+\begin{gbox*}
+\begin{itemize}
+\item \textbf{A template, a directory, a check, a CSV file}: these make a
+  Cast3M computation a function of its parameters, usable by any driver.
+\item \textbf{The driver is interchangeable}: a shell loop for a parameter
+  sweep, SciPy for least squares, OpenTURNS for a calibration with its
+  posterior, JAX when the cost is a program to differentiate.
+\item \textbf{The derivative is a separate piece}: central differences of
+  runs here; a direct differentiation or an adjoint computed by Cast3M
+  (Boxes~7.3 and~7.4) would replace one function. JAX only needs to be told the
+  vector--Jacobian product.
+\item \textbf{Fix what is not a parameter}: a load that scales with a
+  parameter can make the cost invariant along a whole ray.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+
+\framesub{Short questions}
+
+\exercise{A load that moves with the parameters}\label{exo:cc-id-q-scale}
+\index{identifiability!invariance}%
+In a first version of the template the loads were written
+$Q_1=2.3\,\sY S\sin t$ with the parameter $\sY$. Started from
+$(0.7,1.2,3)\vp^{\mathrm{true}}$, the identification drifted to
+$\vp\approx3\times10^{-4}\,\vp^{\mathrm{true}}$ with a cost close to its
+minimum. Explain.
+\begin{solution}
+Multiply $(E,\sY,H)$ by $\lambda$: the forces, the stiffnesses and the
+thresholds all scale by $\lambda$, and the displacements do not change. The cost
+is constant along the ray $\lambda\vp$: only two combinations of the three
+parameters can be identified (Section~\ref{B-ssec:id-tell}, invariances give
+lumped parameters), and the optimizer slides along the ray. Fixing $N_0=200$\,N
+removes the invariance.
+\end{solution}
+
+\exercise{The step of the finite differences}\label{exo:cc-id-q-step}
+\index{finite differences!step}%
+The drivers use central differences in $\log\vp$ with the relative step
+$h=10^{-4}$, and \op{pasapas} converges to the relative tolerance
+$\epsilon=10^{-10}$. Estimate the error on the derivative.
+\begin{solution}
+Truncation $O(h^2)=10^{-8}$; solver error $O(\epsilon/h)=10^{-6}$, relative
+to the displacements (Exercise~\ref{B-exo:id-q-fd}). The derivative has about
+six correct digits, enough for Levenberg--Marquardt and BFGS. With a loose
+tolerance, $\epsilon=10^{-5}$, the best step is $h\approx\epsilon^{1/3}\approx
+2\times10^{-2}$ and about three digits are left.
+\end{solution}
+
+\framesub{Problems}
+
+\exercise{The cost along one parameter, from the shell}\label{exo:cc-id-sweep}
+\index{shell script!parameter sweep}%
+With $E$ and $H$ at their true values, compute the cost $J(\sY)$ of
+Exercise~\ref{B-exo:id-truss} for $\sY$ from 120 to 280\,MPa, with
+\texttt{sed}, Cast3M and \texttt{awk} only.
+\begin{solution}
+$J=6320$, 1945, 122.0, 0.297, 122.4, 584.5, 620.8 for
+$\sY=120$, 160, 190, 200, 210, 240, 280\,MPa (Python model of the notes,
+through the stand-in of Cast3M). The valley at $\sY=200$ is sharp, at the noise
+level $J=0.297$. Above about 240\,MPa the cost reaches a plateau: the truss
+hardly yields, and $\sY$ becomes invisible (Section~\ref{B-ssec:id-tell}).
+\lstinputlisting[style=shstyle,firstline=2]{cast3m/ch7/sweep_sy.sh}
+\end{solution}
+
+\exercise{Identification with SciPy}\label{exo:cc-id-scipy}
+\index{Levenberg--Marquardt!Cast3M}%
+Identify $(E,\sY,H)$ with the function \texttt{least\_squares} of
+\texttt{scipy.optimize} (Levenberg--Marquardt), in $\vq=\log(\vp/\vp_0)$, with the Jacobian by central
+differences of Cast3M runs. Start from $\vp_0=(0.7,1.2,3)\vp^{\mathrm{true}}$
+and from $(0.7,1.5,3)\vp^{\mathrm{true}}$, and count the runs.
+\begin{solution}
+From $(0.7,1.2,3)$: $\vp/\vp^{\mathrm{true}}=(1.0022,0.9992,1.0036)$,
+$J=0.2911$, the minimum of Exercise~\ref{B-exo:id-truss}, in 79 runs (each
+Jacobian costs six). From $(0.7,1.5,3)$ the truss does not yield at the start,
+$\sY$ and $H$ receive no gradient and the iteration ends at
+$E/E^{\mathrm{true}}=0.4424$, $J=522.5$, as in the notes. With the exact
+derivatives of the notes Levenberg--Marquardt needs 14 direct solves and 11
+sensitivity sweeps; the finite differences multiply the number of solves, not
+the number of iterations.
+\lstinputlisting[firstline=4]{cast3m/ch7/identify_scipy.py}
+\lstinputlisting[firstline=4]{cast3m/ch7/castem_run.py}
+\end{solution}
+
+\exercise{Calibration with OpenTURNS}\label{exo:cc-id-ot}
+\index{OpenTURNS!Cast3M}%
+Repeat the OpenTURNS calibration of Exercise~\ref{B-exo:id-tools} with
+Cast3M as the model: a \texttt{PythonFunction} whose evaluation reads a cached
+Cast3M run and whose gradient comes from central differences.
+\begin{solution}
+MAP $\vp/\vp^{\mathrm{true}}=(1.0022,0.9992,1.0036)$ in 78 runs, posterior
+standard deviations of $\log\vp$ $(0.0059,0.0009,0.0079)$, as with the exact
+gradient of the notes: the finite differences are accurate enough not to change
+the Gaussian approximation at the minimum. $\sY$ is the best determined
+parameter, $H$ the worst.
+\lstinputlisting[firstline=4]{cast3m/ch7/identify_openturns.py}
+\end{solution}
+
+\exercise{Cast3M inside a JAX program}\label{exo:cc-id-jax}
+\index{automatic differentiation!black box}%
+JAX cannot differentiate through Cast3M. Declare the derivative of the black
+box with \texttt{jax.custom\_vjp}: the forward pass calls Cast3M through
+\texttt{jax.pure\_callback}, the backward pass returns
+$\vect{v}\T\partial\vu/\partial\log\vp$ from central differences. (a)~Check
+the gradient of the cost at $\vp_1=(0.9,1.2,1.5)\vp^{\mathrm{true}}$ with the
+Taylor test of Box~7.5. (b)~Minimize with BFGS from $(0.7,1.2,3)$.
+\begin{solution}
+(a)~$J(\vp_1)=567.48$ and $\partial J/\partial\log\vp=(179.805452,
+305.777548,5.967107)$, the values of Table~\ref{B-tab:id-fd} to all printed
+digits. In the Taylor test $e_0$ decreases like $h$ and $e_1$ like $h^2$
+($1.4\times10^{-2}$, $1.3\times10^{-3}$, $1.4\times10^{-4}$ for $h=10^{-2}$,
+$3\times10^{-3}$, $10^{-3}$); at $h=0.1$ the step crosses a change of the
+plastic pattern and the rate is lost (Exercise~\ref{B-exo:id-q-kink}).
+(b)~$(1.0022,0.9992,1.0036)$, $J=0.2911$ in 20 iterations and 210 runs. The
+cost, the log-parameters and an optional penalty are JAX code; only the
+vector--Jacobian product of the black box is declared. A direct differentiation
+or an adjoint in Cast3M would replace \texttt{jacobian\_fd} and leave the
+program unchanged.
+\lstinputlisting[firstline=4]{cast3m/ch7/identify_jax.py}
+\end{solution}
+
+\begin{chapterbib}{9}
+\bibitem{cc-ot} M.~Baudin, A.~Dutfoy, B.~Iooss, A.-L.~Popelin, OpenTURNS: an
+  industrial software for uncertainty quantification in simulation, in
+  \emph{Handbook of Uncertainty Quantification}, Springer, 2017.
+\bibitem{cc-jax} J.~Bradbury et al., JAX: composable transformations of
+  Python+NumPy programs, \url{https://github.com/jax-ml/jax}, 2018--2026.
+\end{chapterbib}

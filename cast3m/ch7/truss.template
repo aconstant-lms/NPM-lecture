@@ -1,0 +1,114 @@
+*
+* truss.template -- the three-bar truss of Chapters 6 and 7 with
+* PASAPAS: the direct solver of the identification exercises
+* (companion exercises C7.3-C7.6). Template: the drivers replace
+* __E__, __SY__, __H__ (MPa) and write calcul.dgibi.
+*
+* STATUS: UNTESTED with Cast3M. The drivers were run against
+* tools/castem_stub.py, which mimics this file with id_core.
+*
+* Geometry (Ch. 6, Maitournam): node O = (0, 0), supports
+* A = (-1, -1), B = (-1, 1), C = (-1, 0); bars AO, BO (length
+* sqrt 2) and CO (length 1), section 1 mm2. Linear kinematic
+* hardening. Loads at O: Q1 = 2.3 N0 sin t, Q2 = 0.8 N0 sin 2t,
+* N0 = 200 N (sY S at the TRUE yield stress: the loads do not
+* change with the parameters), t in [0, 2 pi], 80 steps.
+* Output: truss_u.csv, columns ABSC (time), UX, UY (node O).
+*
+* Units: mm, N, MPa.  andrei.constantinescu@polytechnique.edu
+*
+*----------------------------------------------------------------
+* PROCEDURE exportcsv, from the Cast3M introduction (chapter
+*   "Pre- and post-processing"): a table of evolutions -> one
+*   CSV file with a header line
+*----------------------------------------------------------------
+DEBPROC EXPORTCSV TEVOL*TABLE FICOUT*MOT;
+  LIDX = INDEX TEVOL;
+  NC   = DIME LIDX;
+  EV1  = TEVOL . (EXTR LIDX 1);
+  ABS1 = EXTR EV1 ABSC;
+  NP   = DIME ABS1;
+  II = VALE IMPR;
+  OPTI IMPR 10 IMPR FICOUT;
+  LIGN = MOT 'ABSC';
+  REPETER BC NC;
+    IC   = EXTR LIDX &BC;
+    LIGN = LIGN ET (MOT ';') ET (MOT IC);
+  FIN BC;
+  MESSAGE LIGN;
+  REPETER BP NP;
+    XV   = EXTR ABS1 &BP;
+    LIGN = CHAI XV;
+    REPETER BC NC;
+      EVC  = TEVOL . (EXTR LIDX &BC);
+      ORDC = EXTR EVC ORDO;
+      YV   = EXTR ORDC &BP;
+      LIGN = LIGN ET (MOT ';') ET (CHAI YV);
+    FIN BC;
+    MESSAGE LIGN;
+  FIN BP;
+  OPTI IMPR II;
+FINPROC;
+*
+* STEP 1  parameters (replaced by the driver)
+*
+  opti dime 2 elem seg2 echo 0;
+  yo = __E__;
+  sy = __SY__;
+  hh = __H__;
+*
+* STEP 2  the three bars, sharing the node o
+*
+  o  = 0. 0.;
+  pa = -1. -1.;  pb = -1. 1.;  pc = -1. 0.;
+  b1 = droi 1 pa o;
+  b2 = droi 1 pb o;
+  b3 = droi 1 pc o;
+  st = b1 et b2 et b3;
+*
+* STEP 3  bars with linear kinematic hardening, section 1 mm2
+*
+  mo = mode st mecanique elastique plastique cinematique barr;
+  ma = (mate mo 'YOUN' yo 'NU' 0.3 'SIGY' sy 'H' hh)
+       et (cara mo 'SECT' 1.);
+  bl = bloq depl (pa et pb et pc);
+*
+* STEP 4  loads: unit forces at o times the histories Q1(t), Q2(t)
+*
+  pi0 = 3.141592653589793;
+  deg = 180. / pi0;
+  lt  = (pi0 / 40.) * (prog 0. pas 1. 80.);
+  n0  = 200.;
+  lq1 = (2.3 * n0) * (sin (deg * lt));
+  lq2 = (0.8 * n0) * (sin ((2. * deg) * lt));
+  f1 = forc 'FX' 1. o;
+  f2 = forc 'FY' 1. o;
+  ch = (char 'MECA' f1 (evol manu 'TEMPS' lt 'Q1' lq1))
+    et (char 'MECA' f2 (evol manu 'TEMPS' lt 'Q2' lq2));
+*
+* STEP 5  incremental computation, tight equilibrium tolerance
+*         (finite differences of the drivers divide by small steps)
+*
+  tab = table;
+  tab . 'MODELE' = mo;
+  tab . 'CARACTERISTIQUES' = ma;
+  tab . 'BLOCAGES_MECANIQUES' = bl;
+  tab . 'CHARGEMENT' = ch;
+  tab . 'TEMPS_CALCULES' = lt;
+  tab . 'PRECISION' = 1.e-10;
+  pasapas tab;
+*
+* STEP 6  displacements of o at the 81 instants -> truss_u.csv
+*
+  lux = prog;  luy = prog;
+  repeter bt (dime lt);
+    ii = &bt - 1;
+    uu = tab . 'DEPLACEMENTS' . ii;
+    lux = lux et (prog (extr uu 'UX' o));
+    luy = luy et (prog (extr uu 'UY' o));
+  fin bt;
+  tev = table;
+  tev . 'UX' = evol manu 'TEMPS' lt 'UX' lux;
+  tev . 'UY' = evol manu 'TEMPS' lt 'UY' luy;
+  exportcsv tev 'truss_u.csv';
+fin;

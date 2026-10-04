@@ -32,8 +32,22 @@ jobs:
         run: |
           ! grep -E "undefined references|Reference .* undefined|multiply defined" main.log
 
-      - name: Name the PDF
-        run: cp main.pdf NPM_lecture_notes.pdf
+      - name: Compile the Cast3M companion (uses the .aux files of the book)
+        id: companion
+        continue-on-error: true
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: cast3m_companion
+          root_file: cast3m_companion.tex
+          latexmk_use_lualatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error -halt-on-error
+
+      - name: Name the PDFs
+        run: |
+          cp main.pdf NPM_lecture_notes.pdf
+          if [ -f cast3m_companion/cast3m_companion.pdf ]; then
+            cp cast3m_companion/cast3m_companion.pdf NPM_cast3m_companion.pdf
+          fi
 
       - name: Publish as release "latest"
         env:
@@ -42,7 +56,9 @@ jobs:
           DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
           MSG=$(git log -1 --pretty=%s)
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest NPM_lecture_notes.pdf \
+          FILES="NPM_lecture_notes.pdf"
+          if [ -f NPM_cast3m_companion.pdf ]; then FILES="$FILES NPM_cast3m_companion.pdf"; fi
+          gh release create latest $FILES \
             --target "$GITHUB_SHA" \
             --title "Lecture notes - latest build ($DATE)" \
             --notes "Built from commit ${GITHUB_SHA::7}: $MSG" \
@@ -56,3 +72,5 @@ jobs:
           path: |
             main.pdf
             main.log
+            cast3m_companion/cast3m_companion.pdf
+            cast3m_companion/cast3m_companion.log

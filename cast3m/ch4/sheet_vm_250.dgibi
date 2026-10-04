@@ -1,0 +1,115 @@
+*
+* Stretching of a sheet in plane strain, von Mises, perfect
+* plasticity (Chapter 4, "Stretching of a sheet in plane strain";
+* companion exercise C4.1). Same data as python/examples/ch4/
+* exo_sheet.py, stretched along x as in the exercise.
+*
+* STATUS: UNTESTED. Written in the style of sheet_plane_strain
+* .dgibi (the MEC563 file, SI units, sY = 200 MPa, stretched along
+* y); not run.
+*
+* Reference values (E = 200 GPa, nu = 0.3, sY = 250 MPa):
+*   first yield    s_xx = sY / sqrt(1 - nu + nu^2) = 281.272 MPa
+*   eps_xx = 0.002 : s_xx = 286.484, s_zz = 112.499 MPa
+*   eps_xx = 0.0025: s_xx = 287.765, s_zz = 124.049
+*   eps_xx = 0.003 : s_xx = 288.303, s_zz = 131.470
+*   eps_xx = 0.004 : s_xx = 288.615, s_zz = 139.197
+*   limits 2 sY / sqrt 3 = 288.675, sY / sqrt 3 = 144.338
+*
+* The state is homogeneous: one element is enough, and the result
+* does not depend on the mesh, only on the time steps.
+* Units: mm, MPa.  andrei.constantinescu@polytechnique.edu
+*
+* STEP 1  options: plane strain (the default 2D mode), QUA4
+*
+  opti dime 2 mode plan defo elem qua4 echo 0;
+*
+* STEP 2  unit square, one element
+*
+  p1 = 0. 0.;  p2 = 1. 0.;  p3 = 1. 1.;  p4 = 0. 1.;
+  d12 = droi 1 p1 p2;  d23 = droi 1 p2 p3;
+  d34 = droi 1 p3 p4;  d41 = droi 1 p4 p1;
+  dom = dall d12 d23 d34 d41;
+*
+* STEP 3  model and material: elastic-perfectly plastic von Mises
+*
+  you = 200000.;  nu = 0.3;  sy = 250.;
+  mo = mode dom mecanique elastique isotrope plastique parfait;
+  ma = mate mo 'YOUN' you 'NU' nu 'SIGY' sy;
+*
+* STEP 4  boundary conditions: u_x = 0 on x = 0, u_y = 0 at p1
+*         (no rigid motion), u_x = eps(t) on x = 1; the faces
+*         y = 0 and y = 1 are free (traction-free, normal e_y)
+*
+  bl1 = bloq ux d41;
+  bl2 = bloq uy p1;
+  bl3 = bloq ux d23;
+  aa = bl1 et bl2 et bl3;
+  ud = depi bl3 1.;
+*
+* STEP 5  loading: eps_xx from 0 to 0.004, 400 equal steps; the
+*         time is the imposed strain
+*
+  emax = 0.004;  nst = 400;
+  ev = evol manu 'TEMPS' (prog 0. emax) 'DIMP' (prog 0. emax);
+  ch = char 'DIMP' ud ev;
+*
+  tab = table;
+  tab . 'MODELE' = mo;
+  tab . 'CARACTERISTIQUES' = ma;
+  tab . 'BLOCAGES_MECANIQUES' = aa;
+  tab . 'CHARGEMENT' = ch;
+  tab . 'TEMPS_CALCULES' = (emax / nst)
+                           * (prog 0. pas 1. (flot nst));
+  pasapas tab;
+*
+* STEP 6  stress components against the imposed strain (Gauss
+*         point 1 of element 1: the field is homogeneous)
+*
+  le = prog;  lsx = prog;  lsz = prog;  lsy = prog;
+  repeter bt (dime (tab . 'CONTRAINTES'));
+    ii = &bt - 1;
+    sg = tab . 'CONTRAINTES' . ii;
+    le  = le  et (prog (tab . 'TEMPS' . ii));
+    lsx = lsx et (prog (extr sg 'SMXX' 1 1 1));
+    lsy = lsy et (prog (extr sg 'SMYY' 1 1 1));
+    lsz = lsz et (prog (extr sg 'SMZZ' 1 1 1));
+  fin bt;
+*
+* first yield: the first step with EPSE > 0 and the one before
+  ifirst = 0;
+  repeter bf (dime le);
+    ep = extr (exco (tab . 'VARIABLES_INTERNES' . (&bf - 1))
+         'EPSE' 'SCAL') 'SCAL' 1 1 1;
+    si ((ep > 0.) et (ifirst ega 0));
+      ifirst = &bf;
+    finsi;
+  fin bf;
+  si (ifirst > 1);
+    mess 'first yield between s_xx = ' (extr lsx (ifirst - 1))
+         ' and ' (extr lsx ifirst) '  (closed form 281.272)';
+  sinon;
+    mess 'no plastic step found';
+  finsi;
+*
+  lchk = prog 0.002 0.0025 0.003 0.004;
+  repeter bc (dime lchk);
+    ec = extr lchk &bc;
+    sx = ipol ec le lsx;
+    sz = ipol ec le lsz;
+    mess 'eps_xx = ' ec ': s_xx = ' sx '  s_zz = ' sz;
+  fin bc;
+  mess 'Python (40000 steps): 286.484/112.499  287.765/124.049'
+       '  288.303/131.470  288.615/139.197';
+  mess 's_yy must stay 0: max |s_yy| = ' (maxi (abs lsy));
+*
+* STEP 7  curves s_xx(eps), s_zz(eps); loading path in (s_xx, s_zz)
+*
+  ex = evol rouge manu 'eps_xx' le 's_xx' lsx;
+  ez = evol bleu  manu 'eps_xx' le 's_zz' lsz;
+  dess (ex et ez);
+  epth = evol vert manu 's_xx' lsx 's_zz' lsz;
+  dess epth;
+*
+  opti donn 5;
+fin;

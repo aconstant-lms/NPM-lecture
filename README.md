@@ -35,7 +35,12 @@ Uncomment `\includeonly{...}` in `main.tex` to compile a single chapter.
     python/figures/...            figure scripts (run from their own directory)
     python/examples/...           exercise code, printed in the book with \lstinputlisting
     cast3m/, fenics/              Cast3M and FEniCSx versions of some exercises (see their README:
-                                  untested files are not printed in the book)
+                                  untested files are not printed in the book); cast3m/ is sorted
+                                  by chapter, cast3m/ch7 holds the identification drivers
+                                  (shell, SciPy, OpenTURNS, JAX) around Cast3M
+    cast3m_companion/             separate document "Cast3M companion" (same style, exercises
+                                  C<ch>.<n>, cites the book through its .aux files), built by the
+                                  CI after the book and published as NPM_cast3m_companion.pdf
 
 ## Notation (preamble/notation.tex)
     vectors, 2nd-order tensors   bold italic    \vect{u} \tens{\sigma}  shortcuts \vu \vn \sig \eps \tk

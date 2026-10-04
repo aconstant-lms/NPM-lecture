@@ -1,0 +1,120 @@
+%======================================================================
+%  Companion to Chapter 1 -- Why variational formulations matter
+%======================================================================
+\chapter{Why variational formulations matter}\label{cc:ch1}
+
+\framepart{Outline}
+
+Chapter~\ref{B-ch:var} of the notes starts from a chain of springs: the
+matrices $\mat{B}$, $\mat{C}$ and $\mat{K}=\mat{B}\T\mat{C}\mat{B}$, the
+energy, a constraint and its multiplier. A finite element code holds exactly
+these objects: bar elements are springs, \op{rigi} assembles $\mat{K}$,
+\op{bloq} adds a constraint with a Lagrange multiplier, \op{reac} returns the
+multiplier as a force. This chapter makes the correspondence explicit on the
+chain of the notes. You should then read any Cast3M computation as a
+$\mat{B}\T\mat{C}\mat{B}$ system with constraints.
+
+\section{Where Cast3M enters Chapter 1}\label{cc:sec1-map}
+\index{Cast3M!Chapter 1}%
+
+\begin{gbox}{Chapter 1 of the notes and Cast3M}\label{cc:tab1}
+\small
+\begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
+Spring chain, Sec.~\ref{B-sec:var-discrete},
+Ex.~\ref{B-exo:primal-dual}, \ref{B-exo:reciprocity}
+ & \textbf{Exercise \ref{exo:cc-springs}}: bar elements, loads, $W(\vu^\ast)=-\tfrac12
+   \vf\T\vu^\ast$, reciprocity $S_{13}=S_{31}$.\\[1mm]
+Constraints and multipliers, Sec.~\ref{B-sec:var-lagrange}
+ & \textbf{Exercise \ref{exo:cc-springs}}: \op{bloq} + \op{depi} impose $u_3=1$, \op{reac}
+   returns $\lambda=4/3$.\\[1mm]
+Three-bar truss, Fig.~\ref{B-fig:truss}
+ & The elastic version of \texttt{cast3m/ch7/truss.template} (set
+   \texttt{SIGY} very large); compare the bar forces with the notes.\\[1mm]
+Assembly, Ex.~\ref{B-exo:assembly}; convergence, Ex.~\ref{B-exo:conv}
+ & To do: $-u''=f$ with the thermal model on \texttt{SEG2} and \texttt{SEG3}
+   elements, \op{reac} for the boundary fluxes, errors in $L^2$ and $H^1$
+   by \op{intg}.\\[1mm]
+Function spaces, duality, B-splines (Parts II--IV)
+ & No Cast3M counterpart.\\
+\end{tabular}
+\end{gbox}
+
+\section{A constraint in Cast3M}\label{cc:sec1-bloq}
+\index{Lagrange multiplier!Cast3M}%
+Cast3M never eliminates an imposed displacement. \op{bloq} creates a
+constraint matrix $\mat{P}$ and one extra unknown per constraint, named
+\texttt{LX}; \op{depi} gives the value $\vuD$; \op{reso} solves the
+saddle-point system~\eqref{B-eq:saddle} of the notes. The multiplier is the
+force the support applies, which \op{reac} returns at the nodes.
+\begin{castemcom}
+The chain of four springs of stiffness 1 between two walls: four bar
+elements of length~1, $E=1$, section~1. \op{rigi} assembles
+$\mat{K}=\mat{B}\T\mat{C}\mat{B}$ from the elements.
+
+The walls and the transverse direction are blocked. The node 3 receives the
+constraint $u_3=1$: \op{bloq} gives $\mat{P}$, \op{depi} the right-hand side.
+
+\op{reac} turns the multiplier into the nodal force of the support: $4/3$ at
+node~3, the sum of the tension of the third spring ($1/3$) and of the
+compression of the fourth (1).
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+ch = droi 4 p0 p4;
+mo = mode ch mecanique elastique barr;
+ma = (mate mo 'YOUN' 1. 'NU' 0.)
+     et (cara mo 'SECT' 1.);
+kk = rigi mo ma;
+
+bw = bloq ux (p0 et p4);
+bt = bloq uy ch;
+b3 = bloq ux n3;
+d3 = depi b3 1.;
+
+u  = reso (kk et bw et bt et b3) d3;
+r3 = reac b3 u;
+\end{verbatim}
+\end{castemlines}
+
+\framepart{Summary}
+
+\begin{gbox*}
+\begin{itemize}
+\item \textbf{A bar element is a spring}: \op{rigi} assembles
+  $\mat{B}\T\mat{C}\mat{B}$ element by element.
+\item \textbf{A constraint is a multiplier}: \op{bloq} adds $\mat{P}$ and the
+  unknowns \texttt{LX}, \op{depi} the data $\vuD$, and \op{reac} returns the
+  reaction, positive in the direction of the support force, as in the
+  Lagrangian $-\boldsymbol\lambda\T(\mat{P}\vu-\vuD)$ of the notes.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+
+\exercise{The spring chain with bar elements}\label{exo:cc-springs}
+\index{spring chain!Cast3M}%
+Model the chain of Section~\ref{B-sec:var-discrete} (three masses, four
+springs $c=1$, walls at both ends) with four bar elements. (a)~Apply
+$\vf=(1,1,1)$ and compare $\vu^\ast$, the spring forces, the wall reactions and
+$W(\vu^\ast)$ with Exercise~\ref{B-exo:primal-dual}. (b)~Impose $u_3=1$ with no
+load and read the multiplier. (c)~Check $S_{13}=S_{31}$ with two unit loads
+(Exercise~\ref{B-exo:reciprocity}).
+\begin{solution}
+(a)~$\vu^\ast=(1.5,2,1.5)$, spring forces $(1.5,0.5,-0.5,-1.5)$, the walls
+react with $-1.5$ each, and $W(\vu^\ast)=-\tfrac12\vf\T\vu^\ast=-2.5$.
+(b)~$\vu=(1/3,2/3,1)$ and $\lambda=4/3$, the force of the support on node~3;
+\op{list} of the \texttt{LX} unknowns shows the multiplier itself, whose sign
+depends on how Cast3M writes the constraint row: the reaction is the
+convention-free quantity. (c)~$S_{13}=S_{31}=1/4$.
+\untested{\texttt{cast3m/ch1/springs\_multipliers.dgibi}}
+\lstinputlisting[style=gibstyle,firstline=21]{cast3m/ch1/springs_multipliers.dgibi}
+\end{solution}
+
+\begin{chapterbib}{9}
+\bibitem{cc-castem} Cast3M, finite element code of the CEA,
+  \url{https://www-cast3m.cea.fr}; operator notices on the same site.
+\bibitem{cc-intro} A.~Constantinescu, \emph{Introduction to Cast3M
+  programming}, lecture notes, CNRS -- \'Ecole Polytechnique, 2026.
+\bibitem{cc-strang} G.~Strang, \emph{Introduction to Applied Mathematics},
+  Wellesley-Cambridge Press, 1986.
+\end{chapterbib}

@@ -1,0 +1,123 @@
+*
+* Bree's problem beyond the fibres: a thin tube under constant
+* pressure and a cyclic temperature gradient through the wall,
+* cycle by cycle with PASAPAS (Chapter 6, "The Bree vessel: period
+* map and direct cyclic method"; companion exercise C6.1)
+*
+* STATUS: UNTESTED. Written against the operator notices; not run.
+*
+* Axisymmetric slice of an open tube, mean radius rm = 100 mm,
+* wall e = 5 mm (e/rm = 0.05), height 1 mm, generalized plane
+* strain (UZ = 0 at the bottom, UZ uniform at the top, free axial
+* force). Temperature linear through the wall,
+*   tau(r, t) = -tau0 x lambda(t),  x = (r - rm)/e,
+*   lambda(t) = |sin t|, period pi.
+* In this geometry the thermal stress is biaxial (hoop and axial),
+* sigma_T = E alpha tau0 / (2 (1 - nu)), and the pressure stress is
+* hoop only, sigma_P = p rm / e. With X = sigma_P / sY and
+* Y = sigma_T / sY the regimes of the fibre model (Ch. 6) are
+*   elastic X + Y <= 1; shakedown Y <= 2 and X + Y/4 <= 1;
+*   alternating plasticity Y > 2 and X Y <= 1; ratchet otherwise.
+* They are only approximate here (biaxial stress, finite wall):
+* this is the point of the exercise. Fibre model, H = 0, case
+* (X, Y) = (0.7, 1.5): ratchet of 0.3167 eY per cycle
+* (python/examples/ch6/exo_bree_cyclic.py, eY = sY / E~).
+*
+* Data: E = 200 GPa, nu = 0.3, sY = 280 MPa, alpha = 1e-5 /K.
+* Units: mm, MPa, K.  andrei.constantinescu@polytechnique.edu
+*
+* STEP 1  axisymmetric mesh of the wall, nr elements through it
+*
+  opti dime 2 mode axis elem qua4 echo 0;
+  rm = 100.;  e = 5.;  h = 1.;  nr = 20;
+  ri = rm - (e / 2.);  re = rm + (e / 2.);
+  p1 = ri 0.;  p2 = re 0.;  p3 = re h;  p4 = ri h;
+  bas  = droi nr p1 p2;  dro = droi 1 p2 p3;
+  haut = droi nr p3 p4;  gau = droi 1 p4 p1;
+  dom = dall bas dro haut gau;
+*
+* STEP 2  data of the case: X, Y, hardening H (0: perfect)
+*
+  xx = 0.7;  yy = 1.5;  hh = 0.;  ncyc = 10;  nstep = 40;
+  you = 200000.;  nu = 0.3;  sy = 280.;  alp = 1.e-5;
+  pr   = (xx * sy) * (e / rm);
+  tau0 = ((2. * (1. - nu)) * (yy * sy)) / (you * alp);
+  mess 'pressure ' pr ' MPa, tau0 = ' tau0 ' K';
+*
+* STEP 3  model: perfect or linear kinematic plasticity
+*
+  si (hh > 0.);
+    mo = mode dom mecanique elastique isotrope
+                  plastique cinematique;
+    ma = mate mo 'YOUN' you 'NU' nu 'ALPH' alp 'SIGY' sy
+                 'H' hh;
+  sinon;
+    mo = mode dom mecanique elastique isotrope plastique parfait;
+    ma = mate mo 'YOUN' you 'NU' nu 'ALPH' alp 'SIGY' sy;
+  finsi;
+*
+* STEP 4  generalized plane strain: UZ = 0 at the bottom, the top
+*         stays plane (one common UZ, RELA ENSE) and carries no
+*         axial force (open tube)
+*
+  aa = (bloq uz bas) et (rela ense uz haut);
+*
+* STEP 5  loads: constant pressure on the inner face, temperature
+*         field tau(r) times lambda(t) = |sin t|
+*
+  fp = pres 'MASS' mo pr gau;
+  pi0 = 3.141592653589793;
+  ltt = (pi0 / nstep) * (prog 0. pas 1. (flot (ncyc * nstep)));
+  lun = prog (dime ltt) * 1.;
+  llam = abs (sin ((180. / pi0) * ltt));
+  rr = coor 1 dom;
+  un = rr masq 'SUPERIEUR' 0.;
+  tau = exco ((-1. * (tau0 / e)) * (rr - (rm * un))) 'SCAL' 'T';
+  t0 = 0. * tau;
+  chp = char 'MECA' fp (evol manu 'TEMPS' ltt 'P' lun);
+  cht = char 'T' tau (evol manu 'TEMPS' ltt 'LAMB' llam);
+*
+  tab = table;
+  tab . 'MODELE' = mo;
+  tab . 'CARACTERISTIQUES' = ma;
+  tab . 'BLOCAGES_MECANIQUES' = aa;
+  tab . 'CHARGEMENT' = chp et cht;
+  tab . 'TEMPERATURES' = table;
+  tab . 'TEMPERATURES' . 0 = t0;
+  tab . 'TEMPS_CALCULES' = ltt;
+  pasapas tab;
+*
+* STEP 6  mean hoop strain u_r(rm)/rm at the end of every cycle
+*         (lambda = 0: thermal strain zero), in units of eY
+*
+  pmid = bas poin 'PROC' (rm 0.);
+  ey = sy / (you / (1. - nu));
+  lc = prog;  le = prog;  ld = prog;
+  eold = 0.;
+  repeter bc ncyc;
+    ii = &bc * nstep;
+    ur = extr (tab . 'DEPLACEMENTS' . ii) 'UR' pmid;
+    eth = (ur / rm) / ey;
+    lc = lc et (prog (flot &bc));
+    le = le et (prog eth);
+    ld = ld et (prog (eth - eold));
+    mess 'cycle ' &bc ': hoop strain ' eth ' eY, increment '
+         (eth - eold);
+    eold = eth;
+  fin bc;
+  dess (evol manu 'cycle' lc 'eps_t / eY' le);
+*
+* residual stress at the end of the last cycle, through the wall
+  sg = chan 'CHPO' mo (tab . 'CONTRAINTES' . (ncyc * nstep));
+  lr = prog;  lst = prog;  lsz = prog;
+  repeter bn (nr + 1);
+    pp = poin bas &bn;
+    lr  = lr  et (prog (coor 1 pp));
+    lst = lst et (prog (extr sg 'SMTT' pp));
+    lsz = lsz et (prog (extr sg 'SMZZ' pp));
+  fin bn;
+  dess ((evol rouge manu 'r' lr 'sigma_t' lst)
+     et (evol bleu  manu 'r' lr 'sigma_z' lsz));
+*
+  opti donn 5;
+fin;

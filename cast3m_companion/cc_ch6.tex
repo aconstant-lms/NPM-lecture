@@ -1,0 +1,126 @@
+%======================================================================
+%  Companion to Chapter 6 -- From prediction-correction to LATIN and
+%  the direct cyclic method
+%======================================================================
+\chapter{From prediction--correction to LATIN and the direct cyclic method}\label{cc:ch6}
+
+\framepart{Outline}
+
+Chapter~\ref{B-ch:pl-cyc} of the notes works on two structures made of
+fibres, the three-bar truss and the Bree vessel, where every algorithm can
+be written in a few lines. Cast3M brings two things: the same fibre structures
+with its own return maps, and the step to a real geometry, where the regimes of
+the fibre model are only approximate. It also contains two of the methods of
+the chapter as procedures, \texttt{@STATIO} and \texttt{@ZACPLUS}. This chapter
+computes Bree's problem on an axisymmetric tube cycle by cycle, and lists what
+remains to be done with the fields of Cast3M.
+
+\section{Where Cast3M enters Chapter 6}\label{cc:sec6-map}
+\index{Cast3M!Chapter 6}%
+
+\begin{gbox}{Chapter 6 of the notes and Cast3M}\label{cc:tab6}
+\small
+\begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
+Bree vessel, Sec.~\ref{B-sec:cy-models}; Ex.~\ref{B-exo:cy-bree}
+ & \textbf{Exercise \ref{exo:cc-bree}}: a thin tube under pressure and a cyclic gradient of
+   temperature, \op{pasapas} cycle by cycle; ratchet per cycle against the
+   fibre model.\\[1mm]
+Three-bar truss, regimes, Ex.~\ref{B-exo:cy-truss}
+ & With \texttt{cast3m/ch7/truss.template} and the loadings (1)--(3) of the
+   chapter: shakedown, alternating plasticity, ratchet $(a,-a,0)$,
+   $a=0.4\delta_Y$.\\[1mm]
+Initial-strain iteration, Box~6.1
+ & It is the equilibrium loop of Exercise~\ref{exo:cc-cylinder}: elastic stiffness assembled
+   once, return map from the converged state.\\[1mm]
+Whole history, Box~6.2; direct cyclic method, Sec.~\ref{B-sec:cy-dcm}
+ & To do: the plastic strain history stored as a table of Gauss-point fields
+   $\epsp(t_n)$; global stage: one factorization, $N$ elastic solves with the
+   initial strain; local stage: \texttt{rrj2} swept along the history;
+   closure $\vz(t_0)\leftarrow\vz(t_N)$.\\[1mm]
+Period map, Sec.~\ref{B-sec:cy-period}
+ & To do: one cycle of \op{pasapas} restarted from a saved state is the map
+   $\Pi$; Krasnosel'skii--Mann averaging written on the fields; Anderson
+   acceleration by an outside driver, as in Chapter~\ref{cc:ch7}.\\[1mm]
+Zarka, Box~6.5; stationary methods, Box~6.4
+ & To do: \texttt{@ZACPLUS} on the Bree tube at $(X,Y)=(0.6,1.5)$ and
+   $(0.7,1.5)$, $H=0.02E$, against the cycle-by-cycle limit;
+   \texttt{@STATIO} on its rail example, as an illustration of Box~6.4.\\
+\end{tabular}
+\end{gbox}
+
+\section{A cyclic thermal load in \texttt{pasapas}}\label{cc:sec6-thermal}
+\index{Bree diagram!Cast3M}%
+\begin{castemcom}
+The temperature is a nodal field \texttt{T} linear across the wall,
+$\tau=-\tau_0x$ with $x=(r-r_m)/e$, times the history $\lambda(t)=\abs{\sin t}$.
+\op{char} \texttt{'T'} makes it a thermal loading: \op{pasapas} computes the
+thermal strain $\alpha\tau$ with the coefficient \texttt{ALPH} of the material.
+The pressure is a mechanical loading constant in time. The top face stays
+plane and free of axial force: one common \texttt{UZ}, \op{rela}
+\texttt{ense}.
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+rr  = coor 1 dom;
+un  = rr masq 'SUPERIEUR' 0.;
+tau = exco ((-1. * (tau0 / e))
+      * (rr - (rm * un))) 'SCAL' 'T';
+llam = abs (sin ((180. / pi0) * ltt));
+cht = char 'T' tau
+      (evol manu 'TEMPS' ltt 'LAMB' llam);
+chp = char 'MECA' fp
+      (evol manu 'TEMPS' ltt 'P' lun);
+aa = (bloq uz bas) et (rela ense uz haut);
+\end{verbatim}
+\end{castemlines}
+
+\framepart{Summary}
+
+\begin{gbox*}
+\begin{itemize}
+\item \textbf{A cyclic computation is a long \op{pasapas}}: the regime is
+  read from the drift of the mean strain cycle after cycle.
+\item \textbf{The fibre model is a limit}: on a real wall the thermal stress is
+  biaxial and the regime boundaries of the Bree diagram move; the tube shows by
+  how much.
+\item \textbf{The direct methods of the chapter act on histories of fields}:
+  tables of Gauss-point fields indexed by the instants are the data structure
+  of Box~6.2 and of the period map in gibiane.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+
+\exercise{Bree's problem on a tube}\label{exo:cc-bree}
+\index{Bree vessel!Cast3M}%
+A thin tube ($r_m=100$\,mm, $e=5$\,mm, $E=200$\,GPa, $\nu=0.3$,
+$\sY=280$\,MPa, $\alpha=10^{-5}$\,K$^{-1}$) is open, free to stretch, under a
+constant internal pressure and a temperature linear across the wall,
+$\tau=-\tau_0x\abs{\sin t}$. With $X=\sigma_P/\sY$, $\sigma_P=pr_m/e$, and
+$Y=\sigma_T/\sY$, $\sigma_T=E\alpha\tau_0/(2(1-\nu))$, compute ten cycles for
+$(X,Y)=(0.7,1.5)$, $(0.6,1.5)$ and $(0.2,3)$ with perfect plasticity, and
+read the regime from the mean hoop strain at the end of each cycle. Compare
+with the fibre model of Exercise~\ref{B-exo:cy-bree}.
+\begin{solution}
+The fibre model ($\tilde E=E/(1-\nu)$, $H=0$) ratchets at $(0.7,1.5)$ by
+$0.3167\varepsilon_Y$ per cycle, shakes down at $(0.6,1.5)$ and alternates at
+$(0.2,3)$ (\texttt{exo\_bree\_cyclic.py}). In the tube the thermal stress is
+biaxial, as in the fibre model with $\tilde E=E/(1-\nu)$, but the pressure
+stress is hoop only: the von Mises criterion then sees a different
+combination, and the regime boundaries move. The run decides whether
+$(0.6,1.5)$, close to the boundary $X+Y/4=1$ of the diagram, still shakes
+down; the ratchet at $(0.7,1.5)$ should be of the same order as in the fibre
+model, constant from the second cycle on, and the residual stress at the end
+of a cycle should no longer change.
+\untested{\texttt{cast3m/ch6/bree\_tube.dgibi}}
+\lstinputlisting[style=gibstyle,firstline=29]{cast3m/ch6/bree_tube.dgibi}
+\end{solution}
+
+\begin{chapterbib}{9}
+\bibitem{cc-bree} J.~Bree, Elastic--plastic behaviour of thin tubes
+  subjected to internal pressure and intermittent high-heat fluxes with
+  application to fast-nuclear-reactor fuel elements, \emph{Journal of Strain
+  Analysis} 2 (1967) 226--238.
+\bibitem{cc-zacplus} Cast3M, notices of the procedures \texttt{@ZACPLUS}
+  and \texttt{@STATIO}, \url{https://www-cast3m.cea.fr}.
+\end{chapterbib}

@@ -1,0 +1,56 @@
+%======================================================================
+%  Nonlinear Problems in Mechanics -- Cast3M companion (draft)
+%  A. Constantinescu, LMS, CNRS & Ecole Polytechnique
+%
+%  Exercises with Cast3M for Chapters 1, 2 and 4-7 of the notes, kept in a
+%  separate document until they are merged into the book. Same style and
+%  notation as the book (../preamble), gibiane boxes of the Cast3M
+%  introduction, exercises numbered C<chapter>.<n>.
+%
+%  Build: compile the book first (its .aux files give the numbers cited
+%  here), then in this directory `latexmk -pdf cast3m_companion'
+%  (.latexmkrc puts the repository root on TEXINPUTS).
+%======================================================================
+\documentclass[11pt,a4paper,twoside,openright]{book}
+
+\usepackage{xr-hyper}          % before hyperref (loaded by the style)
+\input{preamble/style}
+\input{preamble/notation}
+\input{companion_preamble}
+\externaldocument[B-]{main}    % labels of the book: \ref{B-exo:pn-fem}
+
+\drafttrue        % \draftfalse hides the red notes (untested files)
+
+\begin{document}
+
+\frontmatter
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\sffamily\bfseries\Huge Nonlinear Problems in Mechanics\par}
+\vspace{8mm}
+{\sffamily\LARGE Cast3M companion\par}
+\vspace{4mm}
+{\large exercises in gibiane, and Cast3M driven from the shell, SciPy,\\
+OpenTURNS and JAX\par}
+\vspace{2cm}
+{\large Andrei Constantinescu\par}
+\vspace{2mm}
+{Laboratoire de M\'ecanique des Solides, CNRS, \'Ecole Polytechnique\par}
+\vfill
+{\small Draft, \today. Companion to the lecture notes; it follows their
+chapters and cites their sections, boxes and exercises.\par}
+\end{titlepage}
+
+{\hypersetup{linkcolor=black}\tableofcontents}
+
+\mainmatter
+\input{cc_intro}
+\setcounter{chapter}{0}\input{cc_ch1}
+\setcounter{chapter}{1}\input{cc_ch2}
+\setcounter{chapter}{3}\input{cc_ch4}
+\setcounter{chapter}{4}\input{cc_ch5}
+\setcounter{chapter}{5}\input{cc_ch6}
+\setcounter{chapter}{6}\input{cc_ch7}
+
+\end{document}

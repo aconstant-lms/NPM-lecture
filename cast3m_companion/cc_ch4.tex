@@ -1,0 +1,162 @@
+%======================================================================
+%  Companion to Chapter 4 -- Plasticity: yield, flow and GSM
+%======================================================================
+\chapter{Plasticity: yield, flow and generalized standard materials}\label{cc:ch4}
+
+\framepart{Outline}
+
+Chapter~\ref{B-ch:pl} of the notes solves three problems in closed form: the
+filament, the sheet stretched in plane strain, the thick-walled cylinder.
+\op{pasapas}, the incremental procedure of Cast3M, solves them with its own
+return maps. This chapter uses it as a check of the closed forms, and the
+closed forms as a check of what Cast3M calls $H$, \texttt{TRAC} or
+\texttt{EPSE}. You should then be able to set up a \op{pasapas} computation
+with an imposed displacement or pressure history, extract a stress history at
+a Gauss point, and read a residual stress field.
+
+\section{Where Cast3M enters Chapter 4}\label{cc:sec4-map}
+\index{Cast3M!Chapter 4}%
+
+\begin{gbox}{Chapter 4 of the notes and Cast3M}\label{cc:tab4}
+\small
+\begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
+Filament, Sec.~\ref{B-sec:pl-1d}; Ex.~\ref{B-exo:pl-cyclic}
+ & \textbf{Exercise \ref{exo:cc-filament}}: one bar element, isotropic (\texttt{TRAC}) and
+   kinematic (\texttt{H}) hardening, turning-point stresses.\\[1mm]
+Sheet, Ex.~\ref{B-exo:pl-sheet}
+ & \textbf{Exercise \ref{exo:cc-sheet}}: one element in plane strain, first yield
+   $\sY/\sqrt{1-\nu+\nu^2}$, path to $(2\sY/\sqrt3,\ \sY/\sqrt3)$.\\[1mm]
+Cylinder, Ex.~\ref{B-exo:pl-cyl}
+ & \textbf{Exercise \ref{exo:cc-residual}}: loading to a front $c=1.5a$, unloading, residual
+   hoop stresses $-0.665k$ and $0.146k$.\\[1mm]
+Tension--torsion, Ex.~\ref{B-exo:pl-tt}
+ & To do: a thin tube (axisymmetric with torsion, Fourier mode~0), radial and
+   non-radial paths in $(\sigma,\tau)$, first yield on $\sigma^2+3\tau^2=\sY^2$.\\[1mm]
+Torsion, bending, Ex.~\ref{B-exo:pl-torsion}, \ref{B-exo:pl-bending}
+ & To do: limit ratios $4/3$ and $3/2$, springback and residual stresses
+   ($-7k/24$ at the surface from $c=R/2$; $\mp\sY/2$).\\[1mm]
+Viscoplastic filament, Ex.~\ref{B-exo:pl-perzyna}
+ & With the hand-written return map of Chapter~\ref{cc:ch5} (entry
+   \texttt{ETA}): relaxation to $251.01$\,MPa at $5\tau$.\\[1mm]
+Drucker--Prager, Ex.~\ref{B-exo:pl-dp}
+ & To do: the \texttt{DRUCKER\_PRAGER} model of \op{pasapas}, a triaxial
+   test, the apex.\\
+\end{tabular}
+\end{gbox}
+
+\section{Reading a \texttt{pasapas} computation}\label{cc:sec4-pasapas}
+\index{pasapas@\texttt{pasapas}}%
+\begin{castemcom}
+\op{pasapas} reads a table: the model, the material, the constraints, the
+loading (a spatial field times a time history, built by \op{char}), the list
+of instants. It writes its results in the same table: \texttt{DEPLACEMENTS},
+\texttt{CONTRAINTES}, \texttt{VARIABLES\_INTERNES}, indexed by the number of
+the instant from 0.
+
+A Gauss-point value is extracted by zone, element and point; the cumulated
+plastic strain is the internal variable \texttt{EPSE}, and its mask
+\texttt{masq ep 'SUPERIEUR' 0.} marks the plastic zone.
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+tab = table;
+tab . 'MODELE' = mo;
+tab . 'CARACTERISTIQUES' = ma;
+tab . 'BLOCAGES_MECANIQUES' = aa;
+tab . 'CHARGEMENT' = char 'MECA' fp ev;
+tab . 'TEMPS_CALCULES' =
+      prog 0. pas 0.05 2.;
+pasapas tab;
+
+sg = tab . 'CONTRAINTES' . 40;
+s1 = extr sg 'SMTT' 1 1 1;
+ep = exco
+  (tab . 'VARIABLES_INTERNES' . 20)
+  'EPSE' 'SCAL';
+\end{verbatim}
+\end{castemlines}
+
+\framepart{Summary}
+
+\begin{gbox*}
+\begin{itemize}
+\item \textbf{Homogeneous tests need one element}: the sheet and the
+  filament do not depend on the mesh, only on the steps, and the return map is
+  exact on monotone proportional steps.
+\item \textbf{The closed forms calibrate the code}: the reverse yield stress
+  of the kinematic filament tells which modulus Cast3M calls $H$.
+\item \textbf{Residual stresses are a difference}: load, unload elastically,
+  read the stresses at the last instant.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+
+\exercise{The sheet in plane strain with \texttt{pasapas}}\label{exo:cc-sheet}
+\index{sheet in plane strain!Cast3M}%
+Compute the sheet of Exercise~\ref{B-exo:pl-sheet} ($E=200$\,GPa, $\nu=0.3$,
+$\sY=250$\,MPa, perfect plasticity) with one element, stretched along $x$ to
+$\varepsilon_{xx}=0.004$ in 400 steps, the faces $y=\pm h$ free. Compare the
+first yield and $\sigma_{xx}$, $\sigma_{zz}$ at four strains with the closed
+form, and plot the loading path in $(\sigma_{xx},\sigma_{zz})$. The course file
+\texttt{sheet\_plane\_strain.dgibi}, in SI units with $\sY=200$\,MPa and the
+stretching along $y$, does the same computation.
+\begin{solution}
+First yield at $\sigma_{xx}=\sY/\sqrt{1-\nu+\nu^2}=281.272$\,MPa. At
+$\varepsilon_{xx}=0.002$, 0.0025, 0.003, 0.004 the closed form
+(\texttt{exo\_sheet.py}) gives $\sigma_{xx}=286.484$, 287.765, 288.303,
+288.615 and $\sigma_{zz}=112.499$, 124.049, 131.470, 139.197\,MPa, on the way
+to the limits $2\sY/\sqrt3=288.675$ and $\sY/\sqrt3=144.338$. The path in
+$(\sigma_{xx},\sigma_{zz})$ climbs along the von Mises ellipse
+$\sigma_{xx}^2-\sigma_{xx}\sigma_{zz}+\sigma_{zz}^2=\sY^2$ towards the point
+where the normal is parallel to $\vect{e}_x$. With the data of the course file
+($\sY=200$\,MPa): first yield 225.02\,MPa, limits 230.94 and 115.47\,MPa.
+\untested{\texttt{cast3m/ch4/sheet\_vm\_250.dgibi}}
+\lstinputlisting[style=gibstyle,firstline=23]{cast3m/ch4/sheet_vm_250.dgibi}
+\end{solution}
+
+\exercise{The filament under a strain cycle}\label{exo:cc-filament}
+\index{Bauschinger effect!Cast3M}%
+One bar element, $E=200$\,GPa, $\sY=250$\,MPa, follows the strain path
+$0\to3\varepsilon_Y\to-3\varepsilon_Y\to3\varepsilon_Y$. Compare the stresses at
+the turning points with Exercise~\ref{B-exo:pl-cyclic} for (i) isotropic
+hardening $K=3$\,GPa, given to Cast3M as a tensile curve, and (ii) kinematic
+hardening $H=3$\,GPa.
+\begin{solution}
+(i)~$257.389$, $-271.949$, $286.079$\,MPa; (ii)~$257.389$, $-257.389$,
+$257.389$\,MPa, independent of the number of steps. The tensile curve of (i)
+has the elastoplastic slope $EK/(E+K)$ after $\varepsilon_Y$
+(Section~\ref{B-ssec:pl-1d-iso}). Case~(ii) is a calibration, decided by
+the first value: $257.389$\,MPa if Cast3M's $H$ is the uniaxial plastic
+modulus of the notes ($q=H\varepsilon^p$), $254.95$ if that modulus is
+$\tfrac23H$, $261.00$ if it is $\tfrac32H$. The later turning points are
+symmetric whatever the modulus (the reverse yield itself occurs at
+$257.389-2\sY=-242.61$\,MPa). If the convention differs, $H$ must be rescaled
+in every kinematic computation (Exercises~\ref{exo:cc-bree} and \ref{exo:cc-id-sweep}--\ref{exo:cc-id-jax}).
+\untested{\texttt{cast3m/ch4/filament\_cyclic.dgibi}}
+\lstinputlisting[style=gibstyle,firstline=26]{cast3m/ch4/filament_cyclic.dgibi}
+\end{solution}
+
+\exercise{Residual stresses in the cylinder}\label{exo:cc-residual}
+\index{thick-walled cylinder!residual stresses}%
+The cylinder of Exercise~\ref{B-exo:pl-cyl} ($a=100$, $b=200$\,mm, plane
+strain, perfect plasticity, $\sY=250$\,MPa) is loaded to the pressure that
+puts the plastic front at $c=1.5a$, then unloaded. Compute the front at the
+peak and the residual stresses, and compare with the closed form.
+\begin{solution}
+With $k=2\sY/\sqrt3=288.68$\,MPa: $p_Y=108.25$\,MPa, the front reaches
+$c=1.5a$ at $p=180.20$\,MPa, $p_L=200.09$\,MPa. The unloading is elastic
+($180.20<2p_Y$). Residual hoop stress $-0.6646k=-191.85$\,MPa at the bore and
+$+0.1464k=42.25$\,MPa at the outer surface, radial stress zero on both faces.
+Expect the computed front slightly beyond $1.5a$ and residual stresses a few
+MPa off: the closed form takes $\sigma_\theta-\sigma_r=k$, exact for von Mises
+only with incompressible plastic flow (solution of
+Exercise~\ref{B-exo:pn-fem}).
+\untested{\texttt{cast3m/ch4/cylinder\_residual.dgibi}}
+\lstinputlisting[style=gibstyle,firstline=24]{cast3m/ch4/cylinder_residual.dgibi}
+\end{solution}
+
+\begin{chapterbib}{9}
+\bibitem{cc-pasapas} Cast3M, notice of the procedure \texttt{PASAPAS} and
+  of the operator \texttt{MATE}, \url{https://www-cast3m.cea.fr}.
+\end{chapterbib}

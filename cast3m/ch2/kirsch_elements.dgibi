@@ -1,0 +1,87 @@
+*
+* Plate with a hole: Kirsch against four element types and three
+* meshes, and the global balance of the reactions
+* (Chapter 2, "A plate with a hole: Kirsch against finite
+* elements", part (d); companion exercise C2.1)
+*
+* STATUS: UNTESTED. Extends python/examples/ch2/kirsch_cast3m.dgibi
+* (same geometry and mesh construction, also not run).
+*
+* Quarter of a square plate [0, L]^2, L = 20 a, hole of radius a,
+* plane stress, E = 1, nu = 0.3, tension s = 1 on x = L, symmetry
+* UX = 0 on x = 0 and UY = 0 on y = 0.
+* Reference values (python/examples/ch2/kirsch_fem.py, linear
+* triangles, n_theta = 12 / 24 / 48 cells on the quarter hole):
+*   sigma_xx(0, a) = 2.970 / 3.013 / 3.020     (Kirsch: 3)
+*   sigma_yy(a, 0) = -0.722 / -0.871 / -0.946  (Kirsch: -1)
+* Global balance in x: the reactions on x = 0 sum to -s L = -20,
+* whatever the mesh (the hole is free).
+*
+* Units: dimensionless.  andrei.constantinescu@polytechnique.edu
+*
+*----------------------------------------------------------------
+* PROCEDURE plaque: mesh of the quarter plate for the element type
+*   typ and nt cells along the quarter hole (as kirsch_cast3m)
+*----------------------------------------------------------------
+debproc plaque typ*mot nt*entier;
+  opti elem typ;
+  a = 1.;  ll = 20.;
+  nt2 = nt / 2;  nr = 2 * nt;
+  dh = (a * 3.14159265) / (2. * nt);
+  o  = 0. 0.;
+  p1 = a 0.;  p2 = ll 0.;  p3 = ll ll;  p4 = 0. ll;  p5 = 0. a;
+  pm = (a * (cos 45.)) (a * (sin 45.));
+  l12 = droi nr p1 p2 'DINI' dh 'DFIN' (ll / nt2);
+  l23 = droi nt2 p2 p3;
+  l3m = droi nr p3 pm 'DINI' (ll / nt2) 'DFIN' dh;
+  c1m = cerc nt2 p1 o pm;
+  l34 = droi nt2 p3 p4;
+  l45 = droi nr p4 p5 'DINI' (ll / nt2) 'DFIN' dh;
+  c5m = cerc nt2 p5 o pm;
+  dom = (dall l12 l23 l3m (inve c1m))
+     et (dall (inve l3m) l34 l45 c5m);
+  elim dom 1.e-6;
+finproc dom l12 l23 l45 p1 p5;
+*
+* STEP 1  options: plane stress
+*
+  opti dime 2 mode plan cont echo 0;
+*
+* STEP 2  loop over the element types and the meshes
+*
+  ltyp = mots 'TRI3' 'TRI6' 'QUA4' 'QUA8';
+  lnt  = lect 12 24 48;
+  s = 1.;
+  mess 'type  n_theta  dofs  sxx(0,a)  syy(a,0)  sum FX(x=0)';
+  repeter bty (dime ltyp);
+    typ = extr ltyp &bty;
+    repeter bnt (dime lnt);
+      nt = extr lnt &bnt;
+      dom l12 l23 l45 p1 p5 = plaque typ nt;
+*
+* STEP 3  elasticity, symmetry conditions, traction on x = L
+*
+      mo = mode dom mecanique elastique isotrope;
+      ma = mate mo 'YOUN' 1. 'NU' 0.3;
+      kk = rigi mo ma;
+      bx = bloq ux l45;
+      by = bloq uy l12;
+      ff = pres 'MASS' mo (-1. * s) l23;
+      u  = reso (kk et bx et by) ff;
+*
+* STEP 4  stresses averaged at the nodes, reactions on x = 0
+*
+      sgn = chan 'CHPO' mo (sigm mo ma u);
+      sa = extr sgn 'SMXX' p5;
+      sb = extr sgn 'SMYY' p1;
+      rx = resu (exco (reac bx u) 'FX');
+      fx = maxi rx;
+      nd = 2 * (nbno dom);
+      mess typ '  ' nt '  ' nd '  ' sa '  ' sb '  ' fx;
+    fin bnt;
+  fin bty;
+  mess 'Python T3: sxx(0,a) = 2.970 3.013 3.020,'
+       ' syy(a,0) = -0.722 -0.871 -0.946; sum FX = -20';
+*
+  opti donn 5;
+fin;

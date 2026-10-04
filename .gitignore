@@ -15,3 +15,9 @@ __pycache__/
 *.ilg
 *.ind
 .claude/
+
+# Cast3M driver runs (cast3m/ch7)
+cast3m/ch7/runs/
+__pycache__/
+cast3m_companion/*.pdf
+cast3m_companion/build.out
