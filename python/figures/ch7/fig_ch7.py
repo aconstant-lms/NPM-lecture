@@ -41,45 +41,48 @@ u_true = T.forward(p_true)[0]
 rng = np.random.default_rng(0)
 um = u_true + 0.01 * np.abs(u_true).max() * rng.standard_normal(u_true.shape)
 p0 = p_true * np.array([0.7, 1.2, 3.0])
-hist = {}
+hist, current = {}, [None]
+forward_plain = T.forward
 
 
-def tracked(label):
-    """Cost of q with a record of (forward solves so far, best cost so far)."""
-    hist[label] = []
-
-    def J(q):
-        n0 = T.nsolve
-        v = T.cost(p0 * np.exp(q), um, uref)
-        if T.nsolve > n0:
-            best = min(v, hist[label][-1][1]) if hist[label] else v
-            hist[label].append((T.nsolve, best))
-        return v
-    return J
+def forward_recorded(p, *args, **kw):
+    """Forward solve that also records (solves so far, best cost so far) for the
+    method in progress; the count is T.nsolve, as in Exercise 7.9."""
+    out = forward_plain(p, *args, **kw)
+    v = 0.5 * np.sum((out[0] - um) ** 2) / uref ** 2      # J of this solve, (7.2)
+    h = hist[current[0]]
+    h.append((T.nsolve, min(v, h[-1][1]) if h else v))
+    return out
 
 
-# the three minimizations of Section 7.3 in q = log(p / p0), each with its own
-# record of the best cost against the number of forward solves
-T.nsolve = 0
-Jnm = tracked("Nelder--Mead")
-minimize(Jnm, np.zeros(3), method="Nelder-Mead",
+T.forward = forward_recorded      # every solve (also inside DDM and adjoint) is recorded
+
+
+def start(label):
+    """Reset the solve counter and open the record of a method."""
+    T.nsolve, current[0], hist[label] = 0, label, []
+
+
+# the three minimizations of Section 7.3, with exactly the calls of Exercise 7.9,
+# in q = log(p / p0)
+J = lambda q: T.cost(p0 * np.exp(q), um, uref)
+
+
+def J_and_grad(q):                            # one forward + one adjoint solve
+    p = p0 * np.exp(q)
+    return T.cost(p, um, uref), T.gradient_adjoint(p, um, uref) * p
+
+
+resid = lambda q: ((T.forward(p0 * np.exp(q))[0] - um)[1:] / uref).ravel()
+jac = lambda q: (T.ddm(p0 * np.exp(q))[1][1:] / uref).reshape(-1, 3) * p0 * np.exp(q)
+start("Nelder--Mead")
+minimize(J, np.zeros(3), method="Nelder-Mead",
          options=dict(xatol=1e-8, fatol=1e-12, maxiter=4000, maxfev=4000))
-T.nsolve = 0
-Jb = tracked("BFGS + adjoint")
-minimize(lambda q: (Jb(q), T.gradient_adjoint(p0 * np.exp(q), um, uref) * p0 * np.exp(q)),
-         np.zeros(3), jac=True, method="BFGS", options=dict(gtol=1e-6))
-T.nsolve = 0
-Jl = tracked("Levenberg--Marquardt + DDM")
-
-
-def resid(q):
-    Jl(q)
-    return ((T.forward(p0 * np.exp(q))[0] - um)[1:] / uref).ravel()
-
-
-r = least_squares(resid, np.zeros(3), method="lm", xtol=1e-12, ftol=1e-14,
-                  jac=lambda q: (T.ddm(p0 * np.exp(q))[1][1:] / uref).reshape(-1, 3)
-                  * p0 * np.exp(q))
+start("BFGS + adjoint")
+minimize(J_and_grad, np.zeros(3), jac=True, method="BFGS", options=dict(gtol=1e-6))
+start("Levenberg--Marquardt + DDM")
+r = least_squares(resid, np.zeros(3), jac=jac, method="lm", xtol=1e-12, ftol=1e-14)
+T.forward = forward_plain
 p_id = p0 * np.exp(r.x)
 fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.9))
 Q1 = np.array([Q(t)[0] for t in ts]) / sY
@@ -159,7 +162,11 @@ fig.savefig(OUT + "indentation.pdf", bbox_inches="tight")
 pn = np.array([200e3, 200.0, 500.0, 5.0])
 tt, ee = relaxation_test(t_hold=1000.0)
 s, ds = norton_relax(pn, tt, ee)
+# same noisy data as Exercise 7.11: the generator (seed 1) first draws the noise
+# of the 10 s and 100 s holds, then that of the 1000 s hold shown here
 rng = np.random.default_rng(1)
+for t_short in (10.0, 100.0):
+    rng.standard_normal(relaxation_test(t_hold=t_short)[0].shape)
 sm = s + 0.01 * np.abs(s).max() * rng.standard_normal(s.shape)
 fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.9))
 axs[0].plot(tt[1:], sm[1:], "o", ms=1.8, color="0.5", label="data (1% noise)")

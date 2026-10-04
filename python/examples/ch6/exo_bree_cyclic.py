@@ -6,15 +6,15 @@ from cy_core import bree_vessel, cycle, period_map, fixed_point, dcm_sweep_map, 
 
 # Exercise 6.10: Bree case (a), X = sigma_P/sY = 0.7, Y = sigma_T/sY = 1.5
 # (Figure 6.4), 100 layers, 40 steps per cycle. Sections 6.5 and 6.6.
-s0, Ep = 280.0, 200e3 / 0.7                           # sigma_0, plane modulus E/(1-nu)
-eY = s0 / Ep                                          # yield strain, unit of ep
+sY, Ep = 280.0, 200e3 / 0.7                           # sY, plane modulus E/(1-nu)
+eY = sY / Ep                                          # yield strain, unit of ep
 lam = lambda t: abs(np.sin(t))                        # heat flux switched on and off
 ts = np.linspace(0, np.pi, 41)                        # one thermal cycle, 40 steps
 
 
 def vessel(X, Y, Hr):
-    """Bree vessel with sigma_P = X s0, sigma_T = Y s0 and H = Hr E (MPa)."""
-    return bree_vessel(X * s0, Y * s0, lam, E=Ep, sY=s0, H=Hr * Ep, nlay=100)
+    """Bree vessel with sigma_P = X sY, sigma_T = Y sY and H = Hr E (MPa)."""
+    return bree_vessel(X * sY, Y * sY, lam, E=Ep, sY=sY, H=Hr * Ep, nlay=100)
 
 
 # 1. ratchetting, H = 0: drift of the mean, constant residual stress
@@ -27,7 +27,7 @@ for c in range(20):
     zT = cycle(S, ts, z)[0]
     dmean, drho, z = np.mean(zT - z), np.max(np.abs(Z @ (zT - z))), zT
 print(f"X=0.7, Y=1.5, H=0: drift of <ep> per cycle {dmean / eY:.4f} eY, "
-      f"change of residual stress {drho / s0:.1e} s0")
+      f"change of residual stress {drho / sY:.1e} sY")
 # 2. slow shakedown, H = 0.02 E: three iterations on the period map, and DCM
 # Period map Pi: ep(0) -> ep(T) (Section 6.5.2), iterated by Picard (cycle by
 # cycle), Krasnoselskii-Mann (theta = 1/2) and Anderson with depth 5 (Appendix E).
@@ -51,4 +51,4 @@ for scheme in ["picard", "anderson"]:
 d = zD - zP                                            # two periodic states
 print(f"DCM+Anderson vs cycles: |Pi(zD)-zD| = {np.max(np.abs(Pi(zD) - zD)) / eY:.1e} eY, "
       f"mean difference {d.mean() / eY:.3f} eY, "
-      f"residual-stress difference {np.max(np.abs(Z @ d)) / s0:.4f} s0")
+      f"residual-stress difference {np.max(np.abs(Z @ d)) / sY:.4f} sY")

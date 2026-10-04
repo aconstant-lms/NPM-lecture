@@ -9,7 +9,7 @@ Generates the Bree figures of Chapter 6 (thin vessel, Maitournam Sec. 4.5):
                      mean plastic strain drifts, the residual stress converges
   bree_nonunique.pdf case X = 0.2, Y = 3 (alternating plasticity), H = 0.02 E:
                      two exact periodic states, cycle by cycle and direct cyclic
-X = sigma_P / sigma_0, Y = sigma_T / sigma_0 (sigma_0 = sY = 280 MPa).
+X = sigma_P / sY, Y = sigma_T / sY (sY = 280 MPa).
 Where in the book: Figures 6.4 (diagram), 6.12 (process), 6.13 (ratchet) and 6.10
 (nonunique); Sections 6.1.2, 6.5 and 6.6.
 Run from this directory: the module cy_core is imported from the examples of ch6.
@@ -24,8 +24,8 @@ from cy_core import (bree_vessel, incremental, global_local, period_map, fixed_p
                      melan, cycle)
 
 blue, green, orange = "#1F5AC8", "#14963C", "#D9822B"
-s0, Ep = 280.0, 200e3 / 0.7                       # sY (MPa), plane modulus E/(1-nu)
-eY = s0 / Ep
+sY, Ep = 280.0, 200e3 / 0.7                       # sY (MPa), plane modulus E/(1-nu)
+eY = sY / Ep
 lam = lambda t: abs(np.sin(t))
 ts = np.linspace(0, np.pi, 41)                     # one thermal cycle 0 -> 1 -> 0
 tt = ts / np.pi
@@ -33,8 +33,8 @@ OUT = "../../../figures/ch6/"
 
 
 def vessel(X, Y, Hr, nlay=100):
-    """Bree vessel with sigma_P = X s0, sigma_T = Y s0, H = Hr E, nlay layers."""
-    return bree_vessel(X * s0, Y * s0, lam, E=Ep, sY=s0, H=Hr * Ep, nlay=nlay)
+    """Bree vessel with sigma_P = X sY, sigma_T = Y sY, H = Hr E, nlay layers."""
+    return bree_vessel(X * sY, Y * sY, lam, E=Ep, sY=sY, H=Hr * Ep, nlay=nlay)
 
 
 # --------------------------------------------------------------- diagram
@@ -77,8 +77,8 @@ for (X, Y, txt) in [(0.25, 0.35, "E"), (0.35, 1.3, "S"), (0.12, 3.2, "P"),
     ax.text(X, Y, txt, fontsize=10, ha="center")
 ax.set_xlim(0, 1)
 ax.set_ylim(0, 4)
-ax.set_xlabel(r"$X=\sigma_P/\sigma_0$")
-ax.set_ylabel(r"$Y=\sigma_T/\sigma_0$")
+ax.set_xlabel(r"$X=\sigma_P/\sigma_Y$")
+ax.set_ylabel(r"$Y=\sigma_T/\sigma_Y$")
 fig.tight_layout()
 fig.savefig(OUT + "bree_diagram.pdf", bbox_inches="tight")
 print("diagram done")
@@ -98,7 +98,7 @@ bl, gr = plt.get_cmap("Blues"), plt.get_cmap("Greens")
 ks = [0, 2, 9, 49, 199, len(dcm["rec_ep"]) - 1]
 for j, k in enumerate(ks):
     c = bl(0.35 + 0.65 * j / (len(ks) - 1))
-    axs[0, 0].plot(x, dcm["rec_sig"][k][iT] / s0, color=c, lw=1.1, label=f"$k={k + 1}$")
+    axs[0, 0].plot(x, dcm["rec_sig"][k][iT] / sY, color=c, lw=1.1, label=f"$k={k + 1}$")
     axs[1, 0].plot(x, dcm["rec_ep"][k][0] / eY, color=c, lw=1.1)
 cyc = [1, 2, 5, 20, 60, len(rp)]
 z = np.zeros(S.nf)
@@ -109,11 +109,11 @@ for j, nc in enumerate(cyc):
         z0, z = z, zT
         c_ += 1
     c = gr(0.35 + 0.65 * j / (len(cyc) - 1))
-    axs[0, 1].plot(x, sig_c[iT] / s0, color=c, lw=1.1, label=f"cycle {nc}")
+    axs[0, 1].plot(x, sig_c[iT] / sY, color=c, lw=1.1, label=f"cycle {nc}")
     axs[1, 1].plot(x, ep_c[-1] / eY, color=c, lw=1.1)
 axs[0, 0].set_title("direct cyclic: iterates $k$", fontsize=9)
 axs[0, 1].set_title("cycle by cycle", fontsize=9)
-axs[0, 0].set_ylabel(r"$\sigma(x,T/2)/\sigma_0$")
+axs[0, 0].set_ylabel(r"$\sigma(x,T/2)/\sigma_Y$")
 axs[1, 0].set_ylabel(r"$\varepsilon^p(x,0)/\varepsilon_Y$")
 for a in axs[1]:
     a.set_xlabel(r"$x=(r-r_m)/e$")
@@ -130,21 +130,21 @@ _, Z = melan(S)
 dcm = global_local(S, ts, closure="periodic", kmax=60, tol=0.0, record=True)
 E0 = np.array(dcm["rec_ep"])[:, 0, :]               # ep(x, t_0) after each sweep
 mean = E0.mean(axis=1) / eY
-rho = np.array([-Z @ e for e in E0]) / s0
+rho = np.array([-Z @ e for e in E0]) / sY
 drho = np.max(np.abs(np.diff(rho, axis=0)), axis=1)
 fig, axs = plt.subplots(1, 2, figsize=(7.0, 2.7))
 k = np.arange(1, len(mean) + 1)
 axs[0].plot(k, mean, color=orange, lw=1.3, label=r"mean $\langle\varepsilon^p\rangle/\varepsilon_Y$")
 ax2 = axs[0].twinx()
 ax2.semilogy(k[1:], drho, color=blue, lw=1.3)
-ax2.set_ylabel(r"$\max_x|\Delta\rho|/\sigma_0$", color=blue, fontsize=8)
+ax2.set_ylabel(r"$\max_x|\Delta\rho|/\sigma_Y$", color=blue, fontsize=8)
 axs[0].set_xlabel("iteration $k$")
 axs[0].set_ylabel(r"$\langle\varepsilon^p(\cdot,0)\rangle/\varepsilon_Y$", color=orange)
 axs[0].set_title("(a) drift of the mean, convergence of $\\rho$", fontsize=9)
 for j, kk in enumerate([0, 2, 9, 29, len(rho) - 1]):
     axs[1].plot(S.x, rho[kk], color=bl(0.35 + 0.65 * j / 4), lw=1.1, label=f"$k={kk + 1}$")
 axs[1].set_xlabel(r"$x$")
-axs[1].set_ylabel(r"$\rho(x,0)/\sigma_0$")
+axs[1].set_ylabel(r"$\rho(x,0)/\sigma_Y$")
 axs[1].set_title("(b) residual stress through the wall", fontsize=9)
 axs[1].legend(fontsize=6)
 fig.tight_layout()
@@ -166,16 +166,16 @@ _, _, sD, eD, _ = cycle(S, ts, zD)
 fig, axs = plt.subplots(1, 2, figsize=(7.0, 2.7))
 j = int(np.argmax(np.abs(Z @ (zP - zD))))           # point where the states differ most
 for (sg, c, lab) in [(sP, green, "cycle by cycle"), (sD, blue, "direct cyclic")]:
-    axs[0].plot(tt, sg[:, -1] / s0, color=c, lw=1.0, ls=":")
-    axs[0].plot(tt, sg[:, j] / s0, color=c, lw=1.3, label=lab)
+    axs[0].plot(tt, sg[:, -1] / sY, color=c, lw=1.0, ls=":")
+    axs[0].plot(tt, sg[:, j] / sY, color=c, lw=1.3, label=lab)
 axs[0].set_xlabel("$t/T$")
-axs[0].set_ylabel(r"$\sigma/\sigma_0$")
+axs[0].set_ylabel(r"$\sigma/\sigma_Y$")
 axs[0].set_title(f"(a) stress cycles at $x={S.x[j]:.2f}$ (dotted: outer skin)", fontsize=9)
 axs[0].legend(fontsize=6)
-axs[1].plot(S.x, -Z @ zP / s0, color=green, lw=1.3, label="cycle by cycle")
-axs[1].plot(S.x, -Z @ zD / s0, color=blue, lw=1.3, label="direct cyclic")
+axs[1].plot(S.x, -Z @ zP / sY, color=green, lw=1.3, label="cycle by cycle")
+axs[1].plot(S.x, -Z @ zD / sY, color=blue, lw=1.3, label="direct cyclic")
 axs[1].set_xlabel(r"$x$")
-axs[1].set_ylabel(r"$\rho(x,0)/\sigma_0$")
+axs[1].set_ylabel(r"$\rho(x,0)/\sigma_Y$")
 axs[1].set_title("(b) residual stress at $t=0$", fontsize=9)
 axs[1].legend(fontsize=6)
 fig.tight_layout()

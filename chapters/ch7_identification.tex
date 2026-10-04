@@ -614,7 +614,7 @@ BFGS with the adjoint gradient needs 28 direct and 28 adjoint computations. Both
 find $\vp/\vp_{\mathrm{true}}=(1.0022,\,0.9992,\,1.0036)$, consistent with the
 standard deviations of Section~\ref{ssec:id-sens}, and the cost
 $\mathcal J=0.291$, below its value at the true parameters, $0.297$: the fit
-cannot be better than the noise. The simplex stops after 1210 direct
+cannot be better than the noise. The simplex stops after 1211 direct
 computations at $(0.43,\,1.19,\,0)$, with the cost $453$: it has slid along the
 valley of $(\sY,H)$ to the boundary $H=0$ and lost the minimum. From the start
 $\vp_0=(0.7,1.5,3.0)\,\vp_{\mathrm{true}}$ the truss does not yield at all;
@@ -1998,7 +1998,7 @@ with respect to $\sY$ and $H$ vanish and all the methods stop with $E=0.44E_{\ma
 ($\mathcal J=522$). From the second start, Levenberg--Marquardt converges in 14 direct
 computations and 11 sensitivity computations, BFGS in 28 direct and 28 adjoint
 computations, both to $(1.0022,\,0.9992,\,1.0036)\,\vp_{\mathrm{true}}$ with
-$\mathcal J=0.291$; Nelder--Mead stops after 1210 direct computations at
+$\mathcal J=0.291$; Nelder--Mead stops after 1211 direct computations at
 $(0.43,\,1.19,\,0)$ with $\mathcal J=453$.
 \lstinputlisting[firstline=4]{python/examples/ch7/exo_truss_id.py}
 \end{solution}

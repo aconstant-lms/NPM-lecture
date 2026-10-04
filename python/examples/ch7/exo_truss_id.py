@@ -66,6 +66,9 @@ def identify(p0):
     resid = lambda q: ((T.forward(p0 * np.exp(q))[0] - um)[1:] / uref).ravel()
     jac = lambda q: (T.ddm(p0 * np.exp(q))[1][1:] / uref).reshape(-1, 3) * p0 * np.exp(q)
 
+    # empty the cache of the last solve (left by the yield check below), so that
+    # every method pays for its own first solve at p0: same count as Figure 7.3
+    T._last = (None, None)
     T.nsolve = 0
     r = minimize(J, np.zeros(3), method="Nelder-Mead",
                  options=dict(xatol=1e-8, fatol=1e-12, maxiter=4000, maxfev=4000))

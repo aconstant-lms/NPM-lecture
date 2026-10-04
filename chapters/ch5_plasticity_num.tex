@@ -1632,7 +1632,9 @@ and the function $\varphi^2(\dg)$ of Box~5.5. (b) With $K=2$\,GPa, compute in
 one step uniaxial tension to $\varepsilon_{11}=0.01$ and balanced biaxial
 tension to $\varepsilon_{11}=\varepsilon_{22}=0.005$, and compare with the
 closed forms. (c) Prescribe the in-plane strains: plane strain
-($\varepsilon_{22}=0$) to $\varepsilon_{11}=0.01$. Is one step exact? The
+($\varepsilon_{22}=0$) to $\varepsilon_{11}=0.01$, then a second segment to
+$(\varepsilon_{11},\varepsilon_{22})=(0.02,\,0.01)$, with equal increments of
+the two strains. Is one step exact on each segment? The
 script uses \texttt{plane\_stress\_return} (Box~5.5) of \texttt{ci\_core}.
 \begin{solution}
 (a) $\mat{C}$ and $\mat{P}$ commute and share the eigenvectors given in
@@ -1649,7 +1651,12 @@ gives both values to all digits: the stress direction is fixed by symmetry
 the stress moves along the yield surface from the elastic ratio
 $\sigma_{22}/\sigma_{11}=\nu$ towards the plane-strain value $\tfrac12$, as in
 Exercise~\ref{exo:pl-sheet}. The one-step error is $6.9$\,MPa, and $0.22$,
-$0.012$, $0.0010$\,MPa with 10, 100, 1000 steps. A code may reproduce the
+$0.012$, $0.0010$\,MPa with 10, 100, 1000 steps, around the reference
+$(\sigma_{11},\sigma_{22})=(311.4,\,155.1)$\,MPa, where the ratio is close to
+$\tfrac12$. On the second segment the stress turns towards the balanced
+biaxial state and reaches $(308.8,\,308.8)$\,MPa; with one step per segment the
+final error is $5.6$\,MPa, and $0.084$, $0.012$, $0.0013$\,MPa with 10, 100,
+1000 steps per segment: first order again. A code may reproduce the
 tensile and bulge tests exactly at one step per increment and still need
 small steps on a forming path.
 \lstinputlisting[firstline=4]{python/examples/ch5/exo_plane_stress.py}

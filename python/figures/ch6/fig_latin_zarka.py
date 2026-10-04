@@ -55,7 +55,7 @@ fig.savefig(OUT + "latin.pdf", bbox_inches="tight")
 
 # ------------------------------------------------------- Bree convergence
 # Bree case (a): X = 0.7, Y = 1.5, H = 0.02 E (slow shakedown), 100 layers
-s0, Ep = 280.0, 200e3 / 0.7                        # sY (MPa), plane modulus E/(1-nu)
+s0, Ep = 280.0, 200e3 / 0.7      # s0 = sigma_Y of the vessel (MPa), plane modulus E/(1-nu)
 eY = s0 / Ep
 tb = np.linspace(0, np.pi, 41)                     # one thermal cycle, 40 steps
 B = bree_vessel(0.7 * s0, 1.5 * s0, lambda t: abs(np.sin(t)), E=Ep, sY=s0, H=0.02 * Ep,
@@ -110,7 +110,7 @@ axs[0].plot(x, Yz / s0, color=red, lw=1.6, label="Zarka: projection")
 axs[0].plot(x, Yp / s0, color=green, lw=1.0, ls=":", label="cycle by cycle")
 axs[0].plot(x, Yd / s0, color=blue, lw=1.0, ls="-.", label="direct cyclic + Anderson")
 axs[0].set_xlabel("$x$")
-axs[0].set_ylabel(r"$Y/\sigma_0$")
+axs[0].set_ylabel(r"$Y/\sigma_Y$")
 axs[0].set_title("(a) transformed parameter", fontsize=9)
 axs[0].legend(fontsize=6)
 axs[1].plot(x, ez / eY, color=red, lw=1.6, label="Zarka")

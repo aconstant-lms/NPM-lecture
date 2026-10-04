@@ -6,11 +6,11 @@ from cy_core import bree_vessel, incremental, period_map, fixed_point, melan, za
 
 # Exercise 6.11: Box 6.5 on the Bree vessel with H = 0.02 E, compared with the
 # limit of the cycle-by-cycle computation (Section 6.7, Figure 6.14).
-s0, Ep = 280.0, 200e3 / 0.7                           # sY (MPa), plane modulus E/(1-nu)
-eY = s0 / Ep
+sY, Ep = 280.0, 200e3 / 0.7                           # sY (MPa), plane modulus E/(1-nu)
+eY = sY / Ep
 ts = np.linspace(0, np.pi, 41)                        # one thermal cycle, 40 steps
 for X, Y in [(0.6, 1.5), (0.7, 1.5)]:
-    S = bree_vessel(X * s0, Y * s0, lambda t: abs(np.sin(t)), E=Ep, sY=s0,
+    S = bree_vessel(X * sY, Y * sY, lambda t: abs(np.sin(t)), E=Ep, sY=sY,
                     H=0.02 * Ep, nlay=100)
     _, Z = melan(S)
     z0 = np.zeros(S.nf)
