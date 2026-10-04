@@ -54,6 +54,18 @@ orthogonal projectors: $\bbIdev:\bbIdev=\bbIdev$, $\bbIdev:(\tI\otimes\tI)=0$.
 An isotropic tensor $\bbC=3K\,\tfrac13\tI\otimes\tI+2\mu\,\bbIdev$ is therefore
 inverted by inverting its two eigenvalues: $\bbC^{-1}=\frac{1}{3K}\,\tfrac13\tI\otimes\tI+\frac{1}{2\mu}\,\bbIdev$.
 
+\paragraph{Voigt notation.}
+\index{Voigt notation}%
+A symmetric second-order tensor has six independent components, and a
+fourth-order tensor with the symmetries of elasticity has $21$. They are
+stored as a column of six and a symmetric $6\times6$ matrix, with the index
+pairs $11,22,33,23,31,12\mapsto1,\dots,6$: $\sigma_I=c_{IJ}\varepsilon_J$ with
+the engineering shears $\varepsilon_4=2\varepsilon_{23}$, $\varepsilon_5=2\varepsilon_{31}$,
+$\varepsilon_6=2\varepsilon_{12}$. The factor $2$ keeps the energy
+$\tfrac12\sig:\eps=\tfrac12\sigma_I\varepsilon_I$. This is the notation of the
+tables of moduli of Chapter~\ref{ch:elliptic}, equation~\eqref{eq:voigt}, and of
+finite element codes; the Mandel variant, with factors $\sqrt2$, is discussed there.
+
 \paragraph{Eigenvalues and invariants.} A symmetric tensor has three real
 eigenvalues and an orthonormal eigenbasis (principal axes). Its principal
 invariants are $I_1=\tr\tens{a}$, $I_2=\tfrac12\bigl((\tr\tens{a})^2-\tr\tens{a}^2\bigr)$

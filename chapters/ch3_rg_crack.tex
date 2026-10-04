@@ -124,7 +124,7 @@ where $u_k$ solves~\eqref{eq:rg-direct} for the unknown crack, find the crack $\
 
 On $\Sigma$ both the potential and the flux are known: the data are \emph{overdetermined}, and this redundancy carries the information on $\Gamma$. We use mostly \emph{complete} overdetermined data, $\tilde S_u=\tilde S_\varphi=\partial\Omega$. This is the setting of~\cite{AB96}, and the situation of the numerical experiments, where the flux is measured on the electrodes and the potential on the insulated parts. When the data are incomplete, the missing data can first be reconstructed by solving a Cauchy problem for the Laplace equation near the boundary, for instance by the energy-gap method of~\cite{ABB06}; this step is itself ill-posed.
 
-The map from $\Gamma$ to the data is nonlinear, and its inverse is unstable: smooth data perturbations may correspond to large changes of the crack. The inverse problem is ill-posed.
+The map from $\Gamma$ to the data is nonlinear, and its inverse is unstable: smooth data perturbations may correspond to large changes of the crack. The inverse problem is ill-posed. Its stable solution needs a priori information or a regularization, in the sense of Tikhonov~\cite{TA77}; here the a priori information is the planarity of the crack.
 
 %======================================================================
 \section{Identifiability, uniqueness and stability: literature and ideas}\label{sec:rg-lit}
@@ -241,7 +241,61 @@ From now on $\Gamma$ lies in the plane $\Pi=\{\vx:\ \vn\cdot\vx=c\}$, with in-pl
 \[
 m_0=\int_\Gamma\jump u\,ds
 \]
-and assume $m_0\ne0$. This holds for every non-blind experiment in a uniform field (Section~\ref{ssec:rg-ak}).
+and assume $m_0\ne0$. This holds for every non-blind experiment in a uniform field (Section~\ref{ssec:rg-ak}). The three steps are summarized in Figure~\ref{fig:rg-steps}.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=0.95,>=Latex]
+  \begin{scope}[xshift=0cm]
+    \draw[gray] (0,0) rectangle (2.4,2.4);
+    \draw[gray] (0,2.4) -- (0.8,2.9) -- (3.2,2.9) -- (2.4,2.4);
+    \draw[gray] (2.4,0) -- (3.2,0.5) -- (3.2,2.9);
+    \draw[gray,dashed] (0,0) -- (0.8,0.5) -- (3.2,0.5); \draw[gray,dashed] (0.8,0.5) -- (0.8,2.9);
+    \node[gray] at (0.35,0.25) {$\Omega$};
+    \draw[cphi!70,dashed] (0,0.7) -- (2.4,0.7) -- (3.2,1.2) -- (0.8,1.2) -- cycle;
+    \draw[cphi!70,dashed] (0,1.25) -- (2.4,1.25) -- (3.2,1.75) -- (0.8,1.75) -- cycle;
+    \draw[cphi!70,dashed] (0,1.8) -- (2.4,1.8) -- (3.2,2.3) -- (0.8,2.3) -- cycle;
+    \draw[->,very thick,cu] (1.6,1.5) -- (1.6,2.3) node[right] {$\vn$};
+    \node[font=\small,cu] at (2.45,1.0) {$c$\,?};
+    \node[font=\sffamily\bfseries\small,anchor=west] at (0,3.35) {Step 1: the normal};
+    \node[font=\small,align=center] at (1.6,-0.55) {$v=\vd\cdot\vx$\\ $\RG(x_i)=m_0\,n_i$};
+  \end{scope}
+  \begin{scope}[xshift=4.6cm]
+    \draw[gray] (0,0) rectangle (2.4,2.4);
+    \draw[gray] (0,2.4) -- (0.8,2.9) -- (3.2,2.9) -- (2.4,2.4);
+    \draw[gray] (2.4,0) -- (3.2,0.5) -- (3.2,2.9);
+    \draw[gray,dashed] (0,0) -- (0.8,0.5) -- (3.2,0.5); \draw[gray,dashed] (0.8,0.5) -- (0.8,2.9);
+    \node[gray] at (0.35,0.25) {$\Omega$};
+    \draw[cphi,thick,fill=cphi!12] (0,1.25) -- (2.4,1.25) -- (3.2,1.75) -- (0.8,1.75) -- cycle;
+    \fill (1.6,0.9) circle (1.2pt) node[below left,inner sep=1pt] {$\vx_0$};
+    \draw[|<->|,cu] (2.7,0.9) -- (2.7,1.5) node[midway,right,inner sep=1pt] {$c$};
+    \draw[gray,densely dotted] (1.6,0.9) -- (2.7,0.9);
+    \node[cphi] at (0.55,1.5) {$\Pi$};
+    \node[font=\sffamily\bfseries\small,anchor=west] at (0,3.35) {Step 2: the plane};
+    \node[font=\small,align=center] at (1.6,-0.55) {$v_2$ quadratic\\ $c=\RG(v_2)/(2\RG(\vn\cdot\vx))$};
+  \end{scope}
+  \begin{scope}[xshift=9.2cm]
+    \draw[gray] (0,0) rectangle (2.4,2.4);
+    \draw[gray] (0,2.4) -- (0.8,2.9) -- (3.2,2.9) -- (2.4,2.4);
+    \draw[gray] (2.4,0) -- (3.2,0.5) -- (3.2,2.9);
+    \draw[gray,dashed] (0,0) -- (0.8,0.5) -- (3.2,0.5); \draw[gray,dashed] (0.8,0.5) -- (0.8,2.9);
+    \node[gray] at (0.35,0.25) {$\Omega$};
+    \draw[cphi,thick,fill=cphi!12] (0,1.25) -- (2.4,1.25) -- (3.2,1.75) -- (0.8,1.75) -- cycle;
+    \draw[cu,very thick,fill=cu!30] plot[smooth cycle] coordinates {(1.0,1.42) (1.5,1.32) (2.15,1.40) (2.45,1.55) (2.05,1.66) (1.35,1.62)};
+    \node[cu] at (1.75,1.95) {$\Gamma$};
+    \node[cphi] at (0.55,1.5) {$\Pi$};
+    \node[font=\sffamily\bfseries\small,anchor=west] at (0,3.35) {Step 3: the extension};
+    \node[font=\small,align=center] at (1.6,-0.55) {$V_{\vxi}=e^{|\vxi|\eta}e^{-\mathrm i\vxi\cdot\vs}$\\ $\RG(V_{\vxi})\to\hat w(\vxi)$};
+  \end{scope}
+\end{tikzpicture}
+\caption{The three steps of the reconstruction, each with its family of
+adjoint fields. (1) The linear fields give the normal $\vn$, up to its sign;
+the position of the plane is still unknown. (2) One quadratic harmonic field
+gives the distance $c$ of the plane $\Pi$ to the centre $\vx_0$. (3) The
+fields $V_{\vxi}$ give the Fourier transform of the opening $w$; its support
+is the crack $\Gamma$.}
+\label{fig:rg-steps}
+\end{figure}
 
 %-------------------------------------------------
 \subsection{Step 1: the normal}
@@ -680,4 +734,5 @@ Without noise both give about $0.330$ (true $0.335$; the difference is the mesh 
 \bibitem{KS96} H.~Kim, J.~K.~Seo, Unique determination of a collection of a finite number of cracks from two boundary measurements, \emph{SIAM J. Math. Anal.} 27 (1996) 1336--1340.
 \bibitem{LM72} J.-L.~Lions, E.~Magenes, \emph{Non-Homogeneous Boundary Value Problems and Applications I}, Springer, 1972.
 \bibitem{SV91} F.~Santosa, M.~Vogelius, A computational algorithm to determine cracks from electrostatic boundary measurements, \emph{Int. J. Eng. Sci.} 29 (1991) 917--937.
+\bibitem{TA77} A.~N.~Tikhonov, V.~Y.~Arsenin, \emph{Solutions of Ill-Posed Problems}, Winston, Washington, 1977.
 \end{chapterbib}

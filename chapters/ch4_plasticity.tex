@@ -632,6 +632,27 @@ $\eta\to0$ the overstress vanishes and the rate-independent model is
 recovered: viscoplasticity is a regularization (a penalty) of
 plasticity~\cite[Sec.~1.6]{SimoHughes1998}.
 
+\paragraph{Plasticity and viscoplasticity compared.}
+\index{viscoplasticity!versus plasticity}%
+The two filaments share the elastic law and the threshold $\sY$. They differ
+in what fixes the plastic rate.
+\begin{center}\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{4.9cm}>{\raggedright\arraybackslash}p{5.6cm}@{}}
+\toprule
+ & plasticity (rate-independent) & viscoplasticity (Perzyna)\\
+\midrule
+admissible stresses & $|\sigma|\le\sY$ only & any $\sigma$; overstress $\mac{|\sigma|-\sY}$\\
+plastic multiplier & from the consistency condition $\dot f=0$ & explicit, $\gamma=\mac{f}/\eta$\\
+loading conditions & Kuhn--Tucker, $\gamma\ge0$, $f\le0$, $\gamma f=0$ & none: $\gamma$ is a function of $\sigma$\\
+response to the strain rate & independent of the rate & stiffer at higher rates\\
+creep and relaxation & none inside or on $\Esig$ & relaxation to $\sY$, time $\tau=\eta/E$\\
+limit & --- & $\eta\to0$: plasticity\\
+time integration & return map onto $f=0$ (Chapter~\ref{ch:pl-num}) & return map with $\eta$ (Chapter~\ref{ch:pl-num})\\
+\bottomrule
+\end{tabular}
+\end{center}
+
 %======================================================================
 \section{Three-dimensional plasticity}\label{sec:pl-3d}
 \index{plasticity!three-dimensional}%
@@ -663,7 +684,10 @@ $\vq\in\R^m$, defined by a yield function:
   \Esig=\bigl\{(\sig,\vq)\in\Sym\times\R^m\ :\ f(\sig,\vq)\le0\bigr\}.
 \end{equation}
 Its interior $\{f<0\}$ is the set of elastic states, its boundary $\{f=0\}$
-the yield surface. Outside $\Esig$ there are no admissible states. The
+the yield surface. We keep the two words distinct: a \emph{yield criterion}
+(von Mises, Tresca, \ldots) is a choice of the function $f$ and of the
+condition $f\le0$; the \emph{yield surface} is the set $f=0$ in stress space.
+Outside $\Esig$ there are no admissible states. The
 hardening variables $\vq$ describe the position and the size of the domain;
 we first consider fixed $\vq$ and write $f(\sig)$.
 

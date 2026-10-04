@@ -4,7 +4,8 @@
     figures/appB/  script producing the Gateaux/Frechet figure of the appendix on
                    variational derivatives (file appB_..., printed as Appendix C)
     figures/ch2/   figures of Chapter 2 (Ritz bar, conditioning, hourglass, reference
-                   map, Kirsch plate); style_ch2.py is their common style
+                   map, Kirsch plate, directional Young modulus);
+                   style_ch2.py is their common style
     examples/ch1/  computational exercises of Chapter 1 (incl. B-splines exo_bsplines.py)
                    and the constrained spring chain
     examples/ch2/  computational exercises of Chapter 2: elastic_constants.py (stiffness

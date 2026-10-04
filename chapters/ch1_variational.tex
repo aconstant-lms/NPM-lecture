@@ -34,7 +34,8 @@ constraints and finite elements.
   examples and counterexamples;
   \item assemble a finite element stiffness matrix, state C\'ea's lemma, and
   explain how the B-spline bases of isogeometric analysis differ from finite
-  elements in Ciarlet's sense;
+  elements in Ciarlet's sense, the standard definition of a finite
+  element~\cite{Ciarlet2002};
   \item derive a strong PDE from an energy, reconstruct an energy from a
   symmetric weak form, and recognize when no energy exists.
 \end{itemize}
@@ -63,7 +64,8 @@ Variational formulations translate differential or operator equations into
 problems of minimizing, or finding critical points of, a functional over a
 well-chosen function space. This translation unlocks the tools of functional
 analysis: compactness, convexity, duality and fixed-point
-arguments~\cite{Evans2010,Brezis2011,Dacorogna2008}. In practice it allows us
+arguments~\cite{Evans2010,Brezis2011,Dacorogna2008}; Oden and
+Reddy~\cite{OdenReddy1976} present them for mechanics. In practice it allows us
 \begin{itemize}
   \item to construct the \emph{weak form} of a PDE, which is what finite
   elements discretize;
@@ -781,6 +783,26 @@ with $|\vu|\le|\vf|/\alpha$: this is the whole content of Lax--Milgram in
 $\R^n$. The bounds~\eqref{eq:rayleigh} are the two hypotheses, and the theorem
 is needed only because the constants must not degenerate as the dimension
 goes to infinity (as the mesh is refined).
+
+\paragraph{Minimization or Lax--Milgram?}
+\index{Lax--Milgram theorem!versus minimization}\index{direct method}%
+The two existence routes overlap but do not coincide. When the form is
+symmetric, Lax--Milgram and minimization give the same solution. Each route
+also covers problems the other cannot reach.
+\begin{center}\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{5.4cm}@{}}
+\toprule
+problem & route & example\\
+\midrule
+symmetric, coercive form & both: $u$ minimizes $J=\tfrac12a(u,u)-L(u)$ & Poisson, diffusion, linear elasticity\\
+non-symmetric, coercive form & Lax--Milgram only: no energy & convection--diffusion (Exercise~\ref{exo:skew})\\
+convex, non-quadratic energy & direct method only: no bilinear form & $p$-Laplacian (Exercise~\ref{exo:plaplace}), minimal surfaces\\
+constraints & saddle point of a Lagrangian & multipliers (Section~\ref{sec:var-lagrange})\\
+bounded, not coercive & Fredholm alternative & resonance, buckling (below)\\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \subsection*{What goes wrong without coercivity}
 Boundedness alone is not enough. Two examples, one linear and one nonlinear,
@@ -1853,6 +1875,44 @@ a unit load at node~1 moves node~3 by $\tfrac14$, and a unit load at node~3
 moves node~1 by $\tfrac14$.
 \end{solution}
 
+\exercise{Assembly of the stiffness matrix}\label{exo:assembly}
+\index{finite element method!assembly}%
+Algorithm~\ref{alg:var-assembly} assembles and solves the problem
+$-(ku')'=f$ on $(0,1)$ with linear elements and prescribed end values.
+(a) Run it by hand for $n=3$ equal elements, $k=1$, $f=1$ and
+$u(0)=u(1)=0$: give $\mat{K}$, $\mat{F}$ and the nodal values. (b) Compare with
+the exact solution. (c) What do the rows of the eliminated nodes give?
+\begin{algorithm}[H]
+\caption{Assembly and solution, linear elements in one dimension}\label{alg:var-assembly}
+\begin{algorithmic}[1]
+\Require nodes $x_0<\dots<x_n$; element values $k_e$, $f_e$; Dirichlet nodes $D$ with values $\uD$
+\Ensure nodal values $\mat{c}$; reactions $\mat{R}_D$
+\State $\mat{K}\gets\mat{0}_{(n+1)\times(n+1)}$;\ \ $\mat{F}\gets\mat{0}_{n+1}$
+\For{$e=1,\dots,n$} \Comment{loop over the elements}
+  \State $h_e\gets x_e-x_{e-1}$;\ \ $I\gets(e-1,\,e)$ \Comment{connectivity}
+  \State $\mat{k}^e\gets\frac{k_e}{h_e}\begin{bmatrix}1&-1\\-1&1\end{bmatrix}$;\ \ $\mat{f}^e\gets\frac{f_eh_e}{2}\begin{bmatrix}1\\1\end{bmatrix}$
+  \State $\mat{K}[I,I]\gets\mat{K}[I,I]+\mat{k}^e$;\ \ $\mat{F}[I]\gets\mat{F}[I]+\mat{f}^e$ \Comment{scatter}
+\EndFor
+\State $L\gets\{0,\dots,n\}\setminus D$;\ \ $\mat{c}_D\gets\uD$
+\State solve $\mat{K}_{LL}\,\mat{c}_L=\mat{F}_L-\mat{K}_{LD}\,\mat{c}_D$
+\State $\mat{R}_D\gets\mat{K}_{DL}\,\mat{c}_L+\mat{K}_{DD}\,\mat{c}_D-\mat{F}_D$ \Comment{reactions}
+\end{algorithmic}
+\end{algorithm}
+\begin{solution}
+(a) With $h=\tfrac13$ each element gives $3\begin{bmatrix}1&-1\\-1&1\end{bmatrix}$
+and $\tfrac16(1,1)\T$, so
+$\mat{K}=3\begin{bmatrix}1&-1&0&0\\-1&2&-1&0\\0&-1&2&-1\\0&0&-1&1\end{bmatrix}$,
+$\mat{F}=(\tfrac16,\tfrac13,\tfrac13,\tfrac16)\T$. With $D=\{0,3\}$:
+$3\begin{bmatrix}2&-1\\-1&2\end{bmatrix}\mat{c}_L=(\tfrac13,\tfrac13)\T$, so
+$c_1=c_2=\tfrac19$. (b) The exact solution $u=x(1-x)/2$ gives
+$u(\tfrac13)=u(\tfrac23)=\tfrac19$: the nodal values are exact, as in part (b)
+of Exercise~\ref{exo:conv}. (c) $R_0=-3c_1-\tfrac16=-\tfrac12$ and, by
+symmetry, $R_3=-\tfrac12$. Integrating by parts, the row of node $0$ is
+$\displaystyle \int_0^1u'\varphi_0'-\int_0^1f\varphi_0=-u'(0)$: the reactions are the boundary
+fluxes $(ku')\,n$ of the exact solution, $-u'(0)=u'(1)=-\tfrac12$. Their sum
+balances the total load $\displaystyle \int_0^1f\dd x=1$.
+\end{solution}
+
 \framesub{Part II: variational calculus practice}
 
 \paragraph{From energy to strong form, through the weak form.}
@@ -2199,6 +2259,7 @@ elements, in the Bernstein basis instead of the nodal one.
 \bibitem{Maxwell1864} J.~C.~Maxwell, On the calculation of the equilibrium and stiffness of frames, \emph{Philos. Mag.} 27 (1864) 294--299.
 \bibitem{Nitsche1968} J.~Nitsche, Ein Kriterium f\"ur die Quasi-Optimalit\"at des Ritzschen Verfahrens, \emph{Numer. Math.} 11 (1968) 346--348.
 \bibitem{Nitsche1971} J.~Nitsche, \"Uber ein Variationsprinzip zur L\"osung von Dirichlet-Problemen bei Verwendung von Teilr\"aumen, die keinen Randbedingungen unterworfen sind, \emph{Abh. Math. Sem. Univ. Hamburg} 36 (1971) 9--15.
+\bibitem{OdenReddy1976} J.~T.~Oden, J.~N.~Reddy, \emph{Variational Methods in Theoretical Mechanics}, Springer, Berlin, 1976.
 \bibitem{PieglTiller1997} L.~Piegl, W.~Tiller, \emph{The NURBS Book}, 2nd ed., Springer, 1997.
 \bibitem{Rayleigh1873} Lord Rayleigh (J.~W.~Strutt), Some general theorems relating to vibrations, \emph{Proc. London Math. Soc.} 4 (1873) 357--368.
 \bibitem{Rockafellar1970} R.~T.~Rockafellar, \emph{Convex Analysis}, Princeton University Press, 1970.

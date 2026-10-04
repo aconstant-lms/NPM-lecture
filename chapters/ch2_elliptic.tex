@@ -404,6 +404,17 @@ components are prescribed. With $\vt_1,\vt_2$ two unit tangent vectors:
   i.e.\ $\vn\cdot\sig\vn=-p$, $\vt_1\cdot\sig\vn=q_1$, $\vt_2\cdot\sig\vn=q_2$.
 \end{itemize}
 
+\paragraph{Mixed conditions.}
+\index{boundary condition!mixed}%
+Sliding contact is the typical \emph{mixed} condition: at the same point, some
+components are kinematic data and the complementary ones static data. A plane
+of symmetry with normal $\vn$ is of this type: $\vu\cdot\vn=0$ and zero shear
+traction. The weak form handles mixed conditions without change: the test
+fields $\vv$ satisfy the homogeneous kinematic components only ($\vv\cdot\vn=0$),
+and the static components enter the load as natural conditions. The rule
+``three complementary components at each point'' is what makes the
+boundary-value problem well posed.
+
 %======================================================================
 \section{Elastic moduli}\label{sec:el-moduli}
 \subsection{The tensor of elastic moduli}
@@ -519,7 +530,20 @@ crystal,
 The crystal is isotropic iff the Zener ratio $A=2c_{44}/(c_{11}-c_{12})$
 equals $1$. Tungsten is almost isotropic ($A=1.0$). Copper is strongly
 anisotropic ($A=3.2$): $E=1/s_{11}=67$\,GPa along a cube edge
-$\langle100\rangle$ and $E=192$\,GPa along a cube diagonal $\langle111\rangle$.
+$\langle100\rangle$ and $E=192$\,GPa along a cube diagonal $\langle111\rangle$. Zinc, a hexagonal crystal, is soft along
+its axis, $E=1/s_{33}=35$\,GPa, and stiff across it: $119$\,GPa in the basal
+plane, $124$\,GPa at $70^\circ$ from the axis (Figure~\ref{fig:el-young}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/ch2/young_surface.pdf}
+\caption{Directional Young's modulus: the surface $r=E(\vd)\,\vd$, coloured by
+$E$ (each panel has its own scale). Tungsten is isotropic within the accuracy
+of its compliances; copper is stiffest along the cube diagonals; zinc is
+transversely isotropic about its hexagonal axis (vertical). Compliances
+of~\cite{Nye1985}.}
+\label{fig:el-young}
+\end{figure}
 
 \begin{gbox}{Isotropic elasticity}
 \index{elasticity!isotropic}\index{Lam\'e constants@Lam\'e constants}\index{Young's modulus}\index{Poisson's ratio}\index{bulk modulus}%
@@ -730,6 +754,33 @@ $\vu\in\Kad(\vuD,S_u)$ such that
   \int_\Omega\eps[\vu]:\bbC:\eps[\vv]\dd x=\int_\Omega\vfD\cdot\vv\dd x
   +\int_{S_t}\vtD\cdot\vv\dd s\qquad\forall\vv\in\Kad(\vzero,S_u).
 \end{equation}
+
+\paragraph{Existence: Korn's inequality.}
+\index{Korn's inequality}\index{Lax--Milgram theorem!elasticity}%
+For diffusion, coercivity came from the Poincar\'e inequality. In elasticity
+the energy controls only the \emph{symmetric} part of $\nabla\vv$: the skew
+part, an infinitesimal rotation, costs no energy. Positive definiteness of
+$\bbC$ is therefore not enough by itself. The missing step is a classical
+inequality of Korn.
+\begin{gbox}{Korn's inequality and well-posedness of elasticity}
+Let $\Omega$ be bounded, connected, with a Lipschitz boundary, and
+$|S_u|>0$. There is a constant $c_K>0$ such that
+\[
+  \int_\Omega\eps[\vv]:\eps[\vv]\dd x\ \ge\ c_K\,\norm{\vv}^2_{H^1(\Omega)}
+  \qquad\forall\vv\in\Kad(\vzero,S_u).
+\]
+With $\eps:\bbC:\eps\ge c_C\,\eps:\eps$ (for isotropy $c_C=\min(3K,2\mu)$, the smallest eigenvalue of $\bbC$,
+Section~\ref{sec:el-moduli}), the form of~\eqref{eq:el-weak} is coercive with
+constant $c_Cc_K$. It is continuous, and Lax--Milgram gives a unique solution
+$\vu$ depending continuously on $(\vfD,\vtD,\vuD)$.
+\end{gbox}
+The constant $c_K$ depends on the shape of $\Omega$ and on $S_u$; it degrades
+for slender bodies, which explains the stiff, badly conditioned systems of
+thin structures. If $S_u=\emptyset$, the inequality holds only up to the rigid
+motions: a solution exists if and only if the loads satisfy the global balance
+of forces and moments, and it is unique up to a rigid motion. This is the
+elastic counterpart of the Neumann problem of diffusion, unique up to a
+constant (Exercise~\ref{exo:neumann}).
 
 %======================================================================
 \section{Energy principles}\label{sec:el-energy}
@@ -1173,6 +1224,19 @@ and $\mu$. Is the elastic energy positive definite?
 $K=E/\bigl(3(1-2\nu)\bigr)$ gives $1-2\nu=E/(3K)=\tfrac53$, so $\nu=-\tfrac13$.
 Then $\mu=E/\bigl(2(1+\nu)\bigr)=0.75$\,MPa. Since $K>0$ and $\mu>0$, the energy
 is positive definite~\eqref{eq:iso-energy}: the foam is stable, and auxetic.
+\end{solution}
+
+\exercise{Why Korn?}\label{exo:q-korn}
+\index{Korn's inequality}%
+Take $\vv=\omega\,\ve_3\times\vx$ on the unit cube. Compute $\eps[\vv]$ and
+$\nabla\vv$. Why is the positive definiteness of $\bbC$ not enough to make the
+elastic form coercive on $H^1(\Omega)^3$? What changes when $|S_u|>0$?
+\begin{solution}
+$\vv=\omega(-x_2,x_1,0)$, so $\nabla\vv=\omega(\ve_2\otimes\ve_1-\ve_1\otimes\ve_2)$
+is skew and $\eps[\vv]=\vzero$. The energy vanishes while
+$\norm{\vv}_{H^1}>0$: no inequality $a(\vv,\vv)\ge c\norm{\vv}^2_{H^1}$ can hold
+on $H^1(\Omega)^3$. If $\vv=\vzero$ on a part $S_u$ of positive area, the only
+rigid motion allowed is zero, and Korn's inequality restores coercivity.
 \end{solution}
 
 \exercise{Is this crystal isotropic?}\label{exo:q-zener}
