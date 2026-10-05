@@ -1,0 +1,39 @@
+% Figure 2.9 (fig:ritz). The energy over K (a plane), its minimum u; the
+% restriction to the subspace K^A (a line in the plane) is minimal at u^A,
+% higher on the bowl: U_p(u) <= U_p(u^A).
+\begin{tikzpicture}
+\begin{axis}[hide axis,view={-20}{17},width=9cm,clip=false,unit vector ratio=1 1 1,
+    xmin=-1.6,xmax=1.6,ymin=-1.6,ymax=1.6,zmin=0,zmax=2.3]
+  % the space K: a plane
+  \addplot3[fill=gray!15,draw=gray!60,no marks] coordinates
+    {(-1.6,-1.6,0) (1.6,-1.6,0) (1.6,1.6,0) (-1.6,1.6,0) (-1.6,-1.6,0)};
+  % the subspace K^A: a line in the plane, x = p0 + s d
+  \def\px{0.15}\def\py{-0.78}\def\dx{0.977}\def\dy{0.213}
+  \addplot3[very thick,no marks,domain=-1.55:1.55,samples=2,samples y=1]
+    ({\px+x*\dx},{\py+x*\dy},0);
+  % the energy: a bowl
+  \addplot3[surf,z buffer=sort,shader=faceted,domain=0:1,y domain=0:360,
+    samples=10,samples y=29,colormap={kn}{color=(cu!40) color=(cu!6)},
+    draw=cu!60!black,line width=0.15pt,point meta=z]
+    ({1.25*x*cos(y)},{1.25*x*sin(y)},{0.8+0.9*1.5625*x*x});
+  \addplot3[cu!70!black,thick,no marks,domain=0:360,samples=73,samples y=1]
+    ({1.25*cos(x)},{1.25*sin(x)},{0.8+0.9*1.5625});
+  % the energy restricted to K^A
+  \pgfmathsetmacro{\smax}{sqrt(1.5625-\px*\px-\py*\py)}
+  \addplot3[orange!85!black,very thick,no marks,domain=-\smax:\smax,samples=40,
+    samples y=1]
+    ({\px+x*\dx},{\py+x*\dy},{0.8+0.9*((\px+x*\dx)^2+(\py+x*\dy)^2)});
+  % minima and their projections
+  \pgfmathsetmacro{\zA}{0.8+0.9*(\px*\px+\py*\py)}
+  \draw[densely dashed] (axis cs:0,0,0.8) -- (axis cs:0,0,0);
+  \draw[densely dashed] (axis cs:\px,\py,\zA) -- (axis cs:\px,\py,0);
+  \fill (axis cs:0,0,0) circle (1.6pt) node[below left=-1pt] {$\vu$};
+  \fill (axis cs:\px,\py,0) circle (1.6pt) node[below right=-1pt] {$\vu^A$};
+  \fill (axis cs:0,0,0.8) circle (1.6pt) coordinate (Mu);
+  \fill[orange!85!black] (axis cs:\px,\py,\zA) circle (1.8pt) coordinate (MA);
+  \node[gray!50!black] at (axis cs:-1.35,1.3,0) {$\Kad$};
+  \node[anchor=north west,inner sep=1pt] at (axis cs:{\px+1.55*\dx},{\py+1.55*\dy},0) {$\Kad^A$};
+\end{axis}
+\draw[thin] (Mu) -- ++(-0.9,0) node[left] {$\mathcal U_p(\vu)$};
+\draw[thin,orange!85!black] (MA) -- ++(1.6,0) node[right] {$\mathcal U_p(\vu^A)$};
+\end{tikzpicture}

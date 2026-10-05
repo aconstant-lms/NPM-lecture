@@ -1,0 +1,74 @@
+% Figure 2.10 (fig:fem). Left: a smooth domain Omega and a triangle mesh
+% Omega_h whose boundary polygon approximates the boundary of Omega. Right:
+% the shape function of node m (a pyramid over the triangles around the node,
+% 1 at the node, 0 at its neighbours), scaled by the nodal value u_i(x_m).
+\begin{tikzpicture}[node/.style={circle,fill,inner sep=1.1pt}]
+% ---------------- left: domain and mesh ----------------
+\begin{scope}
+  \fill[cu!15,rotate=18] (0,0) ellipse (2.4 and 1.55);
+  \draw[cu!60,rotate=18] (0,0) ellipse (2.4 and 1.55);
+  \foreach \i/\x/\y in {0/2.23/0.86,1/1.77/1.36,2/0.87/1.64,3/0.05/1.60,
+    4/-0.67/1.41,5/-1.57/0.89,6/-2.12/0.28,7/-2.32/-0.28,8/-2.15/-1.00,
+    9/-1.80/-1.34,10/-1.01/-1.62,11/-0.08/-1.61,12/0.79/-1.36,13/1.61/-0.86,
+    14/2.16/-0.22,15/2.33/0.48,16/1.09/0.65,17/0.20/0.86,18/-0.76/0.52,
+    19/-1.25/-0.05,20/-1.13/-0.62,21/-0.12/-0.85,22/0.67/-0.57,23/1.25/0.06,
+    24/0.13/0.09,25/-0.68/-0.33,26/0.81/0.42} {\coordinate (m\i) at (\x,\y);}
+  \foreach \a/\b/\c in {8/20/7,20/9/10,9/20/8,21/20/10,17/18/24,21/22/24,
+    22/21/12,25/21/24,21/25/20,18/25/24,11/21/10,21/11/12,20/19/7,19/6/7,
+    25/19/20,19/5/6,25/19/18,19/5/18,0/16/15,0/1/16,1/2/16,17/2/3,2/17/16,
+    26/17/24,17/26/16,22/26/24,4/5/18,4/17/3,17/4/18,23/26/22,26/23/16,
+    16/23/15,23/14/15,23/13/14,13/23/22,13/22/12}
+    {\draw[black!75,line width=0.4pt,line join=round] (m\a) -- (m\b) -- (m\c) -- cycle;}
+  \foreach \i in {0,...,26} {\node[node] at (m\i) {};}
+  \node[cu!80!black] at (-2.25,1.35) {$\Omega$};
+  \draw[thin] (-1.55,-0.45) -- (-2.9,-0.45) node[left] {$\Omega_h$};
+\end{scope}
+% ---------------- right: shape function of node m ----------------
+\begin{scope}[xshift=7.4cm,yshift=-0.3cm,x={(1cm,-0.22cm)},y={(0.5cm,0.32cm)},z={(0cm,1cm)}]
+  \coordinate (m) at (0,0,0);
+  \coordinate (top) at (0,0,1.5);
+  \coordinate (n1) at (1.40,0.38,0);
+  \coordinate (n2) at (0.32,1.21,0);
+  \coordinate (n3) at (-0.83,1.06,0);
+  \coordinate (n4) at (-1.38,-0.24,0);
+  \coordinate (n5) at (-0.44,-1.22,0);
+  \coordinate (n6) at (0.77,-1.11,0);
+  \coordinate (o1) at (1.63,1.63,0);
+  \coordinate (o2) at (-0.38,2.17,0);
+  \coordinate (o3) at (-2.21,0.80,0);
+  \coordinate (o4) at (-1.76,-1.48,0);
+  \coordinate (o5) at (0.39,-2.22,0);
+  \coordinate (o6) at (2.16,-0.79,0);
+  % axes
+  \coordinate (O) at (-2.6,-3.0,0);
+  \draw[->,>={Latex[length=2mm]}] (O) -- ++(5.4,0,0) node[below] {$x_p$};
+  \draw[->,>={Latex[length=2mm]}] (O) -- ++(0,5.8,0) node[right] {$x_q$};
+  \draw[->,>={Latex[length=2mm]}] (O) -- ++(0,0,2.5) node[left] {$u_i$};
+  % the mesh in the plane: outer ring (light) and the patch of node m (gray)
+  \foreach \k/\l in {1/2,2/3,3/4,4/5,5/6,6/1}
+    {\draw[gray!60] (n\k) -- (o\k) -- (n\l) (o\k) -- (o\l);}
+  \fill[gray!15] (n1) -- (n2) -- (n3) -- (n4) -- (n5) -- (n6) -- cycle;
+  \foreach \k in {1,...,6} {\draw[gray!70!black,thin] (m) -- (n\k);}
+  \draw[gray!70!black,thin] (n1) -- (n2) -- (n3) -- (n4) -- (n5) -- (n6) -- cycle;
+  \foreach \k in {1,...,6} {\node[node,gray!60] at (o\k) {};}
+  \foreach \k in {1,...,6} {\node[node] at (n\k) {};}
+  \node[node,orange!85!black] at (m) {};
+  \draw[densely dashed] (top) -- (m);
+  % the pyramid, translucent: back faces, then front faces
+  \foreach \a/\b in {1/2,2/3,3/4}
+    {\fill[cu!35,fill opacity=0.35] (top) -- (n\a) -- (n\b) -- cycle;}
+  \fill[cu!45,fill opacity=0.6] (top) -- (n4) -- (n5) -- cycle;
+  \fill[cu!30,fill opacity=0.6] (top) -- (n5) -- (n6) -- cycle;
+  \fill[cu!20,fill opacity=0.6] (top) -- (n6) -- (n1) -- cycle;
+  \foreach \k in {2,3} {\draw[cu!50,thin] (top) -- (n\k);}
+  \draw[cu!70!black,line join=round] (n4) -- (n5) -- (n6) -- (n1);
+  \foreach \k in {4,5,6,1} {\draw[cu!70!black] (top) -- (n\k);}
+  \node[node] at (top) {};
+  % labels
+  \draw[thin] (top) -- ++(-1.3,0,0.25) node[left] {$u_i(\vx_m)$};
+  \draw[thin,orange!85!black] (m) -- ++(0.9cm,-0.95cm) node[right=-1pt] {$\vx_m$};
+  \draw[thin,cu!80!black] ($(n6)!0.5!(top)$) -- ++(2.0,0,0.45)
+    node[right] {$u_i(\vx_m)\,w_m(\vx)$};
+  \node[below=1pt] at (n5) {$0$};
+\end{scope}
+\end{tikzpicture}

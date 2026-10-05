@@ -1,0 +1,50 @@
+% Chapter 3, the reciprocity gap (Section 3.5), replaces the three rectangles
+% of fig:rg-rg. (a) the cracked body with its measured Cauchy data (u and
+% phi = d_nu u on the whole boundary), the crack Gamma, its normal n and
+% lips. (b) an adjoint field v, harmonic in the uncracked body, with v and
+% d_nu v known on the boundary. The reciprocity gap pairs the two.
+\begin{tikzpicture}[scale=0.9,>={Latex[length=2mm]}]
+\def\blob{(A) to[out=-70,in=180] (B) to[out=0,in=-130] (C)
+    to[out=50,in=-30] (D) to[out=150,in=10] (E) to[out=190,in=110] (A)}
+\tikzset{body/.style={fill=gray!12},
+  crack/.style={line width=1.8pt,line cap=round}}
+\def\cauchybody{%
+  \coordinate (A) at (0,0.6);   \coordinate (B) at (2.0,-0.4);
+  \coordinate (C) at (4.4,0.5); \coordinate (D) at (3.9,2.6);
+  \coordinate (E) at (1.0,2.5);
+  \draw[cphi,line width=8pt,line join=round] \blob -- cycle;
+  \draw[white,line width=5.4pt,line join=round] \blob -- cycle;
+  \draw[cu,line width=3.2pt,line join=round] \blob -- cycle;
+  \fill[body] \blob -- cycle;
+  \draw[gray!50!black,thin] \blob -- cycle;}
+% ---------------- (a) cracked body, measured data ----------------
+\begin{scope}
+  \cauchybody
+  \draw[crack] (1.75,1.05) -- (2.85,1.6);
+  \draw[->,thick] (2.3,1.325) -- ++(-0.3,0.6) node[left=-1pt] {$\vn$};
+  \node[above right=-2pt] at (2.65,1.5) {$\Gamma^+$};
+  \node[below right=-1pt] at (2.2,1.3) {$\Gamma^-$};
+  \node at (1.05,1.45) {$\OG$};
+  \node at (3.15,0.55) {$\Delta u=0$};
+  \draw[cu,thin] (0.45,2.25) -- (-0.15,2.75) node[above left=-2pt,font=\small] {$u$};
+  \draw[cphi,thin] (0.35,0.0) -- (-0.15,-0.4) node[below left=-2pt,font=\small]
+    {$\varphi=\partial_\nu u$};
+  \node[font=\sffamily] at (2.2,-1.35) {(a) cracked body, measured data};
+\end{scope}
+% ---------------- (b) adjoint field ----------------
+\begin{scope}[xshift=7.6cm]
+  \cauchybody
+  \node at (2.2,1.45) {$\Delta v=0$ in $\Omega$};
+  \node[font=\small] at (2.2,0.95) {(no crack)};
+  \draw[cu,thin] (4.05,2.3) -- (4.6,2.75) node[above right=-2pt,font=\small] {$v$};
+  \draw[cphi,thin] (3.95,-0.05) -- (4.5,-0.45) node[below right=-2pt,font=\small]
+    {$\partial_\nu v$};
+  \node[font=\sffamily] at (2.2,-1.35) {(b) adjoint field};
+\end{scope}
+% ---------------- pairing ----------------
+\draw[<->,thick,gray!60!black,shorten <=4pt,shorten >=4pt]
+  (3.75,2.85) to[out=40,in=140]
+  node[midway,above,black,font=\small]
+    {$\displaystyle\RG(v)=\int_{\partial\Omega}(u\,\partial_\nu v-v\,\varphi)\dd s$}
+  (7.6cm+0.9cm*1.15,2.85);
+\end{tikzpicture}

@@ -1,0 +1,33 @@
+% Diffusion analogue of fig:3Dbody (Section 2.1). The potential is given on
+% S_u (blue, electrode or thermostat), the flux on S_phi (green arrows: the
+% incoming flux p.n = phi^D, with q = -p the physical flux), source f inside.
+\begin{tikzpicture}[scale=1.0,>={Latex[length=2mm]}]
+  \coordinate (A) at (0,0.6);
+  \coordinate (B) at (2.0,-0.4);
+  \coordinate (C) at (4.4,0.5);
+  \coordinate (D) at (3.9,2.6);
+  \coordinate (E) at (1.0,2.5);
+  % S_u: potential given (kinematic data, blue), drawn as an electrode: a light
+  % blue band outside the boundary
+  \draw[cu!30,line width=6pt] (E) to[out=190,in=110] (A) to[out=-70,in=180] (B);
+  \fill[gray!12] (A) to[out=-70,in=180] (B) to[out=0,in=-130] (C)
+    to[out=50,in=-30] (D) to[out=150,in=10] (E) to[out=190,in=110] (A);
+  \draw[cu,very thick] (E) to[out=190,in=110] (A) to[out=-70,in=180] (B);
+  % S_phi: flux given (static data, green): incoming flux and the normal
+  \draw[cphi,very thick,postaction={decorate},decoration={markings,
+     mark=at position 0.16 with {\draw[<-,thick,cphi] (0,-0.05) -- (0,-0.75);},
+     mark=at position 0.40 with {\draw[<-,thick,cphi] (0,-0.05) -- (0,-0.75);},
+     mark=at position 0.62 with {\draw[<-,thick,cphi] (0,-0.05) -- (0,-0.75) coordinate (T);},
+     mark=at position 0.82 with {\draw[->,thick] (0,0) -- (0,-0.8) coordinate (N);}}]
+    (B) to[out=0,in=-130] (C) to[out=50,in=-30] (D) to[out=150,in=10] (E);
+  \node[cphi,right,inner sep=2pt] at (T) {$\pD$};
+  \node[left] at (N) {$\vn$};
+  % volume source
+  \foreach \a in {0,60,...,300}
+    {\draw[-{Latex[length=1.1mm]},thin,gray!60!black] (2.75,1.2) ++(\a:0.12) -- ++(\a:0.3);}
+  \fill (2.75,1.2) circle (1.3pt);
+  \node[right] at (3.15,1.2) {$f$};
+  \node at (1.5,1.4) {$\Omega$};
+  \node[cu,anchor=east,align=right,font=\small] at (-0.4,1.5) {$S_u$: potential\\ given, $u=\uD$};
+  \node[cphi,anchor=west,align=left,font=\small] at (4.95,0.0) {$S_\varphi$: flux\\ given, $\vp\cdot\vn=\pD$};
+\end{tikzpicture}

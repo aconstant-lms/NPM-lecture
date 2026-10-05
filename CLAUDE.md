@@ -6,6 +6,8 @@ Author: Andrei Constantinescu (LMS, CNRS & Ecole Polytechnique). LaTeX book, see
 - Notation lives in `preamble/notation.tex`; use its macros, never ad-hoc bold:
   vectors and 2nd-order tensors bold italic (`\vu`, `\vn`, `\sig`, `\eps`, `\vect{}`, `\tens{}`),
   4th-order tensors blackboard bold (`\bbC`, `\bbS`, `\bbI`, `\tensf{}`), matrices bold upright (`\mat{K}`).
+  Exception (author's choice, Oct 2026): the 2nd-order tensor of diffusion coefficients is `\bbK` (blackboard bold),
+  components `K_{ij}`, isotropic `\bbK = k\tI`; `\tk` is an alias kept for old sources.
 - Style is the RG style of Chapter 3 (`preamble/style.tex`): short declarative sentences, sans-serif headings,
   key statements in `gbox`, exercises with `\exercise{Title}\label{exo:...}` + `solution` environment.
 - Every chapter (and appendix) follows the frame: `\framepart{Outline}` (objectives + plan), numbered

@@ -1,0 +1,55 @@
+% Chapter 3, direct and inverse problems (Sections 3.2-3.3), in the style of
+% fig:3Dbody. (a) complementary data: u = u^D on S_u, flux on S_phi, crack
+% known. (b) overdetermined data: u and its normal derivative known on the
+% whole boundary (two offset contours), crack unknown.
+\begin{tikzpicture}[scale=0.9,>={Latex[length=2mm]}]
+\def\blob{(A) to[out=-70,in=180] (B) to[out=0,in=-130] (C)
+    to[out=50,in=-30] (D) to[out=150,in=10] (E) to[out=190,in=110] (A)}
+\tikzset{body/.style={fill=gray!12},
+  crack/.style={line width=1.8pt,line cap=round}}
+% ---------------- (a) direct problem ----------------
+\begin{scope}
+  \coordinate (A) at (0,0.6);   \coordinate (B) at (2.0,-0.4);
+  \coordinate (C) at (4.4,0.5); \coordinate (D) at (3.9,2.6);
+  \coordinate (E) at (1.0,2.5);
+  % S_u (electrodes, blue) and S_phi (flux, green)
+  \draw[cu!30,line width=6pt] (E) to[out=190,in=110] (A) to[out=-70,in=180] (B);
+  \fill[body] \blob -- cycle;
+  \draw[cu,very thick] (E) to[out=190,in=110] (A) to[out=-70,in=180] (B);
+  \draw[cphi,very thick,postaction={decorate},decoration={markings,
+     mark=at position 0.80 with {\draw[->,thick,black] (0,0) -- (0,-0.75) coordinate (N);}}]
+    (B) to[out=0,in=-130] (C) to[out=50,in=-30] (D) to[out=150,in=10] (E);
+  \node[left] at (N) {$\vnu$};
+  % the crack, known
+  \draw[crack] (1.75,1.05) -- (2.85,1.6);
+  \node[below right=-1pt] at (2.55,1.45) {$\Gamma$};
+  \node at (1.35,1.75) {$\Delta u=0$};
+  \node[cu,anchor=north east,align=right,font=\small] at (1.05,-0.4)
+    {$S_u$: $u=\uD$};
+  \node[cphi,anchor=west,align=left,font=\small] at (4.75,1.75)
+    {$S_\varphi$:\\ $\partial_\nu u=\pD$};
+  \node[font=\sffamily] at (2.2,-1.35) {(a) direct problem};
+\end{scope}
+% ---------------- (b) inverse problem ----------------
+\begin{scope}[xshift=8.0cm]
+  \coordinate (A) at (0,0.6);   \coordinate (B) at (2.0,-0.4);
+  \coordinate (C) at (4.4,0.5); \coordinate (D) at (3.9,2.6);
+  \coordinate (E) at (1.0,2.5);
+  % two offset contours: u known (blue, inner), flux known (green, outer)
+  \draw[cphi,line width=8pt,line join=round] \blob -- cycle;
+  \draw[white,line width=5.4pt,line join=round] \blob -- cycle;
+  \draw[cu,line width=3.2pt,line join=round] \blob -- cycle;
+  \fill[body] \blob -- cycle;
+  \draw[gray!50!black,thin] \blob -- cycle;
+  % the crack, unknown
+  \draw[crack,red!70!black,dash pattern=on 4pt off 2.5pt,line cap=butt]
+    (1.75,1.05) -- (2.85,1.6);
+  \node[red!70!black,below right=-1pt] at (2.55,1.45) {$\Gamma\,?$};
+  \node at (1.35,1.75) {$\Delta u=0$};
+  \draw[cu,thin] (0.45,2.25) -- (-0.15,2.75) node[above left=-2pt,font=\small]
+    {$u=\uD$ on $\partial\Omega$};
+  \draw[cphi,thin] (3.95,-0.05) -- (4.5,-0.45) node[below right=-2pt,font=\small]
+    {$\partial_\nu u=\pD$ on $\partial\Omega$};
+  \node[font=\sffamily] at (2.2,-1.35) {(b) inverse problem};
+\end{scope}
+\end{tikzpicture}

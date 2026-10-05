@@ -1,0 +1,54 @@
+% Figure 2.7 (fig:convexity). Left: the potential energy along a line of K,
+% minimal at u. Right: a convex function lies above its tangent at u.
+\begin{tikzpicture}[>={Latex[length=2mm]},
+  guide/.style={densely dotted,gray!70!black},
+  pt/.style={circle,fill,inner sep=1.3pt}]
+% ---------------- left: U_p(v) >= U_p(u) ----------------
+\begin{scope}
+  \def\fu{0.6}  % U_p(u)
+  \draw[->] (-0.2,0) -- (5.0,0) node[right] {$\vv\in\Kad$};
+  \draw[->] (0,-0.2) -- (0,3.3) node[left] {$\mathcal U_p$};
+  \draw[red!75!black,very thick,domain=0.45:4.75,samples=60]
+    plot (\x,{\fu+0.33*(\x-2.3)^2});
+  % u (minimum) and v
+  \draw[guide] (2.3,0) -- (2.3,\fu);
+  \draw[guide] (0,\fu) -- (2.3,\fu);
+  \draw[guide] (4.0,0) -- (4.0,{\fu+0.33*1.7^2});
+  \draw[guide] (0,{\fu+0.33*1.7^2}) -- (4.0,{\fu+0.33*1.7^2});
+  \node[pt] at (2.3,\fu) {};
+  \node[pt] at (4.0,{\fu+0.33*1.7^2}) {};
+  \node[pt] at (2.3,0) {}; \node[below] at (2.3,0) {$\vu$};
+  \node[pt] at (4.0,0) {}; \node[below] at (4.0,0) {$\vv$};
+  \node[left] at (0,\fu) {$\mathcal U_p(\vu)$};
+  \node[left] at (0,{\fu+0.33*1.7^2}) {$\mathcal U_p(\vv)$};
+\end{scope}
+% ---------------- right: U_i(v) >= U_i(u) + DU_i(u)(v-u) ----------------
+\begin{scope}[xshift=7.0cm]
+  \def\ca{0.17}
+  \def\xu{1.9} \def\xv{4.3}
+  \pgfmathsetmacro{\fu}{\ca*\xu*\xu}
+  \pgfmathsetmacro{\fv}{\ca*\xv*\xv}
+  \pgfmathsetmacro{\ft}{\fu+2*\ca*\xu*(\xv-\xu)}
+  \draw[->] (-0.2,0) -- (4.9,0);
+  \draw[->] (0,-0.2) -- (0,3.6) node[left] {$\mathcal U_i$};
+  % tangent at u and chord u--v
+  \draw[thin] ({\xu-0.8},{\fu-2*\ca*\xu*0.8}) -- (\xv,\ft);
+  \draw[thin] (\xu,\fu) -- (\xv,\fv);
+  \draw[red!75!black,very thick,domain=0:4.45,samples=60] plot (\x,{\ca*\x*\x});
+  % guides
+  \draw[guide] (\xu,0) -- (\xu,\fu);
+  \draw[guide] (\xv,0) -- (\xv,{\fv+0.15});
+  \draw[guide] (0,\fu) -- ({\xv+0.2},\fu);
+  \draw[guide] (0,\fv) -- ({\xv+0.2},\fv);
+  \draw[guide] (\xv,\ft) -- ({\xv+0.2},\ft);
+  \node[pt] at (\xu,\fu) {};
+  \node[pt] at (\xv,\fv) {};
+  \node[pt] at (\xv,\ft) {};
+  \node[pt] at (\xu,0) {}; \node[below] at (\xu,0) {$\vu$};
+  \node[pt] at (\xv,0) {}; \node[below] at (\xv,0) {$\vv$};
+  \node[right] at ({\xv+0.2},\fv) {$\mathcal U_i(\vv)$};
+  \node[right,align=left] at ({\xv+0.2},\ft)
+    {$\mathcal U_i(\vu)$\\[-1pt]$\;+D\mathcal U_i(\vu)(\vv-\vu)$};
+  \node[right] at ({\xv+0.2},\fu) {$\mathcal U_i(\vu)$};
+\end{scope}
+\end{tikzpicture}

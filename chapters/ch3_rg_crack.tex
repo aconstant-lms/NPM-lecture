@@ -45,7 +45,7 @@ Section~\ref{sec:diff}, which is also anti-plane elasticity
 
 \section{Introduction}\label{sec:rg-intro}
 \index{crack!insulating}\index{crack!identification}\index{non-destructive evaluation}%
-The problem studied here is a scalar, stationary diffusion problem: a potential $u$ drives a flux $\vq=-k\nabla u$ that is conserved, $\operatorname{div}\vq=0$, in a body of constant conductivity $k$ (we take $k=1$). A crack is a surface across which no flux passes, $\vq\cdot\vn=0$ on both lips, while the potential may jump. The same mathematical problem arises in several physical settings (Table~\ref{tab:rg-phys}).
+The problem studied here is a scalar, stationary diffusion problem: a potential $u$ drives a flux $\vq=-\bbK\nabla u$ that is conserved, $\operatorname{div}\vq=0$, in a body with the tensor of diffusion coefficients $\bbK$ of Chapter~\ref{ch:elliptic}. A crack is a surface across which no flux passes, $\vq\cdot\vn=0$ on both lips, while the potential may jump. The same mathematical problem arises in several physical settings (Table~\ref{tab:rg-phys}).
 
 \begin{table}[h]
 \centering\small
@@ -77,7 +77,19 @@ anti-plane elasticity & out-of-plane displacement & shear stress $\sigma_{3i}$ &
 %======================================================================
 \section{The direct problem}\label{sec:rg-direct}
 \index{direct problem!cracked body}\index{well-posedness}%
-Let $\Omega\subset\R^3$ be a bounded, connected Lipschitz domain with outward unit normal $\vnu$. The crack $\Gamma\subset\Omega$ is a closed, bounded planar domain with Lipschitz boundary $\partial\Gamma$ (the crack front), lying in the plane $\Pi=\{\vx:\ \vn\cdot\vx=c\}$. Its two lips are $\Gamma^+$, on the side towards which $\vn$ points, and $\Gamma^-$. We write $\OG=\Omega\setminus\Gamma$; it is connected because $\Gamma$ is compactly contained in $\Omega$. The boundary is split into two complementary parts: the potential is prescribed on $S_u$ (electrodes) and the flux on $S_\varphi$.
+Let $\Omega\subset\R^3$ be a bounded, connected Lipschitz domain with outward unit normal $\vnu$. The crack $\Gamma\subset\Omega$ is a closed, bounded planar domain with Lipschitz boundary $\partial\Gamma$ (the crack front), lying in the plane $\Pi=\{\vx:\ \vn\cdot\vx=c\}$. Its two lips are $\Gamma^+$, on the side towards which $\vn$ points, and $\Gamma^-$. We write $\OG=\Omega\setminus\Gamma$; it is connected because $\Gamma$ is compactly contained in $\Omega$. To simplify, the body is homogeneous and isotropic, and the potential is scaled so that $\bbK=\tI$: the balance $\dive(\bbK\nabla u)=0$ becomes the Laplace equation $\Delta u=0$, and the flux through a surface of normal $\vnu$ is $\partial_\nu u=\nabla u\cdot\vnu$. As in Chapter~\ref{ch:elliptic}, the boundary is split into two complementary parts (Figure~\ref{fig:rg-problems}a): the potential is prescribed on $S_u$ (electrodes) and the flux on $S_\varphi$.
+
+\begin{figure}[h]
+\centering
+\input{figures/tikz/rg_problems}
+\caption{(a) Direct problem: complementary boundary conditions; the potential
+is given on $S_u$ (blue) and the flux on $S_\varphi$ (green), and the crack
+$\Gamma$ is known. (b) Inverse problem: overspecified, overlapping boundary
+conditions; after the measurements both the potential and the flux are known
+on the boundary, and the crack is unknown. Compare with the elastic body of
+Figure~\ref{fig:3Dbody}.}
+\label{fig:rg-problems}
+\end{figure}
 
 \begin{gbox}{Direct problem}
 Given $\Gamma$, a partition $\partial\Omega=\overline{S_u}\cup\overline{S_\varphi}$, $S_u\cap S_\varphi=\emptyset$, and boundary data $\uD$ on $S_u$, $\pD$ on $S_\varphi$, find $u$ such that
@@ -91,11 +103,26 @@ u&=\uD &&\text{on }S_u,\\
 \end{equation}
 \end{gbox}
 
-\paragraph{Well-posedness.} Assume $|S_u|>0$, $\uD\in H^{1/2}(S_u)$ and $\pD\in\tilde H^{-1/2}(S_\varphi)$, the dual of $H^{1/2}_{00}(S_\varphi)$. Then~\eqref{eq:rg-direct} has a unique weak solution $u\in H^1(\OG)$, and
+\paragraph{Well-posedness.}
+\index{well-posedness!in the sense of Hadamard}%
+A problem is \emph{well posed in the sense of Hadamard} if it has a
+solution, if this solution is unique, and if it depends continuously on the
+data: a small change of the data gives a small change of the solution
+(stability). ``Small'' is measured with the energy. The potential has a
+finite energy, $u\in H^1(\OG)$. Its boundary values then belong to
+$H^{1/2}$: this is the space of the traces of the fields of finite energy,
+i.e.\ of the boundary potentials that a field of finite energy can take. A
+potential that jumps along a line of the boundary, for instance, is not in
+$H^{1/2}$: no field of finite energy takes it. The fluxes belong to the dual
+space $\tilde H^{-1/2}(S_\varphi)$, the dual of $H^{1/2}_{00}(S_\varphi)$: the
+fluxes whose power $\displaystyle \int_{S_\varphi}\pD v\dd s$ against these boundary
+potentials is finite. With $|S_u|>0$, $\uD\in H^{1/2}(S_u)$ and
+$\pD\in\tilde H^{-1/2}(S_\varphi)$, problem~\eqref{eq:rg-direct} has a unique
+weak solution $u\in H^1(\OG)$, and
 \begin{equation}\label{eq:rg-stab-direct}
 \|u\|_{H^1(\OG)}\le C\bigl(\|\uD\|_{H^{1/2}(S_u)}+\|\pD\|_{\tilde H^{-1/2}(S_\varphi)}\bigr),
 \end{equation}
-with $C$ depending only on $\Omega$, $\Gamma$ and $S_u$. The problem is therefore well posed in the sense of Hadamard.
+with $C$ depending only on $\Omega$, $\Gamma$ and $S_u$: the direct problem is well posed in the sense of Hadamard.
 
 To see this, let $V=\{v\in H^1(\OG):\ v=0\text{ on }S_u\}$, and let $U\in H^1(\Omega)$ be a lifting of $\uD$. The weak form is to find $w=u-U\in V$ such that
 \[
@@ -111,20 +138,20 @@ The zero-flux conditions on the lips and the flux on $S_\varphi$ are natural con
 %======================================================================
 \section{The inverse problem}\label{sec:rg-inverse}
 \index{inverse problem}\index{inverse problem!overdetermined data}\index{Cauchy data}\index{ill-posed problem}%
-In the inverse problem the crack is unknown. The experiment imposes $\uD$ on $S_u$ and $\pD$ on $S_\varphi$, and measures additional quantities: the flux on part of $S_u$ and the potential on part of $S_\varphi$. After the experiment, $u$ is known on a set $\tilde S_u\supseteq S_u$ and $\partial_\nu u$ on a set $\tilde S_\varphi\supseteq S_\varphi$. These two sets are no longer complementary.
+In the inverse problem the crack $\Gamma$ is unknown. To recover it we add information by overspecifying the boundary conditions. The experiment imposes the potential on a part of the boundary and the flux on the rest, as in the direct problem, and it also measures the flux where the potential is imposed (the current through the electrodes) and the potential where the flux is imposed. After the experiment the potential is known on $S_u$ and the flux on $S_\varphi$, but $S_u$ and $S_\varphi$ are not complementary any more: they overlap on $\Sigma=S_u\cap S_\varphi\neq\emptyset$ (Figure~\ref{fig:rg-problems}b).
 
 \begin{gbox}{Inverse problem}
-Given $\Omega$, one or several experiments $k=1,\dots,K$ with data $(\uD_k,\pD_k)$, and the measured Cauchy data
+Identify $\Gamma$ from the knowledge of the measured data $(\uD_k,\pD_k)$ of one or several experiments $k=1,\dots,K$. The solution $u_k$ of each experiment satisfies
 \[
-u_k=f_k\ \text{on }\tilde S_u,\qquad \partial_\nu u_k=g_k\ \text{on }\tilde S_\varphi,\qquad
-\Sigma=\tilde S_u\cap\tilde S_\varphi\neq\emptyset ,
+\Delta u_k=0\ \text{in }\OG,\qquad \partial_nu_k^\pm=0\ \text{on }\Gamma^\pm,\qquad
+u_k=\uD_k\ \text{on }S_u,\qquad \partial_\nu u_k=\pD_k\ \text{on }S_\varphi,
 \]
-where $u_k$ solves~\eqref{eq:rg-direct} for the unknown crack, find the crack $\Gamma$.
+where the boundary parts overlap: $\Sigma=S_u\cap S_\varphi\neq\emptyset$.
 \end{gbox}
 
-On $\Sigma$ both the potential and the flux are known: the data are \emph{overdetermined}, and this redundancy carries the information on $\Gamma$. We use mostly \emph{complete} overdetermined data, $\tilde S_u=\tilde S_\varphi=\partial\Omega$. This is the setting of~\cite{AB96}, and the situation of the numerical experiments, where the flux is measured on the electrodes and the potential on the insulated parts. When the data are incomplete, the missing data can first be reconstructed by solving a Cauchy problem for the Laplace equation near the boundary, for instance by the energy-gap method of~\cite{ABB06}; this step is itself ill-posed.
+On $\Sigma$ both the potential and the flux are known: the data are \emph{overdetermined}, and this redundancy carries the information on $\Gamma$. We use mostly \emph{complete} overdetermined data, $S_u=S_\varphi=\partial\Omega$. This is the setting of~\cite{AB96}, and the situation of the numerical experiments, where the flux is measured on the electrodes and the potential on the insulated parts. When the data are incomplete, the missing data can first be reconstructed by solving a Cauchy problem for the Laplace equation near the boundary, for instance by the energy-gap method of~\cite{ABB06}; this step is itself ill-posed.
 
-The map from $\Gamma$ to the data is nonlinear, and its inverse is unstable: smooth data perturbations may correspond to large changes of the crack. The inverse problem is ill-posed. Its stable solution needs a priori information or a regularization, in the sense of Tikhonov~\cite{TA77}; here the a priori information is the planarity of the crack.
+The map from $\Gamma$ to the data is nonlinear, and its inverse is unstable: smooth data perturbations may correspond to large changes of the crack. The inverse problem is ill-posed: it fails the third condition of Hadamard. Its stable solution needs a priori information or a regularization, in the sense of Tikhonov~\cite{TA77}; here the a priori information is the planarity of the crack.
 
 %======================================================================
 \section{Identifiability, uniqueness and stability: literature and ideas}\label{sec:rg-lit}
@@ -142,88 +169,45 @@ The map from $\Gamma$ to the data is nonlinear, and its inverse is unstable: smo
 %======================================================================
 \section{The reciprocity gap}\label{sec:rg-gap}
 \index{reciprocity gap}\index{reciprocity!gap}\index{adjoint field}%
-Let $u$ solve~\eqref{eq:rg-direct} for the unknown crack, with complete Cauchy data $(u,\varphi)$ on $\partial\Omega$, $\varphi=\partial_\nu u$. An \emph{adjoint field} $v$ is a function harmonic in the whole domain $\Omega$, without crack. It is chosen, so $v$ and $\partial_\nu v$ are known on $\partial\Omega$, usually in closed form (Figure~\ref{fig:rg-rg}).
+Let $u$ solve~\eqref{eq:rg-direct} for the unknown crack, with complete Cauchy data $(u,\varphi)$ on $\partial\Omega$, $\varphi=\partial_\nu u$. An \emph{adjoint field} $v$ is a function harmonic in the whole domain $\Omega$, without crack. We choose it, usually in closed form, so $v$ and $\partial_\nu v$ are known on $\partial\Omega$ (Figure~\ref{fig:rg-rg}).
+
+\paragraph{An identity between the boundary and the crack.} For every adjoint field $v$, smooth near $\Gamma$,
+\begin{equation}\label{eq:rg-identity}
+\int_{\partial\Omega}\bigl(u\,\partial_\nu v-v\,\partial_\nu u\bigr)\,ds=\int_\Gamma\jump u\,\partial_nv\,ds,\qquad \jump u=u^+-u^- .
+\end{equation}
+It follows from an integration by parts and from $\Delta v=0$. Green's second identity in the cut domain $\OG$ (Appendix~\ref{app:ibp}) reads
+\[
+\int_{\OG}\bigl(v\,\Delta u-u\,\Delta v\bigr)\,d\vx=\int_{\partial\OG}\bigl(v\,\partial_{\nu'}u-u\,\partial_{\nu'}v\bigr)\,ds,
+\]
+where $\nu'$ is the outward normal of $\OG$. The left-hand side vanishes, since $\Delta u=0$ in $\OG$ and $\Delta v=0$ in $\Omega$. The boundary $\partial\OG$ consists of $\partial\Omega$, where $\nu'=\vnu$, and of the two lips, where $\nu'=-\vn$ on $\Gamma^+$ and $\nu'=+\vn$ on $\Gamma^-$ (Figure~\ref{fig:lips}). On the lips $\partial_{\nu'}u=0$, while $v$ and $\partial_nv$ are single-valued because $v$ is smooth across $\Gamma$. The lips therefore contribute $\displaystyle \int_\Gamma(u^+-u^-)\,\partial_nv\,ds$, and
+$\displaystyle 0=\int_{\partial\Omega}(v\,\partial_\nu u-u\,\partial_\nu v)\,ds+\int_\Gamma\jump u\,\partial_nv\,ds$, which is~\eqref{eq:rg-identity}.
+
+The left-hand side of~\eqref{eq:rg-identity} uses only the boundary data and the chosen field $v$; the right-hand side only the crack and its opening. It deserves a name.
 
 \begin{gbox}{Reciprocity gap}
-For every $v\in\mathcal H(\Omega)=\{v\in H^1(\Omega):\ \Delta v=0\text{ in }\Omega\}$, smooth near $\Gamma$, the reciprocity gap is
+For every $v\in\mathcal H(\Omega)=\{v\in H^1(\Omega):\ \Delta v=0\text{ in }\Omega\}$, smooth near $\Gamma$, the reciprocity gap of the data $(u,\varphi)$ is
 \begin{equation}\label{eq:rg-rgdef}
 \RG(v)=\int_{\partial\Omega}\bigl(u\,\partial_\nu v-v\,\varphi\bigr)\,ds ,
 \end{equation}
-and it satisfies the identity
+and, by~\eqref{eq:rg-identity},
 \begin{equation}\label{eq:rg-rg}
-\RG(v)=\int_\Gamma\jump u\,\partial_n v\,ds,\qquad \jump u=u^+-u^- .
+\RG(v)=\int_\Gamma\jump u\,\partial_n v\,ds .
 \end{equation}
-The left-hand side uses only boundary data; the right-hand side only the crack and its opening. With in-plane coordinates $\vs=(s_1,s_2)$ on $\Pi$, $\eta=\vn\cdot\vx-c$ and $w(\vs)=\jump u$ extended by zero, the adjoint fields used below give:
-\begin{center}\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{llll}
-\toprule
-\sffamily adjoint field $v$ & \sffamily $\partial_n v$ on $\Pi$ & \sffamily $\RG(v)$ & \sffamily yields\\
-\midrule
-$\vd\cdot\vx$ & $\vd\cdot\vn$ & $m_0\,\vd\cdot\vn$ & normal $\vn$\\
-$(\vn\cdot\vx)^2-\tfrac12\bigl((\vt_1\cdot\vx)^2+(\vt_2\cdot\vx)^2\bigr)$ & $2c$ & $2c\,m_0$ & plane $c$\\
-$e^{|\vxi|\eta}\,e^{-\mathrm i\vxi\cdot\vs}$, $\vxi\in\R^2$ & $|\vxi|\,e^{-\mathrm i\vxi\cdot\vs}$ & $|\vxi|\,\hat w(\vxi)$ & opening $w$\\
-$\eta,\ s_i\eta,\ s_is_j\eta-\tfrac13\delta_{ij}\eta^3$ & $1,\ s_i,\ s_is_j$ & $m_0,\ m_i,\ m_{ij}$ & centre, extent\\
-\bottomrule
-\end{tabular}
-\end{center}
-where $\displaystyle m_0=\int_\Gamma w$, $\displaystyle m_i=\int_\Gamma w\,s_i$ and $\displaystyle m_{ij}=\int_\Gamma w\,s_is_j$ are the moments of the opening.
 \end{gbox}
 
-\begin{figure}[t]
+\begin{figure}[h]
 \centering
-\begin{tikzpicture}[scale=1.12,>=Stealth]
-\tikzset{lip/.style={line width=1.6pt,black},
-         su/.style={line width=1.8pt,cu},
-         sp/.style={line width=1.8pt,cphi}}
-% ---------------- (a) direct problem ----------------
-\begin{scope}
-\fill[gray!8] (0,0) rectangle (2.4,3);
-\draw[su] (0,0) -- (2.4,0);
-\draw[su] (2.4,3) -- (0,3);
-\draw[sp] (2.4,0) -- (2.4,3);
-\draw[sp] (0,3) -- (0,0);
-\draw[lip] (0.75,1.55) -- (1.65,2.0);
-\draw[->,thick] (1.2,1.775) -- ++(-0.22,0.45) node[above left,inner sep=1pt]{\small $\vn$};
-\node at (1.55,1.65) {\small $\Gamma$};
-\node at (1.2,0.8) {\small $\Delta u=0$};
-\node[cu,below] at (1.2,0) {\small $u=\uD$ on $S_u$};
-\node[cu,above] at (1.2,3) {\small $u=\uD$ on $S_u$};
-\node[cphi,rotate=90,above] at (0,1.5) {\small $\partial_\nu u=\pD$ on $S_\varphi$};
-\node[cphi,rotate=90,below] at (2.4,1.5) {\small $\partial_\nu u=\pD$ on $S_\varphi$};
-\node at (1.2,-0.85) {\sffamily (a) direct problem};
-\end{scope}
-% ---------------- (b) inverse problem ----------------
-\begin{scope}[xshift=4.2cm]
-\fill[gray!8] (0,0) rectangle (2.4,3);
-\draw[thin,black] (0,0) rectangle (2.4,3);
-\draw[line width=1.4pt,cu] (-0.09,-0.09) rectangle (2.49,3.09);
-\draw[line width=1.4pt,cphi] (-0.2,-0.2) rectangle (2.6,3.2);
-\draw[line width=1.6pt,red!70!black,dashed] (0.75,1.55) -- (1.65,2.0);
-\node[red!70!black] at (1.45,1.45) {\small $\Gamma\,?$};
-\node at (1.2,0.8) {\small $\Delta u=0$};
-\node[cu] at (1.2,3.45) {\small $u=f$ known};
-\node[cphi] at (1.2,-0.45) {\small $\partial_\nu u=g$ known};
-\node at (1.2,-0.85) {\sffamily (b) inverse problem};
-\end{scope}
-% ---------------- (c) adjoint field ----------------
-\begin{scope}[xshift=8.4cm]
-\fill[gray!8] (0,0) rectangle (2.4,3);
-\draw[thin,black] (0,0) rectangle (2.4,3);
-\draw[line width=1.4pt,cu] (-0.09,-0.09) rectangle (2.49,3.09);
-\draw[line width=1.4pt,cphi] (-0.2,-0.2) rectangle (2.6,3.2);
-\node at (1.2,1.7) {\small $\Delta v=0$};
-\node at (1.2,1.2) {\small (no crack)};
-\node[cu] at (1.2,3.45) {\small $v$ known};
-\node[cphi] at (1.2,-0.45) {\small $\partial_\nu v$ known};
-\node at (1.2,-0.85) {\sffamily (c) adjoint field};
-\end{scope}
-\end{tikzpicture}
-\caption{Section through the body. (a) Direct problem: the boundary is split into the complementary parts $S_u$ (blue, potential prescribed) and $S_\varphi$ (green, flux prescribed); the crack is known. (b) Inverse problem with complete overdetermined data: after measurement, the potential (blue) and the flux (green) are known on the whole boundary, and the crack is unknown. (c) Adjoint field $v$, harmonic in the uncracked domain, with $v$ and $\partial_\nu v$ known on the boundary. The reciprocity gap~\eqref{eq:rg-rgdef} pairs the boundary data of (b) and (c).}
+\input{figures/tikz/rg_gap}
+\caption{The reciprocity gap. (a) The cracked body: after the experiment the
+potential $u$ and the flux $\varphi=\partial_\nu u$ are known on the whole
+boundary; the crack $\Gamma$, with normal $\vn$ and lips $\Gamma^\pm$, is
+unknown. (b) An adjoint field $v$, harmonic in the uncracked body, with $v$
+and $\partial_\nu v$ known on the boundary. The gap $\RG(v)$ pairs the
+boundary data of (a) and (b).}
 \label{fig:rg-rg}
 \end{figure}
 
-\paragraph{Derivation of~\eqref{eq:rg-rg}.} Apply Green's second identity in $\OG$: $\displaystyle \int_{\OG}(v\Delta u-u\Delta v)=\int_{\partial\OG}(v\,\partial_{\nu'}u-u\,\partial_{\nu'}v)$, where $\nu'$ is the outward normal of $\OG$. The left-hand side vanishes. The boundary $\partial\OG$ consists of $\partial\Omega$ ($\nu'=\vnu$), $\Gamma^+$ ($\nu'=-\vn$) and $\Gamma^-$ ($\nu'=+\vn$). On the lips $\partial_{\nu'}u=0$, while $v$ and $\partial_nv$ are single-valued because $v$ is smooth across $\Gamma$. Hence $\displaystyle 0=\int_{\partial\Omega}(v\varphi-u\,\partial_\nu v)\,ds+\int_\Gamma(u^+-u^-)\,\partial_nv\,ds$, which is~\eqref{eq:rg-rg}. If there is no crack, $\RG(v)=0$ for all $v$: this is Betti--Maxwell reciprocity, the continuum form of Proposition~\ref{prop:reciprocity}. The reciprocity gap measures how far the data are from those of an uncracked body.
+\paragraph{Reciprocity and its gap.} If there is no crack, $\RG(v)=0$ for all $v$: this is Betti--Maxwell reciprocity between the two harmonic fields $u$ and $v$, the continuum form of Proposition~\ref{prop:reciprocity}. The reciprocity gap measures how far the data are from those of an uncracked body, and~\eqref{eq:rg-rg} says that this distance is carried entirely by the opening of the crack. Each choice of $v$ tests the opening $\jump u$ against the function $\partial_nv$ on $\Gamma$; the families of adjoint fields of Section~\ref{sec:rg-rec} are chosen so that these tests give the normal, the plane and the shape of the crack.
 
 \paragraph{Properties.}
 \begin{enumerate}[label=(\roman*),itemsep=1pt]
@@ -231,7 +215,6 @@ where $\displaystyle m_0=\int_\Gamma w$, $\displaystyle m_i=\int_\Gamma w\,s_i$ 
 \item $\RG$ is linear in $v$, and linear in the data $(u,\varphi)$. Linearity in the data is the basis of Section~\ref{sec:rg-multi}.
 \item $|\RG(v)|\le\|u\|_{H^{1/2}(\partial\Omega)}\|\partial_\nu v\|_{H^{-1/2}(\partial\Omega)}+\|\varphi\|_{H^{-1/2}(\partial\Omega)}\|v\|_{H^{1/2}(\partial\Omega)}$. Data errors are amplified by the size of $v$ on $\partial\Omega$, which matters for the extension step.
 \item As a distribution, $v\mapsto\RG(v)$ is the double layer of density $\jump u$ on $\Gamma$, tested on harmonic functions. Identifying the crack means identifying the support of this double layer.
-\item Some implementations, such as the Cast3M files, compute $\displaystyle \int_{\partial\Omega}(\varphi v-u\,\partial_\nu v)=-\RG(v)$; the sign cancels in all the ratios below.
 \end{enumerate}
 
 %======================================================================
@@ -296,6 +279,31 @@ fields $V_{\vxi}$ give the Fourier transform of the opening $w$; its support
 is the crack $\Gamma$.}
 \label{fig:rg-steps}
 \end{figure}
+
+\paragraph{Three families of adjoint fields.}
+\index{adjoint field!families}%
+By~\eqref{eq:rg-rg}, an adjoint field acts only through its normal derivative
+on the plane of the crack: $\RG(v)$ is the integral of the opening against
+$\partial_nv$. The art is to choose harmonic fields whose normal derivative on
+$\Pi$ is a simple, known test function. With in-plane coordinates
+$\vs=(s_1,s_2)$ on $\Pi$, $\eta=\vn\cdot\vx-c$ across it, and $w(\vs)=\jump u$
+extended by zero, three families do the job, one for each step, and a fourth
+gives the moments of the opening:
+\begin{center}\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{llll}
+\toprule
+\sffamily adjoint field $v$ & \sffamily $\partial_n v$ on $\Pi$ & \sffamily $\RG(v)$ & \sffamily yields\\
+\midrule
+$\vd\cdot\vx$ & $\vd\cdot\vn$ & $m_0\,\vd\cdot\vn$ & normal $\vn$ (Step~1)\\
+$(\vn\cdot\vx)^2-\tfrac12\bigl((\vt_1\cdot\vx)^2+(\vt_2\cdot\vx)^2\bigr)$ & $2c$ & $2c\,m_0$ & plane $c$ (Step~2)\\
+$e^{|\vxi|\eta}\,e^{-\mathrm i\vxi\cdot\vs}$, $\vxi\in\R^2$ & $|\vxi|\,e^{-\mathrm i\vxi\cdot\vs}$ & $|\vxi|\,\hat w(\vxi)$ & opening $w$ (Step~3)\\
+$\eta,\ s_i\eta,\ s_is_j\eta-\tfrac13\delta_{ij}\eta^3$ & $1,\ s_i,\ s_is_j$ & $m_0,\ m_i,\ m_{ij}$ & centre, extent (variant)\\
+\bottomrule
+\end{tabular}
+\end{center}
+where $\displaystyle m_0=\int_\Gamma w$, $\displaystyle m_i=\int_\Gamma w\,s_i$ and $\displaystyle m_{ij}=\int_\Gamma w\,s_is_j$ are the moments of the opening. The linear fields have a constant normal derivative: they see only the total opening $m_0$, but in every direction $\vd$, which gives $\vn$. The quadratic field has a normal derivative proportional to the position $c$ of the plane: the ratio with the linear field gives $c$. The exponential fields have an oscillating normal derivative: they give the Fourier transform of the opening, hence its support, the crack. The price is their growth, like $e^{|\vxi|\eta}$, away from the plane: on $\partial\Omega$ they are large, and by property~(iii) they amplify the noise of the data. This is the origin of the limited resolution of Step~3 (Section~\ref{ssec:rg-stab}).
+
 
 %-------------------------------------------------
 \subsection{Step 1: the normal}

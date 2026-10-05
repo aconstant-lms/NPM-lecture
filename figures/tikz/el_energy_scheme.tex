@@ -1,0 +1,37 @@
+% Figure 2.8 (fig:energy-scheme). The potential energy, a convex bowl over the
+% kinematically admissible fields, and the complementary energy, a concave cap
+% over the statically admissible fields: min of the bowl = max of the cap.
+\begin{tikzpicture}
+\begin{axis}[hide axis,view={25}{22},width=8.5cm,height=8.5cm,
+    scale only axis=false,clip=false,
+    xmin=-1.1,xmax=1.1,ymin=-1.1,ymax=1.1,zmin=-1.05,zmax=1.05,
+    unit vector ratio*=1 1 0.9]
+  % complementary energy: concave cap (static, green), drawn first
+  \addplot3[surf,z buffer=sort,shader=faceted,domain=0:1,y domain=0:360,samples=11,
+    samples y=25,colormap={st}{color=(cphi!8) color=(cphi!40)},
+    draw=cphi!55!black,line width=0.15pt,point meta=z]
+    ({x*cos(y)},{x*sin(y)},{-x*x});
+  % potential energy: convex bowl (kinematic, blue)
+  \addplot3[surf,z buffer=sort,shader=faceted,domain=0:1,y domain=0:360,samples=11,
+    samples y=25,colormap={kn}{color=(cu!40) color=(cu!6)},
+    draw=cu!60!black,line width=0.15pt,point meta=z]
+    ({x*cos(y)},{x*sin(y)},{x*x});
+  % rims
+  \addplot3[cu!70!black,thick,no marks,domain=0:360,samples=73,samples y=1]
+    ({cos(x)},{sin(x)},1);
+  \addplot3[cphi!60!black,thick,no marks,domain=180+25:360+25,samples=37,samples y=1]
+    ({cos(x)},{sin(x)},-1);
+  \addplot3[cphi!60!black,thin,densely dashed,no marks,domain=25:180+25,samples=37,
+    samples y=1] ({cos(x)},{sin(x)},-1);
+  % the solution: the two surfaces touch
+  \node[circle,fill=orange!85!black,inner sep=1.6pt] (S) at (axis cs:0,0,0) {};
+  \coordinate (Ku) at (axis cs:0.75,-0.65,0.8);
+  \coordinate (Ss) at (axis cs:0.75,-0.65,-0.8);
+\end{axis}
+\draw[orange!85!black] (S) -- ++(4.0,0) node[right,black]
+  {$\mathcal U_p[\vu]=\mathcal U_p^\ast[\sig]$};
+\node[cu,right,align=left] at ($(Ku)+(1.4,0.25)$)
+  {$\mathcal U_p[\vv]$, \ $\vv\in\Kad$\\[1pt]\small convex};
+\node[cphi!80!black,right,align=left] at ($(Ss)+(1.4,-0.25)$)
+  {$\mathcal U_p^\ast[\tens s]$, \ $\tens s\in\Sad$\\[1pt]\small concave};
+\end{tikzpicture}

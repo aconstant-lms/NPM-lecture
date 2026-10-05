@@ -49,8 +49,9 @@ Sections~\ref{sec:var-weak}--\ref{sec:var-elliptic} pass to the
 continuum: weak and strong forms, existence by minimization, the
 Lax--Milgram theorem and general elliptic operators.
 Section~\ref{sec:var-dual} constructs the dual problem,
-Section~\ref{sec:var-fem} discretizes by finite elements and by isogeometric
-analysis, and Section~\ref{sec:var-phys} returns to
+Section~\ref{sec:var-fem} discretizes by finite elements,
+Section~\ref{sec:var-igasec} presents isogeometric analysis and compares it
+with finite elements, and Section~\ref{sec:var-phys} returns to
 physics with minimal surfaces. A summary, exercises with solutions
 (page~\pageref{sec:var-exo}, starting with short exam-style questions) and the
 references close the chapter. The technical definitions of the variational
@@ -1091,7 +1092,7 @@ restrict the problem to a finite-dimensional subspace, solve a linear system,
 and control the error with C\'ea's lemma~\cite{Cea1964}
 (see also~\cite{Ciarlet2002,BrennerScott2008}). The subspace can be built
 from finite elements, or from the splines of computer-aided design: this is
-isogeometric analysis, the subject of the second half of the section.
+isogeometric analysis, the subject of Section~\ref{sec:var-igasec}.
 \begin{center}
 \begin{tikzpicture}[node distance=0.55cm]
   \node[box] (a) {Continuous problem in $V$: \ $a(u,v) = L(v)$, infinite-dimensional};
@@ -1244,6 +1245,20 @@ nodal values gives $C^0$ continuity across elements. Higher continuity
 requires derivative degrees of freedom, which is cumbersome beyond one
 dimension.
 
+%======================================================================
+\section{Isogeometric analysis: splines instead of elements}\label{sec:var-igasec}
+\index{isogeometric analysis}%
+Finite elements build the Galerkin space from local, interpolatory
+polynomials glued through nodal values (Section~\ref{sec:var-ciarlet}).
+Isogeometric analysis (IGA) builds it from the splines with which
+computer-aided design describes the geometry. Both are Galerkin methods: the
+weak form, Galerkin orthogonality and C\'ea's lemma are unchanged; only the
+basis changes. This section presents the B-splines
+(Section~\ref{sec:var-bsplines}), explains why they are not finite elements in
+Ciarlet's sense (Section~\ref{sec:var-notfe}), shows how isogeometric
+analysis uses them (Section~\ref{sec:var-iga}), and compares the two methods
+(Section~\ref{sec:var-fem-iga}).
+
 \subsection{B-splines}\label{sec:var-bsplines}
 \index{B-spline}\index{B-spline!Cox--de Boor recursion}\index{knot vector}%
 Splines are piecewise polynomials glued with the highest possible smoothness.
@@ -1309,9 +1324,12 @@ curve, except the first and the last.}
 \label{fig:bsplines}
 \end{figure}
 
-\paragraph{Why B-splines are not finite elements in Ciarlet's sense.}
+\subsection{Why B-splines are not finite elements}\label{sec:var-notfe}
 \index{B-spline!and Ciarlet's definition}%
-B-splines break the structure $(K,P,\Sigma)$ in two ways.
+In Ciarlet's definition a finite element is a triple $(K,P,\Sigma)$: an
+element domain, a local polynomial space, and local degrees of freedom,
+usually nodal values, that determine each function of $P$ on that element.
+B-splines break this structure in two ways.
 \begin{itemize}
 \item \emph{Their coefficients are not nodal values.} The control points,
 and the solution coefficients built in the same way, are \emph{control
@@ -1323,7 +1341,7 @@ freedom belongs to a single element.
 This overlap is precisely what gives the $C^{p-k}$ continuity across the
 knots, instead of the $C^0$ continuity of Lagrange elements.
 
-\subsection{Isogeometric analysis}\label{sec:var-iga}
+\subsection{How isogeometric analysis uses them}\label{sec:var-iga}
 \index{isogeometric analysis}\index{NURBS}%
 Isogeometric analysis (IGA) was introduced by Hughes, Cottrell and
 Bazilevs in 2005~\cite{HughesIGA2005,CottrellIGA2009}. It keeps the Galerkin
@@ -1571,9 +1589,9 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
   \node[tb,kin] (x) {$\vu$ \ $\mid$ \ $u$\\ \footnotesize displacement, potential};
   \node[tb,stat, right=2.6cm of x] (f) {$\vf$ \ $\mid$ \ $f$, $\pD$\\ \footnotesize forces, sources};
   \node[tb,kin, below=of x] (e) {$\ve=\mat{B}\vu$ \ $\mid$ \ $\nabla u$};
-  \node[tb,stat, below=of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \ $\mid$ \ $\tk\nabla u$};
+  \node[tb,stat, below=of f] (s) {$\vect{\sigma}=\mat{C}\ve$ \ $\mid$ \ $\bbK\nabla u$};
   \draw[arr] (x) -- (e) node[midway,left,font=\small]{$D$: \ $\mat{B}$ \ $\mid$ \ $\nabla$};
-  \draw[arr] (e) -- (s) node[midway,below,font=\small]{$C$: \ $\mat{C}$ \ $\mid$ \ $\tk$};
+  \draw[arr] (e) -- (s) node[midway,below,font=\small]{$C$: \ $\mat{C}$ \ $\mid$ \ $\bbK$};
   \draw[arr] (s) -- (f) node[midway,right,font=\small,align=left]{$D^\ast$: \ $\mat{B}\T$ \ $\mid$ \ $-\dive$ in $\Omega$,\\ \hspace{2.2em}$\cdot\,\vn$ on $S_\varphi$};
   \node[below=0.1cm of e,kinlab] {kinematic};
   \node[below=0.1cm of s,statlab] {static};
@@ -1591,8 +1609,8 @@ energy $\tfrac12\eps:\bbC:\eps$ comes first and the Navier equations follow
 unknown & $u(\vx)\in H^1_0(\Omega)$ & $\vu\in\R^n$\\
 kinematic operator & gradient $\nabla$ & compatibility matrix $\mat{B}$\\
 equilibrium operator & $-\dive$, adjoint of $\nabla$ & $\mat{B}\T$, transpose of $\mat{B}$\\
-material law & $\tk$ or $\bbC$ & $\mat{C}=\diag(c_i)$\\
-bilinear form & $a(u,v)=\int\tk\nabla u\cdot\nabla v$ & $\vv\T\mat{K}\vu$, $\mat{K}=\mat{B}\T\mat{C}\mat{B}$\\
+material law & $\bbK$ or $\bbC$ & $\mat{C}=\diag(c_i)$\\
+bilinear form & $a(u,v)=\int\bbK\nabla u\cdot\nabla v$ & $\vv\T\mat{K}\vu$, $\mat{K}=\mat{B}\T\mat{C}\mat{B}$\\
 load & $L(v)=\int fv+\int_{S_\varphi}\pD v$ & $\vv\T\vf$\\
 energy & $J(v)=\tfrac12a(v,v)-L(v)$ & $W(\vu)=\tfrac12\vu\T\mat{K}\vu-\vf\T\vu$\\
 weak form & $a(u,v)=L(v)\ \forall v$ & $\vv\T(\mat{K}\vu-\vf)=0\ \forall\vv$, i.e.\ $\mat{K}\vu=\vf$\\

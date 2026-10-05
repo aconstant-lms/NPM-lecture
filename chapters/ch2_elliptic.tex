@@ -19,7 +19,7 @@ finite element methods.
   \item write the strong form, the weak form and the energies of a diffusion
   or a linear elasticity problem, with its essential and natural boundary
   conditions;
-  \item handle the tensor of diffusion coefficients $\tk$ and the tensor of
+  \item handle the tensor of diffusion coefficients $\bbK$ and the tensor of
   elastic moduli $\bbC$: their symmetries, their matrix representation,
   isotropy and the conditions of positive definiteness;
   \item read the structure of both problems on their Tonti diagram, with the
@@ -55,12 +55,12 @@ for the structure of the equations \cite{StrangAM}; for finite elements
 \midrule
 primary unknown & potential $u$ (scalar) & displacement $\vu$ (vector)\\
 kinematic field & gradient $\nabla u$ & strain $\eps=\tfrac12(\nabla\vu+\nabla\vu\T)$\\
-material law & conductivity $\tk$ (2nd order) & elastic moduli $\bbC$ (4th order)\\
-static field & flux $\tk\nabla u$ (vector) & stress $\sig=\bbC:\eps$ (2nd order)\\
-equilibrium & $\dive(\tk\nabla u)+f=0$ & $\dive\sig+\vf=\vzero$\\
+material law & conductivity $\bbK$ (2nd order) & elastic moduli $\bbC$ (4th order)\\
+static field & flux $\bbK\nabla u$ (vector) & stress $\sig=\bbC:\eps$ (2nd order)\\
+equilibrium & $\dive(\bbK\nabla u)+f=0$ & $\dive\sig+\vf=\vzero$\\
 essential data on $S_u$ & $u=\uD$ & $\vu=\vuD$\\
-natural data on $S_\varphi$, $S_t$ & $(\tk\nabla u)\cdot\vn=\pD$ & $\sig\vn=\vtD$\\
-energy density & $\tfrac12\nabla u\cdot\tk\nabla u$ & $\tfrac12\eps:\bbC:\eps$\\
+natural data on $S_\varphi$, $S_t$ & $(\bbK\nabla u)\cdot\vn=\pD$ & $\sig\vn=\vtD$\\
+energy density & $\tfrac12\nabla u\cdot\bbK\nabla u$ & $\tfrac12\eps:\bbC:\eps$\\
 \bottomrule
 \end{tabular}
 \caption{The two elliptic model problems side by side.}
@@ -76,44 +76,89 @@ the same frame as elasticity: the equations, the coefficients, the structure,
 virtual power, the energy principles and the Lagrangian.
 
 \subsection{The equations}
+\begin{figure}[h]
+\centering
+\input{figures/tikz/diff_body}
+\caption{A body $\Omega$ with a volume source $f$. The potential is given on
+$S_u$ (blue, an electrode or a thermostat); the incoming flux
+$\vp\cdot\vn=\pD$ is given on $S_\varphi$ (green); $\vn$ is the outward unit
+normal. Compare with the elastic body of Figure~\ref{fig:3Dbody}.}
+\label{fig:diff-body}
+\end{figure}
+A body occupies $\Omega$ (Figure~\ref{fig:diff-body}). The potential $u$ is
+prescribed on a part $S_u$ of the boundary, the flux on the complementary
+part $S_\varphi$.
 \begin{gbox}{Diffusion problem}
 Let $\Omega\subset\R^3$ be a bounded Lipschitz domain with outward unit normal
 $\vn$, and $\partial\Omega=\overline{S_u}\cup\overline{S_\varphi}$,
 $S_u\cap S_\varphi=\emptyset$, a partition of its boundary. Find the potential
 $u$ and the flux $\vp$ such that
 \begin{align}
-  \vp&=\tk\nabla u &&\text{constitutive law (Fourier, Ohm, Darcy, Fick)},\label{eq:diff-law}\\
+  \vp&=\bbK\nabla u &&\text{constitutive law (Fourier, Ohm, Darcy, Fick)},\label{eq:diff-law}\\
   \dive\vp+f&=0 &&\text{balance in }\Omega,\label{eq:diff-balance}\\
   u=\uD\ \text{on }S_u, &\qquad \vp\cdot\vn=\pD\ \text{on }S_\varphi
   &&\text{boundary conditions}.\label{eq:diff-bc}
 \end{align}
 Eliminating the flux,
-\begin{equation}\label{eq:diffusion}
-\left\{\begin{aligned}
-\dive(\tk\nabla u)+f&=0 &&\text{in }\Omega,\\
-u&=\uD &&\text{on }S_u \quad\text{(potential given)},\\
-(\tk\nabla u)\cdot\vn&=\pD &&\text{on }S_\varphi \quad\text{(flux given)}.
-\end{aligned}\right.
-\end{equation}
-In components: $p_i=k_{ij}u_{,j}$, $p_{i,i}+f=0$, $p_in_i=\pD$.
+\begin{align}
+  \dive(\bbK\nabla u)+f&=0 &&\text{balance in }\Omega,\label{eq:diffusion}\\
+  u=\uD\ \text{on }S_u, &\qquad (\bbK\nabla u)\cdot\vn=\pD\ \text{on }S_\varphi
+  &&\text{potential given; flux given}.\notag
+\end{align}
 \end{gbox}
-The physical flux is $\vq=-\vp=-\tk\nabla u$: heat flows from hot to cold,
+The physical flux is $\vq=-\vp=-\bbK\nabla u$: heat flows from hot to cold,
 and $\pD=-\vq\cdot\vn$ is the \emph{incoming} flux; $f$ is a volume source.
+
+\paragraph{In Cartesian components.}
+\index{Cartesian components}%
+In an orthonormal basis $(\ve_1,\ve_2,\ve_3)$ with coordinates $x_i$, and
+$(\cdot)_{,j}=\partial(\cdot)/\partial x_j$, summation over repeated indices:
+\[
+  p_i=K_{ij}\,u_{,j},\qquad p_{i,i}+f=0,\qquad p_in_i=\pD,
+  \qquad\text{so}\qquad (K_{ij}u_{,j})_{,i}+f=0 .
+\]
+For an isotropic medium, $\bbK=k\tI$, the balance is $k\,\Delta u+f=0$ with
+$\Delta u=u_{,11}+u_{,22}+u_{,33}$.
+
+\paragraph{In cylindrical and spherical coordinates.}
+\index{cylindrical coordinates}\index{spherical coordinates}%
+The operators keep their meaning but their components change, because the
+basis vectors vary from point to point. In cylindrical coordinates
+$(r,\theta,z)$, with the basis $(\ve_r,\ve_\theta,\ve_z)$,
+\begin{align*}
+  \nabla u&=\partial_ru\,\ve_r+\frac1r\,\partial_\theta u\,\ve_\theta+\partial_zu\,\ve_z,\qquad
+  \dive\vp=\frac1r\,\partial_r(rp_r)+\frac1r\,\partial_\theta p_\theta+\partial_zp_z,\\
+  \Delta u&=\frac1r\,\partial_r(r\,\partial_ru)+\frac1{r^2}\,\partial^2_\theta u+\partial^2_zu .
+\end{align*}
+In spherical coordinates $(r,\theta,\psi)$, with $\theta$ the angle to the
+polar axis and $\psi$ the longitude,
+\begin{align*}
+  \nabla u&=\partial_ru\,\ve_r+\frac1r\,\partial_\theta u\,\ve_\theta
+  +\frac1{r\sin\theta}\,\partial_\psi u\,\ve_\psi,\\
+  \dive\vp&=\frac1{r^2}\,\partial_r(r^2p_r)+\frac1{r\sin\theta}\,\partial_\theta(\sin\theta\,p_\theta)
+  +\frac1{r\sin\theta}\,\partial_\psi p_\psi,\\
+  \Delta u&=\frac1{r^2}\,\partial_r(r^2\partial_ru)+\frac1{r^2\sin\theta}\,\partial_\theta(\sin\theta\,\partial_\theta u)
+  +\frac1{r^2\sin^2\theta}\,\partial^2_\psi u .
+\end{align*}
+For a radial field $u(r)$ the balance $k\Delta u+f=0$ is an ordinary
+differential equation: $\displaystyle \frac kr\,(ru')'+f=0$ for a cylinder,
+$\displaystyle \frac k{r^2}\,(r^2u')'+f=0$ for a sphere (Exercise~\ref{exo:q-radial}).
 
 \subsection{The tensor of diffusion coefficients}
 \index{conductivity tensor!symmetry and positivity}%
-\begin{gbox}{Symmetry and positivity of $\tk$}
+\begin{gbox}{Symmetry and positivity of $\bbK$}
 \begin{itemize}
-  \item $\tk=k_{ij}\,\ve_i\otimes\ve_j$ is a second-order tensor field;
-  \item symmetry, $k_{ij}=k_{ji}$: condition for an energy to exist (as for the
+  \item $\bbK=K_{ij}\,\ve_i\otimes\ve_j$ is a second-order tensor field,
+  written in blackboard bold like the moduli $\bbC$ it parallels;
+  \item symmetry, $K_{ij}=K_{ji}$: condition for an energy to exist (as for the
   springs, Section~\ref{ssec:symmetry}); in thermodynamics, Onsager's
   reciprocity;
-  \item positivity, $\vxi\cdot\tk\vxi\ge\alpha|\vxi|^2$ with $\alpha>0$: positive
+  \item positivity, $\vxi\cdot\bbK\vxi\ge\alpha|\vxi|^2$ with $\alpha>0$: positive
   dissipation, heat flows from hot to cold;
-  \item isotropy: $\tk=k\,\tI$ with $k>0$, a single coefficient.
+  \item isotropy: $\bbK=k\,\tI$ with $k>0$, a single coefficient.
 \end{itemize}
 \end{gbox}
-In its principal axes $\tk=\diag(k_1,k_2,k_3)$, $k_i>0$: isotropic for
+In its principal axes $\bbK=\diag(k_1,k_2,k_3)$, $k_i>0$: isotropic for
 $k_1=k_2=k_3=k$, transversely isotropic for a fibre composite or a layered
 rock, $k_1=k_2\neq k_3$. It is the second-order counterpart of the fourth-order
 tensor $\bbC$ of elasticity (Section~\ref{sec:el-moduli}). In the rest of this
@@ -158,8 +203,8 @@ The diffusion problem has the structure of the spring chain of
 Chapter~\ref{ch:var} (Figure~\ref{fig:tonti-diff}): the gradient plays the
 role of $\mat{B}$, the conductivity that of $\mat{C}$, and the pair formed by
 $-\dive$ in $\Omega$ and the normal trace $\cdot\,\vn$ on $S_\varphi$ that of
-$\mat{B}\T$. Substituting, $u$ solves $-\dive(\tk\nabla u)=f$; for an isotropic
-homogeneous medium, $\tk=k\tI$, this is the Poisson equation $-k\Delta u=f$.
+$\mat{B}\T$. Substituting, $u$ solves $-\dive(\bbK\nabla u)=f$; for an isotropic
+homogeneous medium, $\bbK=k\tI$, this is the Poisson equation $-k\Delta u=f$.
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[node distance=1.2cm and 1.3cm,
@@ -167,9 +212,9 @@ homogeneous medium, $\tk=k\tI$, this is the Poisson equation $-k\Delta u=f$.
   \node[tb,kin] (u) {$u$, \quad $u=\uD$ on $S_u$\\ \footnotesize potential};
   \node[tb,stat,right=3.6cm of u] (f) {$\dive\vp+f=0$ in $\Omega$,\ \ $\vp\cdot\vn=\pD$ on $S_\varphi$\\ \footnotesize sources and boundary fluxes};
   \node[tb,kin,below=of u] (e) {$\nabla u$\\ \footnotesize gradient};
-  \node[tb,stat,below=of f] (s) {$\vp=\tk\nabla u$\\ \footnotesize flux};
+  \node[tb,stat,below=of f] (s) {$\vp=\bbK\nabla u$\\ \footnotesize flux};
   \draw[arr] (u) -- (e) node[midway,left,font=\small]{$\nabla$};
-  \draw[arr] (e) -- (s) node[midway,below,font=\small]{$\tk$};
+  \draw[arr] (e) -- (s) node[midway,below,font=\small]{$\bbK$};
   \draw[arr] (s) -- (f) node[midway,right,font=\small]{$-\dive$, \ $\cdot\,\vn$};
   \node[below=0.15cm of e,kinlab,align=center] {kinematically admissible: $\Kad(\uD,S_u)$};
   \node[below=0.15cm of s,statlab,align=center] {statically admissible: $\Sad(f,\pD,S_\varphi)$};
@@ -185,7 +230,7 @@ The two columns define the two sets of admissible fields:
   \Kad(\uD,S_u)&=\{v\ :\ v=\uD\ \text{on }S_u\},\\
   \Sad(f,\pD,S_\varphi)&=\{\vp\ :\ \dive\vp+f=0\ \text{in }\Omega,\ \vp\cdot\vn=\pD\ \text{on }S_\varphi\}.
 \end{align*}
-The solution is the potential $u\in\Kad$ whose flux $\tk\nabla u$ lies in
+The solution is the potential $u\in\Kad$ whose flux $\bbK\nabla u$ lies in
 $\Sad$.
 
 \subsection{Virtual power: the weak form of the balance}
@@ -214,11 +259,26 @@ and~\eqref{eq:diff-pvp} for all $v$ is $\displaystyle \int_\Omega(\dive\vp+f)\,v
 Choosing $v=1$ gives the global balance $\displaystyle \int_\Omega f\dd x+\int_{\partial\Omega}\vp\cdot\vn\dd s=0$:
 what is produced inside leaves through the boundary.
 
+\begin{gbox}{Adjoint and transpose (diffusion)}
+\index{adjoint operator!of the gradient}%
+For every $v$ vanishing on $S_u$,
+\[
+  \int_\Omega\vp\cdot\nabla v\dd x=\int_\Omega(-\dive\vp)\,v\dd x
+  +\int_{S_\varphi}(\vp\cdot\vn)\,v\dd s .
+\]
+The adjoint of the gradient is a \emph{pair}: $-\dive$ in $\Omega$ together
+with the normal trace $\vp\cdot\vn$ on $S_\varphi$. In the discrete setting
+both are contained in the single matrix $\mat{B}\T$: the rows of the interior
+nodes give the balance there, the rows of the boundary nodes give the nodal
+fluxes. On $S_u$ the test functions vanish, and the trace there is the
+unknown reaction flux.
+\end{gbox}
+
 With the constitutive law, and $v$ restricted to the fields vanishing on
 $S_u$, the principle becomes the weak form of diffusion: find
 $u\in\Kad(\uD,S_u)$ such that
 \begin{equation}\label{eq:diffusion-weak}
-  \int_\Omega\tk\nabla u\cdot\nabla v\dd x=\int_\Omega fv\dd x
+  \int_\Omega\bbK\nabla u\cdot\nabla v\dd x=\int_\Omega fv\dd x
   +\int_{S_\varphi}\pD v\dd s\qquad\forall v\in\Kad(0,S_u).
 \end{equation}
 If $|S_u|>0$, the Poincar\'e inequality holds on $\Kad(0,S_u)$, the form is
@@ -232,25 +292,25 @@ and it is unique up to a constant (Exercise~\ref{exo:neumann}).
 As in thermoelasticity (Section~\ref{sec:el-energy}), we include an
 \emph{initial flux} $\vp_0$ and an \emph{imposed gradient} $\vect{g}^D$, so that
 \[
-  \vp=\vp_0+\tk\,(\nabla u-\vect{g}^D).
+  \vp=\vp_0+\bbK\,(\nabla u-\vect{g}^D).
 \]
 In porous media written in pressure, $\vect{g}^D=\rho\vect{g}$ is the weight of the
 fluid (gravity drives the flow even without pressure gradient); $\vp_0$
-represents a prescribed background flux. Without them, $\vp=\tk\nabla u$.
+represents a prescribed background flux. Without them, $\vp=\bbK\nabla u$.
 
 \begin{gbox}{Potential energy (diffusion)}
 For $v\in\Kad(\uD,S_u)$,
 \begin{equation}\label{eq:diffusion-energy}
   J(v)=\int_\Omega\Bigl(\vp_0\cdot\nabla v
-  +\tfrac12(\nabla v-\vect{g}^D)\cdot\tk(\nabla v-\vect{g}^D)\Bigr)\dd x
+  +\tfrac12(\nabla v-\vect{g}^D)\cdot\bbK(\nabla v-\vect{g}^D)\Bigr)\dd x
   -\int_\Omega fv\dd x-\int_{S_\varphi}\pD v\dd s .
 \end{equation}
 \end{gbox}
 
 \begin{gbox}{Complementary energy (diffusion)}
-For $\vq\in\Sad(f,\pD,S_\varphi)$, with $\hat\vq=\vq-\vp_0+\tk\vect{g}^D$,
+For $\vq\in\Sad(f,\pD,S_\varphi)$, with $\hat\vq=\vq-\vp_0+\bbK\vect{g}^D$,
 \begin{equation}\label{eq:diffusion-comp}
-  J^\ast(\vq)=-\frac12\int_\Omega\hat\vq\cdot\tk^{-1}\hat\vq\dd x
+  J^\ast(\vq)=-\frac12\int_\Omega\hat\vq\cdot\bbK^{-1}\hat\vq\dd x
   +\int_{S_u}\uD\,(\vq\cdot\vn)\dd s .
 \end{equation}
 \end{gbox}
@@ -270,7 +330,7 @@ For any admissible pair,
 $J^\ast(\vq)\le J^\ast(\vp)=J(u)\le J(v)$: two-sided bounds, as in elasticity.
 The proof is the same as for elasticity (Section~\ref{sec:el-energy}): the
 weak form~\eqref{eq:diffusion-weak} kills the linear part of $J(v)-J(u)$, and
-the quadratic part $\tfrac12\int\nabla(v-u)\cdot\tk\nabla(v-u)$ is non-negative.
+the quadratic part $\tfrac12\int\nabla(v-u)\cdot\bbK\nabla(v-u)$ is non-negative.
 The gap $J(v)-J^\ast(\vq)$ is computed in Exercise~\ref{exo:diff-comp}.
 
 \subsection{The Lagrangian of the potential energy}\label{ssec:diff-lagrangian}
@@ -284,7 +344,7 @@ a single stationarity condition~\cite{BonnetFrangi2007}.
 For unconstrained potentials $v$ and multipliers $\mu$ on $S_u$,
 \begin{multline}\label{eq:L-diff}
   \mathcal L(v,\mu)=\int_\Omega\Bigl(\vp_0\cdot\nabla v
-  +\tfrac12(\nabla v-\vect{g}^D)\cdot\tk(\nabla v-\vect{g}^D)\Bigr)\dd x\\
+  +\tfrac12(\nabla v-\vect{g}^D)\cdot\bbK(\nabla v-\vect{g}^D)\Bigr)\dd x\\
   -\int_\Omega fv\dd x-\int_{S_\varphi}\pD v\dd s
   -\int_{S_u}\mu\,(v-\uD)\dd s .
 \end{multline}
@@ -292,7 +352,7 @@ The solution $(u,\mu)$ is a saddle point of $\mathcal L$: a minimum in $v$ and
 a maximum in $\mu$.
 \end{gbox}
 \paragraph{Derivation of the equations.} Write
-$\vp=\vp_0+\tk(\nabla u-\vect{g}^D)$. Stationarity with respect to $\mu$ gives
+$\vp=\vp_0+\bbK(\nabla u-\vect{g}^D)$. Stationarity with respect to $\mu$ gives
 $u=\uD$ on $S_u$. Stationarity with respect to $v$, in every direction $w$,
 gives
 \[
@@ -387,9 +447,52 @@ maximum).
   &&\text{boundary conditions}, \label{eq:bc}
 \end{align}
 with $\partial\Omega=\overline{S_u}\cup\overline{S_t}$, $S_u\cap S_t=\emptyset$.
-In components: $\varepsilon_{ij}=\tfrac12(u_{i,j}+u_{j,i})$,
-$\sigma_{ij}=C_{ijkl}\varepsilon_{kl}$, $\sigma_{ij,j}+f_i=0$, $\sigma_{ij}n_j=t^D_i$.
 \end{gbox}
+
+\paragraph{In Cartesian components.}
+\index{Cartesian components}%
+In an orthonormal basis, with summation over repeated indices,
+\[
+  \varepsilon_{ij}=\tfrac12(u_{i,j}+u_{j,i}),\qquad
+  \sigma_{ij}=C_{ijkl}\,\varepsilon_{kl},\qquad
+  \sigma_{ij,j}+f_i=0,\qquad \sigma_{ij}n_j=t^D_i .
+\]
+Hooke's law, split into its components, reads for example
+\begin{align*}
+  \sigma_{11}&=C_{1111}\varepsilon_{11}+C_{1122}\varepsilon_{22}+C_{1133}\varepsilon_{33}
+  +2C_{1123}\varepsilon_{23}+2C_{1131}\varepsilon_{31}+2C_{1112}\varepsilon_{12},\\
+  \sigma_{12}&=C_{1211}\varepsilon_{11}+C_{1222}\varepsilon_{22}+C_{1233}\varepsilon_{33}
+  +2C_{1223}\varepsilon_{23}+2C_{1231}\varepsilon_{31}+2C_{1212}\varepsilon_{12}:
+\end{align*}
+the nine terms of the sum over $(k,l)$ reduce to six, because
+$\varepsilon_{kl}=\varepsilon_{lk}$ and $C_{ijkl}=C_{ijlk}$. The six
+equations are collected in matrix form in~\eqref{eq:voigt}.
+
+\paragraph{In cylindrical coordinates.}
+\index{cylindrical coordinates}%
+With $(r,\theta,z)$ and the basis $(\ve_r,\ve_\theta,\ve_z)$, the strains are
+\begin{align*}
+  &\varepsilon_{rr}=\partial_ru_r,\qquad
+  \varepsilon_{\theta\theta}=\frac{u_r}r+\frac1r\,\partial_\theta u_\theta,\qquad
+  \varepsilon_{zz}=\partial_zu_z,\\
+  &\varepsilon_{r\theta}=\frac12\Bigl(\frac1r\,\partial_\theta u_r+\partial_ru_\theta-\frac{u_\theta}r\Bigr),\quad
+  \varepsilon_{rz}=\frac12\bigl(\partial_zu_r+\partial_ru_z\bigr),\quad
+  \varepsilon_{\theta z}=\frac12\Bigl(\partial_zu_\theta+\frac1r\,\partial_\theta u_z\Bigr),
+\end{align*}
+and the balance $\dive\sig+\vf=\vzero$ is
+\begin{align*}
+  \partial_r\sigma_{rr}+\frac1r\,\partial_\theta\sigma_{r\theta}+\partial_z\sigma_{rz}
+  +\frac{\sigma_{rr}-\sigma_{\theta\theta}}r+f_r&=0,\\
+  \partial_r\sigma_{r\theta}+\frac1r\,\partial_\theta\sigma_{\theta\theta}+\partial_z\sigma_{\theta z}
+  +\frac{2\sigma_{r\theta}}r+f_\theta&=0,\\
+  \partial_r\sigma_{rz}+\frac1r\,\partial_\theta\sigma_{\theta z}+\partial_z\sigma_{zz}
+  +\frac{\sigma_{rz}}r+f_z&=0 .
+\end{align*}
+The terms divided by $r$ come from the derivatives of the basis vectors,
+$\partial_\theta\ve_r=\ve_\theta$ and $\partial_\theta\ve_\theta=-\ve_r$. They are the
+equations of the tubes and discs of Chapters~\ref{ch:pl-num}
+and~\ref{ch:pl-cyc}. Spherical coordinates are treated in the same way; the
+formulae are tabulated in~\cite{Salencon2001}.
 
 \paragraph{Classical boundary conditions.} The partition $S_u$/$S_t$ is a
 \index{boundary condition!elasticity}\index{contact!frictionless}%
@@ -441,8 +544,9 @@ involves the fourth-order tensor of elastic moduli
 \end{itemize}
 The symmetries leave $21$ independent moduli.
 \end{gbox}
-The major symmetry is the continuum analogue of the symmetry of $\mat{K}$ in
-Section~\ref{ssec:symmetry}: without it the work of deformation would depend
+The major symmetry is the continuum analogue of the symmetry of the stiffness
+matrix $\mat{K}$ of the springs (Section~\ref{ssec:symmetry}) and of the
+diffusion tensor $\bbK$ (Section~\ref{sec:diff}): without it the work of deformation would depend
 on the path, and no stored energy would exist.
 
 \paragraph{Matrix representation.} With the minor symmetries, stresses and
@@ -463,11 +567,45 @@ symmetric $6\times6$ matrix:
  \begin{pmatrix}\varepsilon_{11}\\ \varepsilon_{22}\\ \varepsilon_{33}\\ 2\varepsilon_{23}\\ 2\varepsilon_{31}\\ 2\varepsilon_{12}\end{pmatrix}.
 \end{equation}
 In \emph{Voigt notation} the entries are renamed $c_{IJ}$, $I,J=1,\dots,6$,
-with $11\to1$, $22\to2$, $33\to3$, $23\to4$, $31\to5$, $12\to6$. The factors
-$2$ on the shear strains make $\vect{\sigma}\cdot\vect{\varepsilon}$ in
-$\R^6$ equal to $\sig:\eps$, but the matrix of $\bbS$ then carries factors
-$2$ and $4$; the orthonormal (Mandel) basis, with factors $\sqrt2$, avoids
-this asymmetry.
+with $11\to1$, $22\to2$, $33\to3$, $23\to4$, $31\to5$, $12\to6$, and the
+stresses and the engineering strains are numbered in the same way:
+\begin{equation}\label{eq:voigt-c}
+ \begin{pmatrix}\sigma_1\\ \sigma_2\\ \sigma_3\\ \sigma_4\\ \sigma_5\\ \sigma_6\end{pmatrix}
+ =
+ \begin{pmatrix}
+   c_{11} & c_{12} & c_{13} & c_{14} & c_{15} & c_{16} \\
+          & c_{22} & c_{23} & c_{24} & c_{25} & c_{26} \\
+          &        & c_{33} & c_{34} & c_{35} & c_{36} \\
+          &        &        & c_{44} & c_{45} & c_{46} \\
+          & \text{sym.} &   &        & c_{55} & c_{56} \\
+          &        &        &        &        & c_{66}
+ \end{pmatrix}
+ \begin{pmatrix}\varepsilon_1\\ \varepsilon_2\\ \varepsilon_3\\ \varepsilon_4\\ \varepsilon_5\\ \varepsilon_6\end{pmatrix},
+ \qquad
+ \begin{aligned}
+ \sigma_4&=\sigma_{23},\ \sigma_5=\sigma_{31},\ \sigma_6=\sigma_{12},\\
+ \varepsilon_4&=2\varepsilon_{23},\ \varepsilon_5=2\varepsilon_{31},\ \varepsilon_6=2\varepsilon_{12}.
+ \end{aligned}
+\end{equation}
+The compliances are written in the same way, $\varepsilon_I=s_{IJ}\sigma_J$,
+with the matrix $(s_{IJ})$ the inverse of $(c_{IJ})$. The factors $2$ on the shear strains make
+$\sigma_I\varepsilon_I$ equal to $\sig:\eps$, but the relation between
+$s_{IJ}$ and $S_{ijkl}$ then carries factors $2$ and $4$
+($s_{44}=4S_{2323}$, $s_{14}=2S_{1123}$); the orthonormal (Mandel) basis, with
+factors $\sqrt2$ on both stresses and strains, avoids this asymmetry.
+
+\paragraph{Eigenmoduli.}
+\index{eigenmoduli}\index{Kelvin moduli|see{eigenmoduli}}%
+In the Mandel basis the matrix of $\bbC$ is symmetric for the Euclidean
+product of $\R^6$, and its eigenvalues are those of $\bbC$ as a linear map of
+symmetric tensors. They are called the \emph{eigenmoduli} (or Kelvin
+moduli), and the eigentensors split the space of stresses and strains into
+orthogonal eigenspaces: on each of them $\sig$ is proportional to $\eps$. For
+an isotropic material there are two, the spherical tensors with the
+eigenmodulus $3K$ and the deviators with $2\mu$ (box ``Isotropic elasticity''
+below). The eigenspaces are important to understand the deformation
+mechanisms of anisotropic materials, but will not be discussed further;
+see~\cite{CowinMehrabadi1987,MehrabadiCowin1990}.
 
 \paragraph{Measured values.} Table~\ref{tab:el-stiffness} gives the elastic
 \index{elastic moduli!measured values}%
@@ -547,10 +685,11 @@ of~\cite{Nye1985}.}
 
 \begin{gbox}{Isotropic elasticity}
 \index{elasticity!isotropic}\index{Lam\'e constants@Lam\'e constants}\index{Young's modulus}\index{Poisson's ratio}\index{bulk modulus}%
+The stiffness $\bbC$ and the compliance $\bbS=\bbC^{-1}$ are
 \begin{gather}
-  \bbC=\lambda\,\tI\otimes\tI+2\mu\,\bbI,\qquad
+  \text{stiffness:}\quad \bbC=\lambda\,\tI\otimes\tI+2\mu\,\bbI,\qquad
   \sig=\lambda(\tr\eps)\,\tI+2\mu\,\eps,\\
-  \bbS=-\frac{\nu}{E}\,\tI\otimes\tI+\frac{1+\nu}{E}\,\bbI,\qquad
+  \text{compliance:}\quad \bbS=-\frac{\nu}{E}\,\tI\otimes\tI+\frac{1+\nu}{E}\,\bbI,\qquad
   \eps=-\frac{\nu}{E}(\tr\sig)\,\tI+\frac{1+\nu}{E}\,\sig,
 \end{gather}
 with $\bbI$ the symmetric fourth-order identity,
@@ -648,8 +787,7 @@ three stiffnesses $E$, $\mu$ and $K$ must be positive.}
 
 \paragraph{Negative Poisson's ratio.} The range $-1<\nu<\tfrac12$ is imposed
 \index{auxetic material}\index{Poisson's ratio!negative}%
-by stability, i.e.\ the positive definiteness of $\bbC$, not by
-thermodynamics. Nothing forbids
+by stability, i.e.\ the positive definiteness of $\bbC$. Nothing forbids
 $\nu<0$: \emph{auxetic} materials, mostly architected lattices and foams,
 expand laterally when stretched.
 
@@ -726,23 +864,18 @@ $\displaystyle \int_\Omega(\dive\sig+\vf)\cdot\vv+\int_{\partial\Omega}(\vt-\sig
 This is the continuum version of $\vect{\sigma}\T\mat{B}\vu=\vf\T\vu$: the
 divergence is the adjoint of the symmetric gradient.
 
-\begin{gbox}{Adjoint and transpose}
+\begin{gbox}{Adjoint and transpose (elasticity)}
 \index{adjoint operator!of the gradient}\index{adjoint operator!boundary trace}%
-The adjoint of the kinematic operator is a \emph{pair}: an operator in the
-volume and a trace on the boundary,
-\begin{align*}
-  \int_\Omega\sig:\eps[\vv]\dd x&=\int_\Omega(-\dive\sig)\cdot\vv\dd x
-  +\int_{S_t}(\sig\vn)\cdot\vv\dd s,\\
-  \int_\Omega\vp\cdot\nabla v\dd x&=\int_\Omega(-\dive\vp)\,v\dd x
-  +\int_{S_\varphi}(\vp\cdot\vn)\,v\dd s,
-\end{align*}
-for all $\vv$, $v$ vanishing on $S_u$. The adjoint of $\eps[\cdot]$ is $-\dive$
-in $\Omega$ together with the traction $\sig\vn$ on $S_t$; the adjoint of
-$\nabla$ is $-\dive$ in $\Omega$ together with the flux $\vp\cdot\vn$ on
-$S_\varphi$. In the discrete setting both are contained in the single matrix
-$\mat{B}\T$: interior rows give the balance of the internal nodes, rows of
-boundary nodes give the nodal forces. On $S_u$ the test functions vanish,
-and the trace there is the unknown reaction.
+For every $\vv$ vanishing on $S_u$,
+\[
+  \int_\Omega\sig:\eps[\vv]\dd x=\int_\Omega(-\dive\sig)\cdot\vv\dd x
+  +\int_{S_t}(\sig\vn)\cdot\vv\dd s .
+\]
+As for diffusion, the adjoint of the kinematic operator $\eps[\cdot]$ is a
+pair: $-\dive$ in $\Omega$ together with the traction $\sig\vn$ on $S_t$. Both
+are contained in the matrix $\mat{B}\T$: interior rows give the balance of the
+internal nodes, rows of boundary nodes give the nodal forces. On $S_u$ the
+trace is the unknown reaction.
 \end{gbox} Rigid motions do no
 internal work; for a body without displacement constraints, choosing rigid
 $\vv$ in~\eqref{eq:pvp} gives the global balance of forces and moments.
@@ -761,7 +894,8 @@ For diffusion, coercivity came from the Poincar\'e inequality. In elasticity
 the energy controls only the \emph{symmetric} part of $\nabla\vv$: the skew
 part, an infinitesimal rotation, costs no energy. Positive definiteness of
 $\bbC$ is therefore not enough by itself. The missing step is a classical
-inequality of Korn.
+inequality of Korn~\cite{Korn1908}; Horgan~\cite{Horgan1995}
+reviews its proofs, its constants and its applications.
 \begin{gbox}{Korn's inequality and well-posedness of elasticity}
 Let $\Omega$ be bounded, connected, with a Lipschitz boundary, and
 $|S_u|>0$. There is a constant $c_K>0$ such that
@@ -849,12 +983,7 @@ $\displaystyle \int_\Omega\sig:\eps[\vu]=\int_\Omega\vfD\cdot\vu+\int_{S_t}\vtD\
 
 \begin{figure}[h]
 \centering
-\begin{minipage}{0.45\textwidth}\centering
-\includegraphics[width=0.9\textwidth]{figures/ch2/convex_minimum.pdf}
-\end{minipage}\hfill
-\begin{minipage}{0.45\textwidth}\centering
-\includegraphics[width=0.9\textwidth]{figures/ch2/convex_du.pdf}
-\end{minipage}
+\input{figures/tikz/el_convexity}
 \caption{Left: the potential energy is minimal at $\vu$. Right: a convex
 function lies above its tangent, $\mathcal U_i(\vv)\ge\mathcal U_i(\vu)+D\mathcal U_i(\vu)(\vv-\vu)$.}
 \label{fig:convexity}
@@ -862,11 +991,12 @@ function lies above its tangent, $\mathcal U_i(\vv)\ge\mathcal U_i(\vu)+D\mathca
 
 \begin{figure}[h]
 \centering
-\includegraphics[height=6cm]{figures/ch2/energy_scheme.pdf}
+\input{figures/tikz/el_energy_scheme}
 \caption{The potential energy $\mathcal U_p[\vv]$ (a convex bowl over
 kinematically admissible fields) and the complementary energy
 $\mathcal U_p^\ast[\tens{s}]$ (a concave cap over statically admissible
-fields) touch at the solution.}
+fields) touch at the solution: the minimum of the bowl equals the maximum
+of the cap.}
 \label{fig:energy-scheme}
 \end{figure}
 
@@ -930,15 +1060,15 @@ elements are a particular case.
 \subsection{The Ritz--Galerkin method}
 \begin{gbox}{Ritz--Galerkin approximation}
 The approximate solution $\vu^A$ minimizes the potential energy over a
-finite-dimensional subset $\Kad_A\subset\Kad(\vuD,S_u)$ of admissible
+finite-dimensional subset $\Kad^A\subset\Kad(\vuD,S_u)$ of admissible
 displacement fields:
 \[
-  \vu^A=\argmin_{\vv\in\Kad_A}\mathcal U_p[\vv].
+  \vu^A=\argmin_{\vv\in\Kad^A}\mathcal U_p[\vv].
 \]
 \end{gbox}
 \begin{figure}[h]
 \centering
-\includegraphics[angle=-90,width=0.38\textwidth]{figures/ch2/approximate_solution.pdf}
+\input{figures/tikz/el_ritz}
 \caption{The Ritz approximation minimizes the same energy on a smaller set
 $\Kad^A\subset\Kad$; by the minimum principle,
 $\mathcal U_p(\vu)\le\mathcal U_p(\vu^A)$.}
@@ -1010,7 +1140,8 @@ conditioned.
 the trial functions are the B-splines or NURBS that describe the exact CAD
 geometry, smoother than standard elements ($C^{p-1}$ for degree $p$). They
 are presented and compared with finite elements in
-Section~\ref{sec:var-iga}.
+Section~\ref{sec:var-igasec}, and applied to elasticity in
+Section~\ref{sec:el-iga}.
 \end{itemize}
 
 \subsection{Finite elements}
@@ -1026,10 +1157,11 @@ where $w_m$ is the shape function of node $m$: equal to $1$ at node $m$, $0$ at
 the other nodes, polynomial on each element (Figure~\ref{fig:fem}).
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.3\textwidth]{figures/ch2/fem_mesh.pdf}\qquad\qquad
-\includegraphics[width=0.36\textwidth]{figures/ch2/fem_element.pdf}
-\caption{Left: a mesh $\Omega_h$ of the domain $\Omega$. Right: the shape
-function of a node, linear on each triangle.}
+\input{figures/tikz/el_fem}
+\caption{Left: a mesh $\Omega_h$ of the domain $\Omega$; its boundary polygon
+approximates $\partial\Omega$. Right: the contribution $u_i(\vx_m)\,w_m$ of the
+node $m$: the shape function $w_m$ is $1$ at $\vx_m$, $0$ at the neighbouring
+nodes, and linear on each triangle.}
 \label{fig:fem}
 \end{figure}
 
@@ -1136,10 +1268,11 @@ with Figures~\ref{fig:tonti-discrete} and~\ref{fig:tonti-el}.}
 \end{figure}
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.45\textwidth]{figures/ch2/fem_point_gauss.pdf}
-\caption{Nodes, where the displacements live, and Gauss points, where strains
-and stresses are computed: $[\vu]\to\mat{B}\to[\eps]$ and
-$[\sig]\to\mat{B}\T\to[\vf]$.}
+\input{figures/tikz/el_gauss}
+\caption{Reference triangle. The nodes carry the displacements $\mat{u}$ and
+the nodal forces $\mat{F}$; the Gauss points carry the strains and stresses,
+$\mat{e}=\mat{B}\mat{u}$, and the forces are collected by $\mat{F}=\mat{B}\T\mat{s}$
+(Figure~\ref{fig:tonti-fem}).}
 \label{fig:gauss}
 \end{figure}
 
@@ -1153,6 +1286,38 @@ linear triangles recovers it within $1\%$ with a few thousand unknowns,
 provided the mesh is refined near the hole (Exercise~\ref{exo:kirsch},
 Figure~\ref{fig:kirsch}).
 
+\subsection{Isogeometric analysis and finite elements}\label{sec:el-iga}
+\index{isogeometric analysis!elasticity}\index{NURBS}%
+Isogeometric analysis~\cite{HughesCottrellBazilevs2005,CottrellHughesBazilevs2009}
+is the Ritz--Galerkin method with another choice of trial functions: the
+displacement is expanded on the NURBS $R_A$ that describe the geometry,
+\[
+  \vu_h(\vx)=\sum_AR_A(\vxi)\,\vu_A,\qquad \vx=\vx(\vxi),
+\]
+with vector control variables $\vu_A$ in place of nodal displacements. The
+B-splines, the NURBS and the comparison with finite elements are presented
+in Section~\ref{sec:var-igasec}; for elasticity three points matter.
+\begin{itemize}
+\item \emph{The structure is unchanged.} The strains are $\mat{e}=\mat{B}\mat{u}$
+at the Gauss points of each knot span, the stresses $\mat{s}=\mat{C}\mat{e}$,
+and $\mat{K}=\mat{B}\T\mat{C}\mat{B}$ is assembled as in
+Figure~\ref{fig:tonti-fem}. Only the shape functions and the double mapping
+from the parent element change.
+\item \emph{The geometry is exact.} A quarter of the plate with a hole is a
+single NURBS patch, and the circle is represented exactly at every
+refinement; with finite elements the hole is a polygon, and the error of the
+boundary adds to the error of the approximation precisely where the stress
+concentration is computed. This benchmark was one of the first examples of
+isogeometric analysis~\cite{HughesCottrellBazilevs2005}.
+\item \emph{The stresses are smoother.} With $C^{p-1}$ splines the stresses
+are continuous across the elements for $p\ge2$, while the stresses of
+Lagrange elements jump and need smoothing. On the other hand the displacements
+on $S_u$ are not nodal values: a prescribed displacement other than zero is
+imposed by projection, by Nitsche's method or by Lagrange multipliers, and
+local refinement near a hole or a notch is less easy than with an
+unstructured mesh (Table~\ref{tab:fem-iga}).
+\end{itemize}
+
 %======================================================================
 \framepart{Summary}
 \begin{gbox*}
@@ -1161,7 +1326,7 @@ Figure~\ref{fig:kirsch}).
   springs, diffusion, elasticity, finite elements (Table~\ref{tab:diff-el},
   Figures~\ref{fig:tonti-diff}, \ref{fig:tonti-el} and~\ref{fig:tonti-fem}):
   kinematic quantities and data (blue), static quantities and data (green),
-  joined by the material law $\tk$ or $\bbC$.
+  joined by the material law $\bbK$ or $\bbC$.
   \item \textbf{Adjoint and transpose.} The adjoint of $\nabla$ and of
   $\eps[\cdot]$ is the pair formed by $-\dive$ in $\Omega$ and the boundary
   trace $\cdot\,\vn$ on $S_\varphi$ or $S_t$, the flux or the traction on the
@@ -1237,6 +1402,20 @@ is skew and $\eps[\vv]=\vzero$. The energy vanishes while
 $\norm{\vv}_{H^1}>0$: no inequality $a(\vv,\vv)\ge c\norm{\vv}^2_{H^1}$ can hold
 on $H^1(\Omega)^3$. If $\vv=\vzero$ on a part $S_u$ of positive area, the only
 rigid motion allowed is zero, and Korn's inequality restores coercivity.
+\end{solution}
+
+\exercise{Radial conduction}\label{exo:q-radial}
+\index{cylindrical coordinates}\index{spherical coordinates}%
+An isotropic tube $a<r<b$ (conductivity $k$, no source) is held at the
+temperatures $u(a)=u_a$ and $u(b)=u_b$. Find $u(r)$ and the heat flow per unit
+length. Same question for a hollow sphere.
+\begin{solution}
+Tube: $(ru')'=0$, so $u=A+B\ln r$ and
+$\displaystyle u=u_a+(u_b-u_a)\,\frac{\ln(r/a)}{\ln(b/a)}$. The outward heat flow
+per unit length is $\displaystyle -2\pi rk\,u'=\frac{2\pi k\,(u_a-u_b)}{\ln(b/a)}$,
+independent of $r$ (the balance). Sphere: $(r^2u')'=0$, so $u=A+B/r$,
+$\displaystyle u=u_a+(u_b-u_a)\,\frac{1/a-1/r}{1/a-1/b}$, and the heat flow is
+$\displaystyle \frac{4\pi k\,(u_a-u_b)}{1/a-1/b}$.
 \end{solution}
 
 \exercise{Is this crystal isotropic?}\label{exo:q-zener}
@@ -1428,9 +1607,9 @@ For $v$ and $\vq$ admissible, integrate by parts:
 $\displaystyle \int_\Omega\vq\cdot\nabla v=-\int_\Omega(\dive\vq)v+\int_{\partial\Omega}(\vq\cdot\vn)v
 =\int_\Omega fv+\int_{S_\varphi}\pD v+\int_{S_u}\uD\,\vq\cdot\vn$. Then
 \[
-  J(v)-J^\ast(\vq)=\frac12\int_\Omega(\tk\nabla v-\vq)\cdot\tk^{-1}(\tk\nabla v-\vq)\dd x\ge0 ,
+  J(v)-J^\ast(\vq)=\frac12\int_\Omega(\bbK\nabla v-\vq)\cdot\bbK^{-1}(\bbK\nabla v-\vq)\dd x\ge0 ,
 \]
-with equality iff $\vq=\tk\nabla v$, i.e.\ at the solution. The gap
+with equality iff $\vq=\bbK\nabla v$, i.e.\ at the solution. The gap
 $J(v)-J^\ast(\vq)$ is computable and bounds the error in energy norm: this is
 the basis of a posteriori error estimation by constitutive relation error.
 \end{solution}
@@ -1648,15 +1827,19 @@ perturbation decays within a few radii.}
 \bibitem{BonnetFrangi2007} M.~Bonnet, A.~Frangi, \emph{Analyse des solides d\'eformables par la m\'ethode des \'el\'ements finis}, \'Editions de l'\'Ecole Polytechnique, 2007.
 \bibitem{Chadwick2001} P.~Chadwick, M.~Vianello, S.~C.~Cowin, A new proof that the number of linear elastic symmetries is eight, \emph{J. Mech. Phys. Solids} 49 (2001) 2471--2492.
 \bibitem{Coirier1997} J.~Coirier, \emph{M\'ecanique des milieux continus}, Dunod, 1997.
+\bibitem{CowinMehrabadi1987} S.~C.~Cowin, M.~M.~Mehrabadi, On the identification of material symmetry for anisotropic elastic materials, \emph{Q. J. Mech. Appl. Math.} 40 (1987) 451--476.
 \bibitem{Crank1975} J.~Crank, \emph{The Mathematics of Diffusion}, 2nd ed., Oxford University Press, 1975.
 \bibitem{ConstantinescuKorsunsky2007} A.~Constantinescu, A.~Korsunsky, \emph{Elasticity with Mathematica}, Cambridge University Press, 2007.
 \bibitem{CottrellHughesBazilevs2009} J.~A.~Cottrell, T.~J.~R.~Hughes, Y.~Bazilevs, \emph{Isogeometric Analysis: Toward Integration of CAD and FEA}, Wiley, 2009.
 \bibitem{FreezeCherry} R.~A.~Freeze, J.~A.~Cherry, \emph{Groundwater}, Prentice-Hall, 1979.
 \bibitem{Germain1983} P.~Germain, \emph{M\'ecanique des milieux continus}, Masson, 1983.
 \bibitem{HughesCottrellBazilevs2005} T.~J.~R.~Hughes, J.~A.~Cottrell, Y.~Bazilevs, Isogeometric analysis: CAD, finite elements, NURBS, exact geometry and mesh refinement, \emph{Comput. Methods Appl. Mech. Engrg.} 194 (2005) 4135--4195.
+\bibitem{Horgan1995} C.~O.~Horgan, Korn's inequalities and their applications in continuum mechanics, \emph{SIAM Review} 37 (1995) 491--511.
 \bibitem{Hughes1987} T.~J.~R.~Hughes, \emph{The Finite Element Method}, Prentice Hall, 1987.
 \bibitem{IncroperaDeWitt} F.~P.~Incropera, D.~P.~DeWitt, T.~L.~Bergman, A.~S.~Lavine, \emph{Fundamentals of Heat and Mass Transfer}, 6th ed., Wiley, 2007.
 \bibitem{Kirsch1898} E.~G.~Kirsch, Die Theorie der Elastizit\"at und die Bed\"urfnisse der Festigkeitslehre, \emph{Zeitschrift des Vereines deutscher Ingenieure} 42 (1898) 797--807.
+\bibitem{Korn1908} A.~Korn, Solution g\'en\'erale du probl\`eme d'\'equilibre dans la th\'eorie de l'\'elasticit\'e dans le cas o\`u les efforts sont donn\'es \`a la surface, \emph{Ann. Fac. Sci. Toulouse} 10 (1908) 165--269.
+\bibitem{MehrabadiCowin1990} M.~M.~Mehrabadi, S.~C.~Cowin, Eigentensors of linear anisotropic elastic materials, \emph{Q. J. Mech. Appl. Math.} 43 (1990) 15--41.
 \bibitem{Nye1985} J.~F.~Nye, \emph{Physical Properties of Crystals: Their Representation by Tensors and Matrices}, Oxford University Press, 1957; revised edition 1985.
 \bibitem{Salencon2001} J.~Salen\c{c}on, \emph{Handbook of Continuum Mechanics: General Concepts, Thermoelasticity}, Springer, 2001.
 \bibitem{SoutasLittle1973} R.~W.~Soutas-Little, \emph{Elasticity}, Dover, 1973.
