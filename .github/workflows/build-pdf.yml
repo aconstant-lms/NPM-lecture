@@ -42,11 +42,24 @@ jobs:
           latexmk_use_lualatex: false
           args: -pdf -interaction=nonstopmode -file-line-error -halt-on-error
 
+      - name: Compile the exercise session of Chapter 3 (uses the .aux files of the book)
+        id: session3
+        continue-on-error: true
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: sessions
+          root_file: session_ch3.tex
+          latexmk_use_lualatex: false
+          args: -pdf -interaction=nonstopmode -file-line-error -halt-on-error
+
       - name: Name the PDFs
         run: |
           cp main.pdf NPM_lecture_notes.pdf
           if [ -f cast3m_companion/cast3m_companion.pdf ]; then
             cp cast3m_companion/cast3m_companion.pdf NPM_cast3m_companion.pdf
+          fi
+          if [ -f sessions/session_ch3.pdf ]; then
+            cp sessions/session_ch3.pdf NPM_session_ch3.pdf
           fi
 
       - name: Publish as release "latest"
@@ -58,6 +71,7 @@ jobs:
           gh release delete latest --yes --cleanup-tag || true
           FILES="NPM_lecture_notes.pdf"
           if [ -f NPM_cast3m_companion.pdf ]; then FILES="$FILES NPM_cast3m_companion.pdf"; fi
+          if [ -f NPM_session_ch3.pdf ]; then FILES="$FILES NPM_session_ch3.pdf"; fi
           gh release create latest $FILES \
             --target "$GITHUB_SHA" \
             --title "Lecture notes - latest build ($DATE)" \
@@ -74,3 +88,5 @@ jobs:
             main.log
             cast3m_companion/cast3m_companion.pdf
             cast3m_companion/cast3m_companion.log
+            sessions/session_ch3.pdf
+            sessions/session_ch3.log

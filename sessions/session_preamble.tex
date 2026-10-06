@@ -1,0 +1,67 @@
+%======================================================================
+%  session_preamble.tex -- what the exercise sessions add to the shared
+%  preamble of the notes (preamble/style.tex, notation.tex)
+%======================================================================
+
+\usepackage{environ}
+
+%---- page header: course, year, chapter ---------------------------------
+\newcommand{\sessioncourse}{Nonlinear Methods in Mechanics -- 2026}
+\newcommand{\sessionchapter}{}            % set by each session
+\fancypagestyle{session}{%
+  \fancyhf{}%
+  \fancyhead[L]{\sffamily\small\sessioncourse}%
+  \fancyhead[R]{\sffamily\small\sessionchapter}%
+  \fancyfoot[C]{\sffamily\small\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}}
+
+% title block of a sheet (no title page: the sheet is printed)
+\newcommand{\sessiontitle}[2]{%
+  \thispagestyle{session}%
+  \begin{center}
+  {\sffamily\bfseries\Large \sessioncourse\par}\vspace{1.5mm}
+  {\sffamily\bfseries\large #1\par}\vspace{1mm}
+  {\sffamily Andrei CONSTANTINESCU --
+   \texttt{andrei.constantinescu@polytechnique.edu}\par}\vspace{1mm}
+  {\sffamily\small #2\par}
+  \end{center}
+  {\color{gray!55}\hrule height 0.4pt}\medskip}
+
+%---- parts a, b, ... and questions a.1, a.2, ... ------------------------
+\newcounter{spart}
+\renewcommand{\thespart}{\alph{spart}}
+\newcounter{sq}[spart]
+\makeatletter
+\newcommand{\spart}[1]{\par\addvspace{2.2ex plus .5ex}%
+  \refstepcounter{spart}%
+  {\noindent\sffamily\bfseries\large\thespart.\quad #1\par}%
+  \nobreak\vspace{0.6ex}\nobreak\@afterheading}
+\makeatother
+\newcommand{\q}{\par\smallskip\noindent\refstepcounter{sq}%
+  {\sffamily\bfseries\thespart.\arabic{sq}}\quad}
+% a question done with the codes
+\newcommand{\qc}{\par\smallskip\noindent\refstepcounter{sq}%
+  {\sffamily\bfseries\thespart.\arabic{sq}\,\textcolor{cu}{[code]}}\quad}
+
+%---- answers: printed only in the second copy of the sheet --------------
+\newif\ifanswers
+\NewEnviron{answer}{\ifanswers\par\smallskip
+  \begingroup\small\noindent
+  {\sffamily\bfseries\color{cphi!80!black}Answer.}\ \BODY\par
+  \endgroup\medskip\fi}
+
+% a gibiane operator or keyword in the running text
+\providecommand{\op}[1]{\texttt{#1}}
+
+%---- guides -------------------------------------------------------------
+\lstdefinestyle{shstyle}{language=bash,
+  basicstyle=\ttfamily\scriptsize,
+  backgroundcolor=\color{gray!6},frame=none,
+  breaklines=true,showstringspaces=false,
+  xleftmargin=0.6em,aboveskip=4pt,belowskip=4pt}
+\newcommand{\guidesec}[1]{\par\addvspace{2.5ex plus .5ex}%
+  {\noindent\sffamily\bfseries\large #1\par}%
+  \nobreak\vspace{0.5ex}\nobreak}
+\newcommand{\block}[1]{\par\smallskip\noindent{\sffamily\bfseries #1}\quad}
+% a status line (shown in red under \drafttrue)
+\newcommand{\untested}[1]{\draftnote{#1}}

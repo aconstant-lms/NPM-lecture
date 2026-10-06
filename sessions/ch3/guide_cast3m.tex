@@ -1,0 +1,172 @@
+%======================================================================
+%  Guide: rg_session.dgibi (Cast3M)
+%======================================================================
+\sessiontitle{Guide 1 -- Cast3M: \texttt{rg\_session.dgibi}}
+  {Blocks, figures and how to run them. Built on
+   \texttt{crack\_rg\_extension.dgibi} (version 3, Cast3M 2026).}
+
+\untested{Status: this file has not been run with Cast3M yet. It uses the
+constructions of crack\_rg\_extension.dgibi (run with Cast3M 2026) and the
+rules of its header; the values of Section 5 of the common part are the
+references it must reproduce to about two digits.}
+
+\guidesec{1\quad Running the file}
+\begin{enumerate}[itemsep=1pt]
+\item Put \texttt{rg\_session.dgibi} in a working folder and open a terminal
+there.
+\item Run it with your Cast3M launcher (\texttt{castem26}, \texttt{castem}, \dots),
+keeping a log:
+\begin{lstlisting}[style=shstyle]
+cd ~/work/rg
+castem26 rg_session.dgibi 2>&1 | tee run.log
+\end{lstlisting}
+\item With \texttt{graph = vrai}, each \op{trac}/\op{dess} opens a window and the
+run waits there; close it (or use the continue control of your version) to
+go to the next figure. The messages \texttt{FIG k : ...} are printed just
+before.
+\item To get files instead of windows, uncomment \texttt{opti trac psc;} at
+the top: the plots go to a PostScript file (convert with \texttt{ps2pdf}).
+\item For a run without graphics, \texttt{graph = faux;}. The run takes a few
+seconds.
+\end{enumerate}
+
+\guidesec{2\quad Parameters (Block 0)}
+\begin{center}\small
+\begin{tabular}{>{\ttfamily}l l p{8cm}}
+\toprule
+\rmfamily name & default & meaning\\
+\midrule
+ldom, hdom & 1.5, 2. & width and height of the rectangle\\
+nelem & 30 & elements per outer side ($\texttt{nelem}/2$ on the crack and the cut lines)\\
+xpa ypa xpb ypb & crack tips & the true crack $A$--$B$ (mesh and errors only)\\
+eps & 0. & relative noise on the measured values (0. = exact data)\\
+nxi, xiest & 8, 2. & Fourier fields $\xi=1\dots\texttt{nxi}$; $\xi$ of the length estimate\\
+nsine & 5 & number of sine--sinh terms\\
+nbeta & 12 & turning potential: angles $0,\,180/\texttt{nbeta},\dots$ degrees\\
+graph & vrai & draw the figures\\
+\bottomrule
+\end{tabular}
+\end{center}
+Recipes: \textbf{check the installation} with \texttt{eps = 0.}: angle error
+$<10^{-2}$ degree, $c\approx0.291$, lengths $\approx0.33$. \textbf{Noise}:
+\texttt{eps = 0.001;} or \texttt{0.01;}, several runs: \op{bruit} draws a new
+realisation each time. \textbf{Mesh}: \texttt{nelem = 16} or \texttt{60}; Steps
+1--2 do not change (exact identity), the Fourier and sine--sinh values do.
+\textbf{Other cracks}: change \texttt{xpa \dots\ ypb}, keeping $A$ closer to
+$p_1=(0,0)$ than $B$ and both tips inside the domain.
+
+\guidesec{3\quad The blocks}
+\block{Block 1 -- Geometry and mesh.} The construction of
+\texttt{crack\_rg\_extension.dgibi}: the lips \texttt{dplus} and \texttt{dmoins}
+are two \op{droite} with the same end points, and the domain is the union of
+\texttt{smoins} and \texttt{splus}, meshed by \op{surf} on either side of the cut
+$p_1$--$A$--$B$--$p_3$. The crack nodes are therefore doubled, except at the
+tips. \texttt{cdom} is the outer boundary.
+
+\block{Block 2 -- Model.} Thermal model, \texttt{K = 1}, \texttt{KK = cond mo ma}.
+Centred coordinates \texttt{xr}, \texttt{yr}; the absolute \texttt{xx}, \texttt{yy}
+are kept for Block 8b. FIG~1.
+
+\block{Block 3 -- Procedures.} \texttt{rgap ub qb v kk} returns
+$\RG_h(v)=\op{xty}(u_b,(Kv)_b)-\op{xty}(q_b,v_b)$; the test field is renamed
+to the component \texttt{T} (\op{exco}) and reduced to the boundary nodes
+(\op{redu}) before \op{xty}. \texttt{mesbr u kk cd dmu dmq epu epq} returns the
+boundary potential (\texttt{T}) and flux (\texttt{Q} $=$ \texttt{KK * u}) with the
+noise of \op{bruit} on the measured parts \texttt{dmu}, \texttt{dmq} only.
+\texttt{ztrap ls lv} integrates a list by trapezoids (it avoids \op{intg} on an
+evolution).
+
+\block{Block 4 -- Experiment E1.} \op{bloq} on \texttt{d12}, \texttt{d34}, \op{depi}
+$h$ on the top, \op{reso}. FIG~2. The opening is read with
+\texttt{evol 'CHPO'} on the two lips (same nodes, same order); its integral
+\texttt{mtru} and the infinite-body curve are FIG~3.
+
+\block{Block 5 -- Measurement.} $u$ measured on the vertical sides without the
+corners (\texttt{pver}), flux on the electrodes (\texttt{dhor}). $\RG(1)$ with the
+field of ones \texttt{exp (0. * xr)} (no \op{masq}).
+
+\block{Block 6 -- Normal and line.} \texttt{rx}, \texttt{ry}, $m_0$, $\vn$,
+$\vt=(-n_y,n_x)$, then $c$ with \texttt{v2}. The angle error is \op{acos}
+of $|\vn\cdot\vn_{\rm true}|$, in degrees.
+
+\block{Block 7 -- Moments and dipole.} \texttt{eta}, \texttt{ss*eta},
+\texttt{v3 = sp*sp*eta - eta**3/3}; \texttt{amom} is set to 0 when $\mu_2\le0$.
+$E_n=\vE\cdot\vn$ with $\vE=(0,1)$. The tips $\vx_0+c\vn+(s_0\pm a_{\rm dip})\vt$
+give FIG~4; the semi-ellipses of area $m_0$ give FIG~5.
+
+\block{Block 8 -- Fourier and sine--sinh.} (a) For $\xi=1\dots\texttt{nxi}$:
+\texttt{egro = exp (xi * eta)}, \texttt{vc} and \texttt{vs} with \op{cos}/\op{sin}
+of \texttt{r2d * xi * sp} (degrees); the true $C(\xi)$ is integrated on the lips
+with \texttt{ztrap}. The length uses the closed-form root of
+$x^4/192-x^2/8+1-\rho=0$. FIG~6, with $2J_1(x)/x$ by its series.
+(b) The method of the original procedure with its formula corrected:
+$t$ oriented towards $x>0$, abscissa $g$ from the point of the line at $x=0$,
+\texttt{LL} $=\sqrt2\max(\ell,h)$, coefficients $2\RG(v_k)/L$. FIG~7.
+
+\block{Block 9 -- Turning potential.} \texttt{bord = bloq 'T' cdom}; the
+boundary values of \texttt{xr}, \texttt{yr} renamed \texttt{T} are imposed with
+\op{depi}: two solves \texttt{upx}, \texttt{upy}. For each angle,
+$u_\beta=\cos\beta\,u_x+\sin\beta\,u_y$, flux measured with noise, data stored
+in the tables \texttt{tub}, \texttt{tqb} (indexed by integers: no table of
+tables), rows of $R$ in \texttt{lrx}, \texttt{lry}. $R^\top R$ is the $2\times2$
+matrix \texttt{[saa sab; sab sdd]}: its eigenvalues in closed form, its first
+eigenvector is the normal (no \op{atg}). Weights, virtual field and the
+virtual experiment follow. FIG~8 and FIG~9.
+
+\guidesec{4\quad The figures}
+\begin{center}\small
+\begin{tabular}{>{\sffamily}l l l}
+\toprule
+figure & block & gibiane\\
+\midrule
+FIG 1 & 2 & \texttt{trac (dom et (cdom coul roug) et (lips coul bleu))}\\
+FIG 2 & 4 & \texttt{trac dom u1 (cont dom)}\\
+FIG 3 & 4 & \texttt{dess (evj et evi)}, evolutions \texttt{evol manu 'S' ... 'SAUT'}\\
+FIG 4 & 7 & \texttt{trac (cdom et dplus et dfis et lfis)}, colours blue, green, red\\
+FIG 5 & 7 & \texttt{dess evtot}: yellow, red, blue\\
+FIG 6 & 8 & \texttt{dess ev6 'YBOR' -0.5 1.5}: red, yellow, blue, green\\
+FIG 7 & 8 & \texttt{dess (evg et es1 et es3 et es5)}\\
+FIG 8, 9 & 9 & \texttt{dess ev8}, \texttt{dess ev9}\\
+\bottomrule
+\end{tabular}
+\end{center}
+They show what the figures of the common part show (Section 4), in the
+style of Cast3M. With noise, the details change at each run.
+
+\guidesec{5\quad The printed messages}
+Each block prints a line starting with \texttt{BLOCK k}, with the values of
+the table of the common part (Section 5); the sine--sinh coefficients are
+printed with \op{list}. Signs: $\vn$ is oriented so that $m_0>0$, and $c$,
+$s_0$, $E_n$ change sign with it. The mesh of \op{surf} is less regular than
+the gmsh mesh: Steps 1--2 are exact on both, the lengths agree to about
+$0.005$, and the Fourier values may leave the true ones at a lower $\xi$
+(watch $S(\xi)/m_0$).
+
+\guidesec{6\quad Gibiane pitfalls}
+\begin{itemize}[itemsep=1pt]
+\item \textbf{Operator names.} Gibiane recognises operators by their first
+four letters: a name such as \texttt{mesu} (\op{mesure}), \texttt{tres}
+(\op{tresca}) or \texttt{et} breaks later instructions. Hence \texttt{mesbr},
+\texttt{ztrap}, \texttt{egro}, \texttt{dsc}, \texttt{tvx}.
+\item \textbf{Case.} Gibiane ignores case: \texttt{XX} and \texttt{xx} are the
+same name.
+\item \textbf{Knock-on errors.} When an instruction fails, its result is not
+created and the error appears later, where the object is used. Look for the
+\emph{first} \texttt{ERREUR} in the log (\texttt{opti echo 1;} prints each
+instruction).
+\item \textbf{Dots and digits.} \texttt{w.1} or \texttt{t1.1.'UB'} can be read as
+real numbers: write table indices with spaces, \texttt{tub . k}.
+\item \textbf{Components.} Products and sums of \texttt{CHPOINT}s combine the
+components of the same name: \op{exco} \texttt{'SCAL' 'T'} renames a test
+field so that it meets the potential, and \op{xty} is given the component
+names explicitly.
+\item \textbf{Degrees.} \op{sin}, \op{cos} and \op{acos} work in degrees:
+\texttt{r2d = 180/pi}.
+\item \textbf{Procedure arguments} are matched by type, in order within each
+type; several results are returned in the order of \op{finproc}.
+\item \textbf{Forbidden here} (author's rules, Cast3M 2026): \op{masq},
+\op{atg}, tables of tables built in one chain, lines longer than 72 columns.
+\end{itemize}
+
+\guidesec{7\quad Listing of \texttt{rg\_session.dgibi}}
+\lstinputlisting[style=gibstyle]{cast3m/ch3/rg_session.dgibi}

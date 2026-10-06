@@ -1,0 +1,108 @@
+%======================================================================
+%  Guide: rg_session.py (Python, scikit-fem + gmsh)
+%======================================================================
+\sessiontitle{Guide 3 -- Python: \texttt{rg\_session.py}}
+  {Blocks, figures and how to run them. Built on the replica
+   \texttt{replica.py} (gmsh + scikit-fem).}
+
+\guidesec{1\quad Running the file}
+\begin{enumerate}[itemsep=1pt]
+\item Install the packages (any Python $\ge3.9$):
+\begin{lstlisting}[style=shstyle]
+pip install numpy scipy matplotlib scikit-fem gmsh
+\end{lstlisting}
+On Linux, the \texttt{gmsh} wheel needs the system libraries of OpenGL
+(\texttt{libglu1-mesa}, \texttt{libxcursor1}, \texttt{libxinerama1},
+\texttt{libxft2}).
+\item Run it, with the noise level and the folder of the figures as optional
+arguments:
+\begin{lstlisting}[style=shstyle]
+python3 rg_session.py              # eps = 0, figures in .
+python3 rg_session.py 0.01 figs    # eps = 0.01, figures in figs/
+RG_NELEM=60 python3 rg_session.py  # finer mesh
+\end{lstlisting}
+\item The figures are written to \texttt{fig1.pdf} \dots\ \texttt{fig9.pdf}; the
+messages \texttt{FIG k : ...} are printed when each is saved. The run takes
+about three seconds.
+\end{enumerate}
+
+\guidesec{2\quad Parameters (Block 0)}
+\begin{center}\small
+\begin{tabular}{>{\ttfamily}l l p{8cm}}
+\toprule
+\rmfamily name & default & meaning\\
+\midrule
+ldom, hdom & 1.5, 2.0 & width and height of the rectangle\\
+nelem & 30 & mesh size $\ell/\texttt{nelem}$, $\ell_\Gamma/(\texttt{nelem}/2)$ on the crack (\texttt{RG\_NELEM})\\
+A, B & crack tips & the true crack (mesh and errors only)\\
+eps & 0 & relative noise on the measured values (first argument)\\
+seed & 1 & seed of the noise: change it to draw again\\
+nxi, xiest & 8, 2.0 & Fourier fields $\xi=1\dots\texttt{nxi}$; $\xi$ of the length estimate\\
+nsine & 5 & number of sine--sinh terms\\
+nbeta & 12 & turning potential: angles $0,15,\dots,165$ degrees\\
+outdir & . & folder of the figures (second argument)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\guidesec{3\quad The blocks}
+\block{Block 1 -- Geometry and mesh.} The gmsh model of \texttt{replica.py}
+(and of the FEniCS file): rectangle, embedded crack, \texttt{Crack} plugin.
+The nodes and triangles are read back from gmsh and give a scikit-fem
+\texttt{MeshTri}; nodes not used by a triangle are dropped.
+
+\block{Block 2 -- Model.} \texttt{Basis(mesh, ElementTriP2())} and the
+stiffness matrix of $\nabla u\cdot\nabla v$, without boundary conditions (nodal
+fluxes $q=\mat Ku$). \texttt{basis.doflocs} gives the node coordinates;
+\texttt{upnode} the nodes of the cells on the side of $\vn$. FIG~1.
+
+\block{Block 3 -- Procedures.} \texttt{rgap(ub, qb, v)} is
+$\sum_{\partial\Omega}u(\mat Kv)-qv$; \texttt{measure} adds the noise to the
+measured values; \texttt{opening(u)} pairs the doubled nodes of the crack by
+their abscissa and returns $u^+-u^-$; \texttt{dirichlet(mask, values)} solves
+with \texttt{condense} and \texttt{solve}.
+
+\block{Block 4 -- Experiment E1.} \texttt{u1 = dirichlet(bot | top, y)}. FIG~2
+and FIG~3 (opening, its integral, the infinite-body curve).
+
+\block{Block 5 -- Measurement.} $u$ on the vertical sides without corners,
+$q$ on the electrodes; $\RG(1)$.
+
+\block{Blocks 6--7.} Normal, line, moments, lengths, tips; FIG~4 and FIG~5.
+
+\block{Block 8.} (a) Fourier fields, $C/m_0$ and $S/m_0$ against the true
+$C/m_0$ of the opening on the lips, length from $\xi=\texttt{xiest}$; FIG~6.
+(b) Sine--sinh series as in Cast3M; FIG~7.
+
+\block{Block 9.} Two solves \texttt{ux}, \texttt{uy}; for each angle the noisy
+flux, the row of $R$; \texttt{numpy.linalg.svd(R)}, the normal, the weights,
+the virtual experiment; FIG~8 and FIG~9.
+
+\guidesec{4\quad The figures}
+Those of the common part (Section 4), which were produced by this file:
+\texttt{triplot} (FIG~1), \texttt{tricontourf} (FIG~2), line plots (FIG~3, 5--9),
+the geometry (FIG~4).
+
+\guidesec{5\quad The printed messages}
+One line per block, \texttt{BLOCK k ...}, with the values of Section 5 of the
+common part. Signs: $\vn$ is oriented so that $m_0>0$. With
+\texttt{eps = 0.01} and \texttt{seed = 1}, for instance: angle error
+$4.36^\circ$ (E1) against $0.64^\circ$ (the twelve turning experiments), dipole
+length $0.331$, second moment failed ($\mu_2<0$).
+
+\guidesec{6\quad Python pitfalls}
+\begin{itemize}[itemsep=1pt]
+\item \textbf{Nodes of P2.} \texttt{basis.doflocs} lists the vertices first,
+then the midpoints of the edges; the colour plots use only the vertices.
+\item \textbf{The lips.} After the \texttt{Crack} plugin, two nodes have the same
+coordinates; any search by coordinates must keep both (\texttt{opening}) and
+tell them apart by the cells they belong to (\texttt{upnode}).
+\item \textbf{Unused gmsh nodes.} gmsh keeps the nodes of the
+one-dimensional crack elements; they belong to no triangle and must be
+dropped, or the matrix is singular.
+\item \textbf{Noise and seed.} The generator is created once
+(\texttt{default\_rng(seed)}): Blocks 5 and 9 draw from it in turn.
+\end{itemize}
+
+\guidesec{7\quad Listing of \texttt{rg\_session.py}}
+\lstinputlisting[style=pystyle]{python/examples/ch3/rg_session.py}

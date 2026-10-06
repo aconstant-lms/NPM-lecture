@@ -10,6 +10,7 @@ the files printed in the companion document `cast3m_companion/`
 | `ch2/kirsch_elements.dgibi` | Ch. 2, Kirsch (d): T3/T6/Q4/Q8, 3 meshes, balance of reactions | C2.1 | untested |
 | `ch3/crack_rg_extension.dgibi` | Ch. 3, crack in the rectangle: steps 1-2, moments, dipole, sine-sinh series, noise, rotation of the loads | C3.1-C3.9 | version 3 untested (version 2, the author's, was run) |
 | `ch3/crack_rg_extension_v2.dgibi` | the author's version 2, kept for comparison | -- | run with Cast3M 2026 |
+| `ch3/rg_session.dgibi` | Ch. 3, exercise session: E1, opening, normal, line, moments, dipole, Fourier and sine-sinh fields, turning potential and matrix of experiments (English comments, same blocks as the FEniCS and Python files) | session Ch. 3, Guide 1 | untested |
 | `ch3/rg_reference.py` | Python twin of the file (scikit-fem, triangle): the reference values | C3.4-C3.9 | run |
 | `ch4/sheet_plane_strain.dgibi` | Ch. 4, stretching of a sheet (MEC563 file, SI units, sY = 200 MPa) | C4.1 | author's file, run in the course |
 | `ch4/sheet_vm_250.dgibi` | Ch. 4, same exercise with the data of `exo_sheet.py` | C4.1 | untested |

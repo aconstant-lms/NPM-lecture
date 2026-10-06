@@ -1,0 +1,53 @@
+%======================================================================
+%  Nonlinear Methods in Mechanics -- exercise session, Chapter 3
+%  A. Constantinescu, LMS, CNRS & Ecole Polytechnique
+%
+%  One PDF, in the order of use:
+%    1. the session sheet (questions only, at most 8 pages: printed)
+%    2. the guides of the three codes, same blocks and same structure:
+%       Cast3M, FEniCS, Python
+%    3. the session sheet with the answers (at the end, to cut out)
+%  The sheet is written once (ch3/sheet.tex) and printed twice: the
+%  answer environments are shown only in the second copy.
+%
+%  Build: compile the book first (its .aux files give the numbers cited
+%  here), then in this directory `latexmk -pdf session_ch3'
+%  (.latexmkrc puts the repository root on TEXINPUTS).
+%======================================================================
+\documentclass[11pt,a4paper,oneside,openany]{book}
+
+\usepackage{xr-hyper}          % before hyperref (loaded by the style)
+\input{preamble/style}
+\input{preamble/notation}
+\input{session_preamble}
+\externaldocument[B-]{main}    % labels of the book: \ref{B-sec:rg-gap}
+
+\renewcommand{\sessionchapter}{Chapter 3 -- Reciprocity}
+\drafttrue        % \draftfalse hides the red status notes
+
+\begin{document}
+\pagestyle{session}
+
+%---- 1. the session sheet, questions only ------------------------------
+\answersfalse
+\input{ch3/sheet}
+
+%---- 2. the guides ------------------------------------------------------
+\clearpage
+\begingroup\sloppy
+\input{ch3/codes}
+\clearpage
+\input{ch3/guide_cast3m}
+\clearpage
+\input{ch3/guide_fenics}
+\clearpage
+\input{ch3/guide_python}
+\endgroup
+
+%---- 3. the session sheet with the answers ------------------------------
+\clearpage
+\answerstrue
+\setcounter{spart}{0}
+\input{ch3/sheet}
+
+\end{document}

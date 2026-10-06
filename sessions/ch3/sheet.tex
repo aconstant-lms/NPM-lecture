@@ -1,0 +1,535 @@
+%======================================================================
+%  Session sheet, Chapter 3 (reciprocity gap). Printed twice by
+%  session_ch3.tex: without and with the answers. No \label here.
+%======================================================================
+\ifanswers
+\sessiontitle{Chapter 3 -- Reciprocity: session sheet with answers}
+  {Answers. Numbers from the Python and FEniCS codes (same gmsh mesh,
+   $30$ divisions, P2); Cast3M meshes differently and agrees to about
+   two digits.}
+\else
+\sessiontitle{Chapter 3 -- Reciprocity: session sheet}
+  {Notes: Chapter~\ref{B-ch:rg}, Sections~\ref{B-sec:rg-gap}--\ref{B-sec:rg-num}.
+   Codes: \texttt{rg\_session} in Cast3M, FEniCS or Python (guides at the
+   end of this document).}
+\fi
+
+\paragraph{The setting.} A conducting rectangle $\Omega=(0,\ell)\times(0,h)$,
+$\ell=1.5$, $h=2$, with conductivity $1$, contains an insulating crack
+$\Gamma$, the segment from $A=(0.5,\,1.2)$ to $B=(0.8,\,1.35)$
+(Figure~a). The crack is unknown to the identification; $A$ and $B$ only
+build the mesh and measure the errors. Coordinates are centred,
+$\vect X=\vx-\vx_0$, $\vx_0=(0.75,\,1)$. Two kinds of experiments are used.
+\begin{itemize}[itemsep=1pt,topsep=2pt]
+\item \textbf{E1, electrodes.} $u=0$ on the bottom, $u=h$ on the top, zero
+flux on the vertical sides. The potential is measured on the vertical
+sides, the flux (current) on the electrodes.
+\item \textbf{Turning potential.} $u=\vd_\beta\cdot\vect X$ on the whole
+boundary, $\vd_\beta=(\cos\beta,\sin\beta)$, $\beta=0^\circ,15^\circ,
+\dots,165^\circ$. Only the flux is measured (Figure~b).
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.3,>=Stealth]
+  % (a) experiment E1
+  \begin{scope}
+  \fill[gray!8] (0,0) rectangle (1.5,2);
+  \draw[cu,line width=2pt] (0,0) -- (1.5,0);
+  \draw[cu,line width=2pt] (0,2) -- (1.5,2);
+  \draw[cphi,line width=1.2pt] (0,0) -- (0,2);
+  \draw[cphi,line width=1.2pt] (1.5,0) -- (1.5,2);
+  \draw[very thick] (0.5,1.2) -- (0.8,1.35);
+  \fill (0.5,1.2) circle (0.8pt) node[left,font=\scriptsize] {$A$};
+  \fill (0.8,1.35) circle (0.8pt) node[right,font=\scriptsize] {$B$};
+  \draw[->] (0.65,1.275) -- ++(-0.13,0.26) node[above,font=\scriptsize] {$\vn$};
+  \node[font=\scriptsize,cu] at (0.75,-0.17) {$u=0$, flux measured};
+  \node[font=\scriptsize,cu] at (0.75,2.17) {$u=h$, flux measured};
+  \node[font=\scriptsize,cphi,rotate=90] at (-0.22,1) {$\partial_\nu u=0$, $u$ measured};
+  \node[font=\scriptsize,cphi,rotate=90] at (1.72,1) {$\partial_\nu u=0$, $u$ measured};
+  \fill (0.75,1) circle (0.6pt) node[below,font=\scriptsize] {$\vx_0$};
+  \node[font=\sffamily\small] at (0.75,-0.5) {(a) experiment E1};
+  \end{scope}
+  % (b) turning potential
+  \begin{scope}[xshift=3.4cm]
+  \fill[gray!8] (0,0) rectangle (1.5,2);
+  \draw[cu,line width=2pt] (0,0) rectangle (1.5,2);
+  \draw[very thick] (0.5,1.2) -- (0.8,1.35);
+  \draw[->,thick] (0.75,1) -- ++(40:0.45) node[right,font=\scriptsize] {$\vd_\beta$};
+  \draw (0.95,1) arc (0:40:0.2) node[midway,right,font=\scriptsize] {$\beta$};
+  \draw[gray] (0.75,1) -- (1.1,1);
+  \node[font=\scriptsize,cu,align=center] at (0.75,-0.22)
+    {$u=\vd_\beta\cdot\vect X$ imposed,\\ flux measured};
+  \node[font=\sffamily\small] at (0.75,-0.62) {(b) turning potential};
+  \end{scope}
+  % (c) the line and the coordinates
+  \begin{scope}[xshift=6.4cm,yshift=0.2cm]
+  \draw[gray] (-0.2,0.4) -- (1.9,1.45);
+  \draw[very thick] (0.6,0.8) -- (1.2,1.1);
+  \draw[->] (0.9,0.95) -- ++(0.36,0.18) node[right,font=\scriptsize] {$\vt$};
+  \draw[->] (0.9,0.95) -- ++(-0.18,0.36) node[above,font=\scriptsize] {$\vn$};
+  \fill (0,0) circle (0.8pt) node[below,font=\scriptsize] {$\vx_0$};
+  \draw[dashed] (0,0) -- (-0.2,0.4) node[midway,left,font=\scriptsize] {$c$};
+  \node[font=\scriptsize,align=left,anchor=west] at (-0.3,-0.5)
+    {line $\vn\cdot\vect X=c$,\\ $s=\vt\cdot\vect X$,\ $\eta=\vn\cdot\vect X-c$};
+  \node[font=\sffamily\small] at (0.75,-1.0) {(c) coordinates};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\paragraph{The codes.} The three versions have the same ten blocks, and they
+print and draw the same quantities: 0 parameters; 1 mesh with two lips;
+2 model and centred coordinates (FIG~1); 3 procedures; 4 experiment E1 and
+its opening (FIG~2--3); 5 measurement; 6 linear and quadratic adjoint
+fields; 7 polynomial fields and dipole (FIG~4--5); 8 Fourier and
+sine--sinh fields (FIG~6--7); 9 turning potential and the matrix of the
+experiments (FIG~8--9). Questions marked \textcolor{cu}{[code]} use them;
+the others are done by hand. Run first with exact data (\texttt{eps = 0}).
+
+%======================================================================
+\spart{Direct and inverse problem -- recall of the reciprocity gap}
+\begin{gbox}{Recall (Notes, Sections \ref{B-sec:rg-direct}--\ref{B-sec:rg-gap})}
+Direct problem: $\Delta u=0$ in $\OG$, $\partial_nu^\pm=0$ on the lips, $u$ or
+$\partial_\nu u$ given on each part of $\partial\Omega$; well posed by
+Lax--Milgram. Inverse problem: $u$ \emph{and} $\varphi=\partial_\nu u$ known
+on $\partial\Omega$, $\Gamma$ unknown; ill-posed. For $v$ harmonic in $\Omega$:
+$\displaystyle \RG(v)=\int_{\partial\Omega}(u\,\partial_\nu v-v\varphi)\dd s=\int_\Gamma\jump u\,\partial_nv\dd s$.
+\end{gbox}
+
+\q Write the direct problem of experiment E1 (equation in $\OG$, condition on
+the lips, condition on each side of $\Omega$). Which boundary values are
+imposed, which are measured? Why does the identification need both?
+\begin{answer}
+$\Delta u=0$ in $\OG=\Omega\setminus\Gamma$; $\partial_nu^\pm=0$ on the lips;
+$u=0$ on $y=0$, $u=h$ on $y=h$, $\partial_\nu u=0$ on $x=0$ and $x=\ell$.
+The electrodes impose $u$ and measure the current $\partial_\nu u$; the
+insulated sides impose $\partial_\nu u=0$ and measure $u$. After the
+experiment both $u$ and $\varphi=\partial_\nu u$ are known on the whole
+boundary (complete Cauchy data). $\RG(v)$ integrates
+$u\,\partial_\nu v-v\,\varphi$ over $\partial\Omega$: it needs both.
+\end{answer}
+
+\q State the weak form of the direct problem. Why are the lip conditions
+natural? Which hypothesis of the Lax--Milgram lemma uses the electrodes?
+\begin{answer}
+Find $u\in H^1(\OG)$, $u=0$ at the bottom and $u=h$ at the top, such that
+$\displaystyle \int_{\OG}\nabla u\cdot\nabla v\dd\vx=0$ for every $v\in V=\{v\in
+H^1(\OG):\ v=0$ on the electrodes$\}$. Integrating by parts, the boundary
+terms are $\displaystyle \int\partial_\nu u\,v$ on the sides and on both lips:
+they vanish for every $v$ only if $\partial_\nu u=0$ there. Hence the zero
+flux is natural, as on the insulated sides. Coercivity on $V$ follows from
+the Poincar\'e--Friedrichs inequality, which needs $u$ imposed on a part
+of the boundary of positive length (the electrodes), Notes
+Section~\ref{B-sec:rg-direct}.
+\end{answer}
+
+\q Let $v$ be harmonic in the uncracked $\Omega$. Apply Green's second
+identity in $\OG$ and show
+$\displaystyle \RG(v)=\int_{\partial\Omega}(u\,\partial_\nu v-v\,\varphi)\dd s
+=\int_\Gamma\jump u\,\partial_nv\dd s$, $\jump u=u^+-u^-$, $+$ on the side
+of $\vn$. Watch the normals of $\OG$ on the two lips.
+\begin{answer}
+$\displaystyle \int_{\OG}(v\Delta u-u\Delta v)=\int_{\partial\OG}(v\,\partial_{\nu'}u
+-u\,\partial_{\nu'}v)$ and the left-hand side is $0$. On $\partial\Omega$,
+$\nu'=\vnu$. On $\Gamma^+$, $\nu'=-\vn$; on $\Gamma^-$, $\nu'=+\vn$. On the
+lips $\partial_{\nu'}u=0$, and $v$, $\partial_nv$ are continuous across
+$\Gamma$. The lips give $\displaystyle \int_\Gamma(u^+-u^-)\partial_nv$, hence
+$\displaystyle 0=\int_{\partial\Omega}(v\varphi-u\,\partial_\nu v)+\int_\Gamma\jump
+u\,\partial_nv$: this is the identity (Notes, eq.~\eqref{B-eq:rg-identity}).
+\end{answer}
+
+\q Show that $\RG(1)=0$, that $\RG$ does not change if $u\to u+C$, and that
+$\RG(v)=0$ for every $v$ if there is no crack.
+\begin{answer}
+$\displaystyle \RG(1)=-\int_{\partial\Omega}\varphi=0$, the flux balance of
+$\Delta u=0$ in $\OG$ (no flux through the lips).
+$\displaystyle C\int_{\partial\Omega}\partial_\nu v=C\int_\Omega\Delta v=0$.
+Without crack, $u$ and $v$ are harmonic in $\Omega$ and Green's identity
+gives $0$: Maxwell--Betti reciprocity. The gap measures the crack.
+\end{answer}
+
+\q \emph{Discrete gap.} The codes compute
+$\RG_h(v)=\sum_{i\in\partial\Omega}\bigl(u_i(\mat Kv)_i-q_iv_i\bigr)$, with
+$\mat K$ the conductivity matrix of the cracked mesh and $q=\mat Ku$ the
+nodal fluxes (reactions). Show that $\RG_h(v)=-\sum_{i\notin\partial\Omega}
+u_i(\mat Kv)_i$. Explain why, for a harmonic polynomial $v$ of degree $\le2$
+and quadratic elements, only the nodes of the lips contribute, and
+$\RG_h(v)=\int_\Gamma\jump{u_h}\,\partial_nv$ exactly.
+\begin{answer}
+$\mat K$ is symmetric:
+$\sum_{\rm all}u_i(\mat Kv)_i=\sum_{\rm all}v_i(\mat Ku)_i=\sum_{i\in
+\partial\Omega}q_iv_i$, because $(\mat Ku)_i=0$ at every node where $u$ is not
+imposed (inside, insulated sides, lips). Subtracting gives the formula.
+A quadratic $v$ is represented exactly by P2 elements, and
+$(\mat Kv)_i=\int\nabla v\cdot\nabla\phi_i=-\int\Delta v\,\phi_i+$ boundary
+terms of the support of $\phi_i$. With $\Delta v=0$ this vanishes at every
+interior node whose support does not touch the crack. At a node of the upper
+lip the support has the lip as boundary, with outward normal $-\vn$:
+$(\mat Kv)_i=-\int_{\Gamma}\partial_nv\,\phi_i$; at the lower lip the sign is
+$+$. Summing,
+$\RG_h(v)=\int_\Gamma(u_h^+-u_h^-)\partial_nv$, without discretization error
+beyond that of $u_h$. For other $v$ (cubic, exponential) $(\mat Kv)_i\ne0$
+inside, and $\RG_h$ carries an error.
+\end{answer}
+
+\qc Run Blocks 1--5 (FIG~1--3). Check $\RG(1)\approx0$. Compare
+$\displaystyle \int_\Gamma\jump{u_1}$, read on the lips, with the infinite-body
+value $\pi a^2E_n$ ($a$ half-length, $E_n=\vE\cdot\vn$). Why is it smaller?
+\begin{answer}
+$\RG(1)\approx10^{-13}$ (round-off). $\displaystyle \int\jump{u_1}=0.0764$
+against $\pi a^2E_n=0.0790$, $3\%$ less. Two reasons: the opening
+vanishes at the last node before each tip (the $\sqrt r$ behaviour is
+poorly represented: the mesh error), and the finite body with electrodes is
+not the infinite plane. FIG~3: the shape is a semi-ellipse, slightly
+below the infinite-body curve.
+\end{answer}
+
+%======================================================================
+\spart{Families of adjoint fields in 2D -- the plane (the normal)}
+\begin{gbox}{Recall (Notes, Section \ref{B-sec:rg-rec}, Step 1)}
+$\RG(\vd\cdot\vect X)=m_0\,\vd\cdot\vn$, $\displaystyle m_0=\int_\Gamma\jump u$:
+$(\RG(X),\RG(Y))=m_0\vn$, sign fixed by $m_0>0$. A uniform field parallel to
+the crack opens nothing: blind experiment.
+\end{gbox}
+
+\q Show that the harmonic polynomials of degree $k\ge1$ in 2D form a space of
+dimension 2, spanned by $\operatorname{Re}z^k$, $\operatorname{Im}z^k$,
+$z=x+\mathrm iy$. List them up to degree 3.
+\begin{answer}
+A homogeneous polynomial of degree $k$ has $k+1$ coefficients; its
+Laplacian is homogeneous of degree $k-2$ ($k-1$ coefficients). Harmonicity
+gives $k-1$ independent conditions: dimension $2$. $\operatorname{Re}z^k$,
+$\operatorname{Im}z^k$ are harmonic (real and imaginary parts of a
+holomorphic function) and independent. Degree 1: $x,\ y$; degree 2:
+$x^2-y^2,\ 2xy$; degree 3: $x^3-3xy^2,\ 3x^2y-y^3$.
+\end{answer}
+
+\q For $v=\vd\cdot\vect X$ show $\RG(v)=m_0\,\vd\cdot\vn$, with
+$\displaystyle m_0=\int_\Gamma\jump u$. Deduce $\vn$ and $m_0$ from $\RG(X)$
+and $\RG(Y)$. Is the sign of $\vn$ determined?
+\begin{answer}
+$\partial_nv=\vd\cdot\vn$ is constant on $\Gamma$:
+$\RG(v)=\vd\cdot\vn\int\jump u$. Hence $(\RG(X),\RG(Y))=m_0\vn$,
+$m_0=|(\RG(X),\RG(Y))|$, $\vn=(\RG(X),\RG(Y))/m_0$. Exchanging the lips
+changes $\vn$ and $\jump u$ together: the sign is fixed by the
+convention $m_0>0$.
+\end{answer}
+
+\q One measures $\RG(X)=-0.0343$, $\RG(Y)=0.0686$. Give $m_0$, $\vn$, the
+angle of the crack with the $x$ axis, and the tangent $\vt$ with $(\vt,\vn)$
+direct.
+\begin{answer}
+$m_0=\sqrt{0.0343^2+0.0686^2}=0.0767$, $\vn=(-0.447,\,0.894)$. The crack is
+normal to $\vn$: $\vt=(n_2,-n_1)=(0.894,\,0.447)$, angle $\arctan(0.5)=
+26.6^\circ$. (Codes: $0.07664$, $(-0.4472,0.8944)$: exact.)
+\end{answer}
+
+\q \emph{Blind experiment.} For a uniform field $\vE=(\cos\beta,\sin\beta)$,
+for which $\beta$ is the crack invisible? Is E1 blind? Is the field
+$(1,0)$ blind?
+\begin{answer}
+$m_0=|\tM|\,\vE\cdot\vn$ vanishes when $\vE\perp\vn$, i.e.\ $\vE$ parallel to
+the crack: $\beta=26.6^\circ$ (mod $180^\circ$). E1 ($\vE=(0,1)$,
+$E_n=0.894$) and $(1,0)$ ($|E_n|=0.447$) are not blind; E1 gives the
+larger signal.
+\end{answer}
+
+\qc Run Block 6. Compare $\vn$ with the true normal; repeat with
+\texttt{eps = 0.001} and \texttt{0.01}. Why is the normal exact without
+noise, on a coarse mesh?
+\begin{answer}
+Exact data: $\vn=(-0.4472,0.8944)$, angle error $0.0000^\circ$: $X,Y$ are
+of degree 1 (a.5). Over 200 draws the mean angle error is $0.24^\circ$ at
+$10^{-3}$ and $2.4^\circ$ at $10^{-2}$: proportional to the noise.
+\end{answer}
+
+%======================================================================
+\spart{Position -- the line of the crack}
+\begin{gbox}{Recall (Step 2; 2D form, Section \ref{B-sec:rg-num})}
+$v_2=(\vn\cdot\vect X)^2-(\vt\cdot\vect X)^2$, $\partial_nv_2=2c$ on the line,
+$c=\RG(v_2)/\bigl(2\RG(\vn\cdot\vect X)\bigr)$.
+\end{gbox}
+
+\q Show that $v_2=(\vn\cdot\vect X)^2-(\vt\cdot\vect X)^2$ is harmonic, that
+$\partial_nv_2=2c$ on the line $\vn\cdot\vect X=c$, and that
+$c=\RG(v_2)/(2\RG(\vn\cdot\vect X))$. Why is it enough to know $\vn$?
+\begin{answer}
+In the rotated coordinates $(\sigma,\tau)=(\vt\cdot\vect X,\vn\cdot\vect X)$,
+$v_2=\tau^2-\sigma^2$, $\Delta v_2=2-2=0$; $\partial_nv_2=2\tau=2c$ on the line.
+So $\RG(v_2)=2c\,m_0$ and $\RG(\vn\cdot\vect X)=m_0$. The field needs only
+$\vn$ (and $\vt$), known from Step 1. In 3D the field is
+$(\vn\cdot\vect X)^2-\tfrac12\bigl((\vt_1\cdot\vect X)^2+(\vt_2\cdot\vect X)^2\bigr)$.
+\end{answer}
+
+\q Why do the codes use centred coordinates $\vect X=\vx-\vx_0$? Estimate
+the size of $v_2$ on $\partial\Omega$ with and without centring.
+\begin{answer}
+By the bound $|\RG(v)|\le\|u\|\,\|\partial_\nu v\|+\|\varphi\|\,\|v\|$ (Notes,
+Section~\ref{B-sec:rg-gap}, property (iii)) the noise is amplified by the
+size of $v$ on $\partial\Omega$. Centred, $|v_2|\le|\vect X|^2\le
+0.75^2+1^2=1.56$; from the corner $(0,0)$, $|\vx|^2$ reaches $1.5^2+2^2=6.25$:
+four times larger. $c$ is a ratio of two gaps; a smaller $v_2$ gives
+a smaller error on it.
+\end{answer}
+
+\qc Run Block 6: $c$ with exact data and with noise. Which point of the line
+is it? (FIG~4: green line.)
+\begin{answer}
+$c=0.2907$, the true value ($v_2$ is of degree 2). It is the distance from
+$\vx_0$ to the line, positive on the side of $\vn$. Over 200 draws:
+$c=0.2905\pm0.0035$ at $10^{-3}$, $0.289\pm0.036$ at $10^{-2}$.
+\end{answer}
+
+%======================================================================
+\spart{Extension -- Fourier and sine--sinh adjoint fields}
+\begin{gbox}{Recall (Step 3, Sections \ref{B-ssec:rg-step3}--\ref{B-ssec:rg-stab})}
+$V_\xi=e^{\xi\eta}e^{-\mathrm i\xi s}$: $\RG(V_\xi)=\xi\hat w(\xi)$. On a bounded
+interval: $v_k=\sin(\lambda_kg)\sinh(\lambda_k\eta)/\lambda_k$,
+$\displaystyle w=\sum_k\frac2L\RG(v_k)\sin\lambda_kg$. Noise $\delta$: only
+$\delta e^{\lambda H}\lesssim1$ is usable, resolution $\pi H/\ln(1/\delta)$.
+\end{gbox}
+
+\q With $s=\vt\cdot\vect X$ and $\eta=\vn\cdot\vect X-c$, show that
+$V_\xi=e^{\xi\eta}e^{-\mathrm i\xi s}$ is harmonic and that
+$\RG(V_\xi)=\xi\,\hat w(\xi)$, $\hat w$ the Fourier transform of the
+opening $w(s)$. Write the two real fields used by the codes and what they
+give.
+\begin{answer}
+$\Delta V_\xi=(\xi^2-\xi^2)V_\xi=0$; $\partial_\eta V_\xi=\xi e^{-\mathrm i\xi s}$ at
+$\eta=0$, so $\RG(V_\xi)=\xi\int w\,e^{-\mathrm i\xi s}$. Real and imaginary
+parts: $e^{\xi\eta}\cos\xi s'$ and $e^{\xi\eta}\sin\xi s'$ ($s'=s-s_0$)
+give $\xi C(\xi)$ and $\xi S(\xi)$, with $\displaystyle C=\int w\cos\xi s'$,
+$\displaystyle S=\int w\sin\xi s'$.
+\end{answer}
+
+\q Why does $\hat w$ known for all $\xi$ determine the crack
+(Paley--Wiener)? For a semi-elliptic opening $w=A\sqrt{a^2-s'^2}$ show that
+$C(\xi)=2m_0\,J_1(\xi a)/(\xi a)$ (use
+$\displaystyle \int_{-a}^a\sqrt{a^2-s^2}\cos\xi s\dd s=\pi aJ_1(\xi a)/\xi$). The
+first zero of $J_1$ is $3.832$: at which $\xi$ does $C$ vanish here?
+\begin{answer}
+$w$ has compact support: $\hat w$ is entire, known from any interval of
+$\xi$, and its inverse gives $w$, whose support is $\Gamma$.
+$C=A\pi aJ_1(\xi a)/\xi$ and $m_0=\pi Aa^2/2$, hence $C=2m_0J_1(\xi a)/(\xi
+a)$. With $a=0.168$: $\xi=3.832/0.168=22.8$.
+\end{answer}
+
+\q On $\partial\Omega$, $\eta$ varies between $-1.52$ and $0.94$. Estimate the
+largest value of $|V_\xi|$ on the boundary for $\xi=2,\ 4,\ 8,\ 22.8$. With a
+relative noise $\delta$ on the data, which $\xi$ are usable?
+\begin{answer}
+$e^{0.94\xi}$: $6.5$, $43$, $1.8\cdot10^3$, $2\cdot10^9$. The data error on
+$\RG$ is about $\delta\,e^{0.94\xi}$ (times $m_0$), against a signal
+$\xi\hat w\lesssim\xi m_0$: usable while $\delta e^{0.94\xi}\ll1$, i.e.\
+$\xi\lesssim\ln(1/\delta)/0.94$: $7$ at $10^{-3}$, $5$ at $10^{-2}$. The
+first zero, $22.8$, is out of reach: only the low frequencies are known.
+\end{answer}
+
+\q \emph{Sine--sinh fields.} Let $g$ be the distance along the line from its
+intersection with $x=0$, and $L$ a length such that the chord of $\Omega$
+lies in $0\le g\le L$. Show that $v_k=\sin(\lambda_kg)\sinh(\lambda_k\eta)/
+\lambda_k$, $\lambda_k=k\pi/L$, gives
+$\displaystyle w(g)=\sum_k\frac2L\,\RG(v_k)\sin\lambda_kg$. Why does
+$L=\sqrt2\max(\ell,h)$ work for the rectangle?
+\begin{answer}
+$\Delta v_k=(-\lambda_k^2+\lambda_k^2)v_k=0$, $\partial_\eta v_k=\sin\lambda_kg$
+on the line: $\RG(v_k)=\int w\sin\lambda_kg$, the sine coefficient of $w$ on
+$[0,L]$, since $w=0$ outside $\Gamma$; the sine series reconstructs $w$.
+Every chord of the rectangle is shorter than its diagonal
+$\sqrt{\ell^2+h^2}\le\sqrt2\max(\ell,h)=2.83$.
+\end{answer}
+
+\q With $H=1.52$ (largest $|\eta|$ on $\partial\Omega$), $L=2.83$ and
+$\delta=10^{-3}$, how many terms are usable ($\delta e^{\lambda_kH}\lesssim1$)?
+Which resolution? Compare with the length of the crack.
+\begin{answer}
+$\lambda_kH\le\ln10^3=6.9$: $k\le6.9L/(\pi H)=4.1$, four terms, resolution
+$L/4\approx0.7$, twice the crack length $0.335$. The series cannot resolve
+the crack (Notes, Section~\ref{B-ssec:rg-stab}).
+\end{answer}
+
+\qc Run Block 8b (FIG~7) with exact data. Which partial sums look like the
+opening? Why do the coefficients beyond $k=3$ change with the mesh
+(\texttt{nelem = 60})?
+\begin{answer}
+$\RG(v_k)=-0.055,\,-0.075,\,-0.049,\,0.005,\,0.047$: the sums are smooth bumps
+of width $\approx L/k$, centred near the crack but much wider than it. The
+fields $\sin\lambda g\sinh\lambda\eta$ are not polynomials: $\RG_h$ carries a
+discretization error that grows like $e^{\lambda H}$, and the high terms are
+dominated by it even without noise (they change with \texttt{nelem}).
+\end{answer}
+
+%======================================================================
+\spart{Extension -- polynomial adjoint fields (moments)}
+\begin{gbox}{Recall (Sections \ref{B-ssec:rg-poly}--\ref{B-ssec:rg-ak})}
+$\eta,\ s\eta,\ s'^2\eta-\eta^3/3$ give $m_0$, $m_0s_0$, $m_0\mu_2$; semi-ellipse:
+$a_{\rm mom}=2\sqrt{\mu_2}$. Dipole: $m_0=|\tM|E_n$, $|\tM|=\pi a^2$ in 2D,
+$a_{\rm dip}=\sqrt{m_0/(\pi E_n)}$.
+\end{gbox}
+
+\q Show that $v=\operatorname{Im}(z^{k+1})/(k+1)$, $z=s+\mathrm i\eta$, is
+harmonic with $\partial_\eta v=s^k$ on the line. Write it for $k=0,1,2$
+(with $s'=s-s_0$ for $k=2$). Which of them are exact in the discrete gap
+(question a.5)?
+\begin{answer}
+Holomorphic $\Rightarrow$ harmonic; $\partial_\eta=\mathrm i\,\partial_z$ on
+holomorphic functions, so $\partial_\eta v=\operatorname{Im}(\mathrm i z^k)=
+\operatorname{Re}z^k=s^k$ at $\eta=0$. $k=0$: $\eta$; $k=1$: $s\eta$; $k=2$:
+$s'^2\eta-\eta^3/3$. The first two are of degree $\le2$: exact. The third
+is cubic: not represented by P2 elements, an $O(h^2)$ error.
+\end{answer}
+
+\q For $w=A\sqrt{a^2-(s-s_0)^2}$, compute $m_0=\int w$, $m_1=\int ws$,
+$\mu_2=\frac1{m_0}\int w(s-s_0)^2$. How are the centre and the half-length
+recovered?
+\begin{answer}
+$s=s_0+a\sin\theta$: $m_0=\pi Aa^2/2$, $m_1=s_0m_0$, $\mu_2=a^2/4$. Centre
+$s_0=m_1/m_0$, half-length $a_{\rm mom}=2\sqrt{\mu_2}$, with no assumption on
+the amplitude $A$.
+\end{answer}
+
+\q \emph{Dipole.} In an infinite body the opening in a uniform field is
+$2E_n\sqrt{a^2-s^2}$. Give $m_0$ and the half-length $a_{\rm dip}$ from
+$m_0$ and $E_n$. Compare how a relative error of $10\%$ on $m_0$, and on
+$m_0\mu_2$, propagates to $a_{\rm dip}$ and $a_{\rm mom}$.
+\begin{answer}
+$m_0=\pi a^2E_n$, $a_{\rm dip}=\sqrt{m_0/(\pi E_n)}$: $5\%$ on $a$.
+$m_0\mu_2=\pi Aa^4/8\propto a^4$ but $\mu_2=(m_0\mu_2)/m_0$ is a ratio of
+two noisy gaps, and its field contains $\eta^3$ (large on the boundary):
+its error is much larger than that of $m_0$, and it can become negative.
+\end{answer}
+
+\qc Run Block 7 (FIG~4--5) with \texttt{eps = 0}, \texttt{0.001},
+\texttt{0.01}, several times (change \texttt{seed}). Compare the two lengths
+with the true $0.335$; when does the second moment fail?
+\begin{answer}
+Exact data: $s_0=-0.0336$, centre $(0.6500,1.2750)$, $2a_{\rm mom}=0.331$,
+$2a_{\rm dip}=0.330$, tip error $0.003$: the $1.5\%$ deficit is the mesh
+error at the tips. 200 draws: at $10^{-3}$, dipole $0.330\pm0.001$, moment
+$0.325\pm0.078$ (3 failures, $\mu_2\le0$); at $10^{-2}$, dipole
+$0.331\pm0.010$, moment $0.61\pm0.25$ (81 failures of 200). The dipole is
+the robust estimate; it assumes a straight crack in a nearly uniform field.
+\end{answer}
+
+%======================================================================
+\spart{Extension from the Fourier transform -- low frequencies}
+\begin{gbox}{Recall}
+$\displaystyle C(\xi)=\int w\cos\xi s'$, $\displaystyle S(\xi)=\int w\sin\xi s'$;
+semi-ellipse: $C/m_0=2J_1(\xi a)/(\xi a)$, $S=0$ when $s_0$ is the centre.
+\end{gbox}
+
+\q Expand $e^{-\mathrm i\xi s'}$ and show
+$C(\xi)=m_0\bigl(1-\tfrac{\xi^2}{2}\mu_2+\tfrac{\xi^4}{24}\mu_4-\dots\bigr)$,
+$\mu_k=\frac1{m_0}\int ws'^k$, and that $S(\xi)$ contains only the odd
+moments. Check with $2J_1(x)/x=1-x^2/8+x^4/192-\dots$ for the semi-ellipse.
+\begin{answer}
+$e^{-\mathrm i\xi s'}=\sum(-\mathrm i\xi s')^k/k!$; the real part keeps the even
+$k$ with signs $+,-,+$; the imaginary part the odd $k$. With $\mu_2=a^2/4$:
+$\xi^2\mu_2/2=x^2/8$ ($x=\xi a$); $\mu_4=a^4/8$ gives $x^4/192$. The low
+frequencies of $\hat w$ are the moments: Fourier and polynomial fields carry
+the same information.
+\end{answer}
+
+\q The code inverts $\rho=C(\xi)/m_0=1-x^2/8+x^4/192$ at one frequency.
+Solve for $x^2$. With $\rho=0.9864$ at $\xi=2$, find the length $2a$.
+\begin{answer}
+$x^2=96\bigl(\tfrac18-\sqrt{\tfrac1{64}-\tfrac{1-\rho}{48}}\bigr)$, the
+root that tends to $8(1-\rho)$ for $\rho\to1$. $1-\rho=0.0136$:
+$x^2=0.1093$, $x=0.3305$, $a=x/\xi=0.165$, length $0.331$.
+\end{answer}
+
+\q For a symmetric opening and $s_0$ its centre, what is $S(\xi)$? How can
+$S(\xi)$ serve as an error indicator?
+\begin{answer}
+$S=0$ (odd integrand). Any computed $S\ne0$ is an error: the discretization
+error of the non-polynomial fields, or noise. The frequencies with
+$|S|/m_0$ beyond a few $10^{-3}$ should not be used.
+\end{answer}
+
+\qc Run Block 8a (FIG~6) with exact data, then with \texttt{eps = 0.001},
+then with \texttt{nelem = 60}. Up to which $\xi$ does $C/m_0$ follow the true
+opening? Explain why it departs even without noise.
+\begin{answer}
+Exact data, 30 divisions: $C/m_0=0.9966,\ 0.9864,\ 0.9691,\ 0.9428$ for
+$\xi=1..4$ against the true $0.9966,\ 0.9865,\ 0.9697,\ 0.9466$;
+$S/m_0\le0.006$. It degrades from $\xi=5$ ($S/m_0=0.03$ at 5, $0.08$
+at 6, $C<0$ at 8). With $60$ divisions the range extends to
+$\xi\approx5$--$6$. The
+Fourier fields are not polynomials: $(\mat Kv)_i\ne0$ at interior nodes, an
+error $\sim h^2\xi^4e^{0.94\xi}$, largest near the top-left corner where
+$e^{\xi\eta}$ is largest. It also depends on the regularity of the mesh: a
+less regular mesh (Cast3M \op{SURF}) degrades earlier. Fourier length:
+$0.331$ (exact data); at $10^{-3}$, one draw gives $0.268$: low frequencies
+need a very accurate $1-\rho$.
+\end{answer}
+
+%======================================================================
+\spart{The matrix of several experiments}
+\begin{gbox}{Recall (Notes, Section \ref{B-sec:rg-multi})}
+$\RG$ is linear in the data: any $\sum_kw_k(u_k,\varphi_k)$ is an experiment.
+$R_{ki}=\RG(u_k,\varphi_k;X_i)$: $R=\vm\,\vn^{\top}$. Optimal weights
+$w=\vm/\|\vm\|$: the virtual experiment is the load normal to the crack.
+\end{gbox}
+
+\q The direct problem is linear and the crack is the same in all
+experiments. Show that $\sum_kw_k(u_k,\varphi_k)$ is again the Cauchy data of
+an experiment, with opening $\sum_kw_k\jump{u_k}$. Which kind of crack would
+break this?
+\begin{answer}
+$\sum w_ku_k$ is harmonic in $\OG$, has zero flux on the lips, and takes the
+boundary values $\sum w_k(\uD_k,\pD_k)$; its opening is $\sum w_k\jump{u_k}$.
+$\RG$ is linear in the data. A crack with unilateral contact (closed under
+compression) gives a nonlinear problem: the combination is not admissible.
+\end{answer}
+
+\q \emph{Turning potential.} Show that without crack the solution is
+$u_0=\vd_\beta\cdot\vect X$: the background field is exactly $\vd_\beta$,
+whatever the shape of $\Omega$. Why are two direct solves enough for all
+$\beta$? Which data are measured?
+\begin{answer}
+$\vd\cdot\vect X$ is harmonic and takes the imposed values: by uniqueness it
+is the solution, with gradient $\vd$. By linearity
+$u_\beta=\cos\beta\,u_x+\sin\beta\,u_y$, with $u_x,u_y$ the solutions for
+$u=X$, $u=Y$ on $\partial\Omega$. The potential is imposed everywhere (known),
+only the flux is measured.
+\end{answer}
+
+\q The rows of the $K\times2$ matrix $R$ are $(\RG(X),\RG(Y))$ of the
+experiments $\beta_k$. Show that $R=\vm\,\vn^{\top}$ (rank one), with
+$m_k=|\tM|\,\vd_{\beta_k}\cdot\vn=\pi a^2\sin(\beta_k-\alpha)$ in the
+infinite-body model ($\alpha$ the angle of the crack). Show that $\vn$ is the
+eigenvector of $R^{\top}R$ for its largest eigenvalue $\|\vm\|^2$, and that
+the other eigenvalue is $0$.
+\begin{answer}
+Each row is $m_k\vn^{\top}$ (question b.2). $R^{\top}R=\vn\vm^{\top}\vm
+\vn^{\top}=\|\vm\|^2\vn\vn^{\top}$: eigenvalue $\|\vm\|^2$ on $\vn$, $0$ on
+$\vt$. $\vd_\beta\cdot\vn=\cos\beta\,(-\sin\alpha)+\sin\beta\cos\alpha=
+\sin(\beta-\alpha)$. With noise the second singular value is no longer $0$:
+it measures the noise, and the first right singular vector is the
+least-squares normal.
+\end{answer}
+
+\q The weights $w_k=m_k/\|\vm\|$ maximise the signal $\sum w_km_k$ for
+$\|w\|=1$ (Cauchy--Schwarz). Show that the field of the virtual experiment is
+$\vd_{\rm v}=\sum w_k\vd_k=\sqrt{K/2}\,\vn$ for $K$ angles equally spaced
+over $180^\circ$ (use $\sum_k\vd_k\vd_k^{\top}=\tfrac K2\tI$).
+\begin{answer}
+$\vd_{\rm v}=\frac{|\tM|}{\|\vm\|}\sum_k\vd_k\vd_k^{\top}\vn=\frac{|\tM|K/2}
+{\|\vm\|}\vn$, and $\|\vm\|^2=|\tM|^2\sum(\vd_k\cdot\vn)^2=|\tM|^2K/2$:
+$\vd_{\rm v}=\sqrt{K/2}\,\vn$. For $K=12$: $|\vd_{\rm v}|=2.449$. The
+virtual experiment is the load normal to the crack: never blind.
+\end{answer}
+
+\qc Run Block 9 (FIG~8--9) with exact data and with \texttt{eps = 0.01}.
+Read the blind angle, the singular values, the normal from $R$, the
+virtual field and the length. Compare the angle error with that of E1 alone.
+\begin{answer}
+Exact: $|m_0|$ smallest at $30^\circ$ ($0.005$, the grid point nearest to
+$\alpha=26.6^\circ$), largest at $120^\circ$ ($0.085$, near
+$\alpha+90^\circ$); FIG~8 follows $\pi a^2|\sin(\beta-\alpha)|$, a little
+lower (finite body). Singular values $0.2077$ and $7\cdot10^{-14}$: rank
+one. $\vn=(-0.4472,0.8944)$, $\vd_{\rm v}=(-1.095,2.191)=2.449\,\vn$,
+$c=0.2907$, length $0.329$. At $10^{-2}$: $\sigma_2=7\cdot10^{-3}$, angle
+error $0.6^\circ$ against $4.4^\circ$ for E1 alone (same draw): the twelve
+experiments average the noise, and the length stays $0.330$. FIG~9: the
+two columns are proportional, both vanish at the blind angle.
+\end{answer}

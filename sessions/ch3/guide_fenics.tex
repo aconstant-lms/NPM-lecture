@@ -1,0 +1,126 @@
+%======================================================================
+%  Guide: rg_session_fenics.py (FEniCS / DOLFINx)
+%======================================================================
+\sessiontitle{Guide 2 -- FEniCS: \texttt{rg\_session\_fenics.py}}
+  {Blocks, figures and how to run them. Built on
+   \texttt{reciprocity\_gap\_crack.py} (DOLFINx + gmsh).}
+
+\untested{Status: not run with DOLFINx yet. Blocks 1 and 4--9 were run
+(gmsh mesh, then the same arrays assembled with scikit-fem: this is the
+Python file of Guide 3); Blocks 2--3 use the DOLFINx calls of
+reciprocity\_gap\_crack.py. The values of Section 5 of the common part are
+the references.}
+
+\guidesec{1\quad Running the file}
+\begin{enumerate}[itemsep=1pt]
+\item Install DOLFINx 0.8--0.10 with gmsh (conda is the simplest route):
+\begin{lstlisting}[style=shstyle]
+conda create -n fenicsx -c conda-forge fenics-dolfinx mpich gmsh python-gmsh scipy matplotlib
+conda activate fenicsx
+\end{lstlisting}
+\item Run it in serial, with the noise level and the folder of the figures
+as optional arguments:
+\begin{lstlisting}[style=shstyle]
+python3 rg_session_fenics.py              # eps = 0, figures in .
+python3 rg_session_fenics.py 0.01 figs    # eps = 0.01, figures in figs/
+RG_NELEM=60 python3 rg_session_fenics.py  # finer mesh
+\end{lstlisting}
+\item The figures are written to \texttt{fig1.pdf} \dots\ \texttt{fig9.pdf}; the
+messages \texttt{FIG k : ...} are printed when each is saved. The run takes a
+few seconds.
+\end{enumerate}
+
+\guidesec{2\quad Parameters (Block 0)}
+\begin{center}\small
+\begin{tabular}{>{\ttfamily}l l p{8cm}}
+\toprule
+\rmfamily name & default & meaning\\
+\midrule
+ldom, hdom & 1.5, 2.0 & width and height of the rectangle\\
+nelem & 30 & mesh size $\ell/\texttt{nelem}$, $\ell_\Gamma/(\texttt{nelem}/2)$ on the crack (\texttt{RG\_NELEM})\\
+A, B & crack tips & the true crack (mesh and errors only)\\
+eps & 0 & relative noise on the measured values (first argument)\\
+seed & 1 & seed of the noise: change it to draw again\\
+nxi, xiest & 8, 2.0 & Fourier fields $\xi=1\dots\texttt{nxi}$; $\xi$ of the length estimate\\
+nsine & 5 & number of sine--sinh terms\\
+nbeta & 12 & turning potential: angles $0,15,\dots,165$ degrees\\
+outdir & . & folder of the figures (second argument)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\guidesec{3\quad The blocks}
+\block{Block 1 -- Geometry and mesh.} As in \texttt{replica.py}: gmsh
+rectangle, the crack line embedded (\texttt{mesh.embed}), size
+\texttt{Mesh.MeshSizeMax} $=\ell/30$ and $\ell_\Gamma/15$ at the tips. The gmsh
+plugin \texttt{Crack} then duplicates the nodes of the crack (not the tips).
+\texttt{gmshio.model\_to\_mesh} gives the DOLFINx mesh (the module is
+\texttt{dolfinx.io.gmsh} from 0.10).
+
+\block{Block 2 -- Model.} \texttt{functionspace(msh, ("Lagrange", 2))}: P2,
+the TRI6 of Cast3M. The matrix $\mat K$ is assembled \emph{without} boundary
+conditions and converted to SciPy (\texttt{fem.assemble\_matrix(a).to\_scipy()}):
+$q=\mat Ku$ are then the nodal fluxes, as \texttt{KK * u} in Cast3M. The node
+coordinates are \texttt{V.tabulate\_dof\_coordinates()}; \texttt{upnode} marks
+the nodes of the cells on the side of $\vn$, which tells the lips apart.
+FIG~1 uses the vertices of the cells (P1 space).
+
+\block{Block 3 -- Procedures.} \texttt{rgap}, \texttt{measure}, \texttt{opening}
+work on NumPy arrays and are the same as in Python. \texttt{dirichlet(mask,
+values)} solves with \texttt{LinearProblem} and \texttt{dirichletbc} on the
+nodes of \texttt{mask} (direct LU solver); the other boundary nodes and the
+lips get the natural zero flux.
+
+\block{Blocks 4--9.} The same text as in the Python file (Guide~3): from Block 4
+on, the identification needs only the boundary values, the matrix $\mat K$
+and the node coordinates. E1 is \texttt{dirichlet(bot | top, y)}; the turning
+potential uses \texttt{dirichlet(outer, X)} and \texttt{dirichlet(outer, Y)}.
+$R$ is decomposed with \texttt{numpy.linalg.svd}.
+
+\guidesec{4\quad The figures}
+\begin{center}\small
+\begin{tabular}{>{\sffamily}l l l}
+\toprule
+figure & block & matplotlib\\
+\midrule
+FIG 1 & 2 & \texttt{triplot} of the vertices, boundary and crack\\
+FIG 2 & 4 & \texttt{tricontourf} of $u_1$ at the vertices\\
+FIG 3 & 4 & opening on the lips and infinite-body curve\\
+FIG 4, 5 & 7 & identified line and segment; semi-ellipses\\
+FIG 6, 7 & 8 & $C/m_0$, $S/m_0$ against $\xi$; sine--sinh sums\\
+FIG 8, 9 & 9 & $|m_0|$ and the columns of $R$ against $\beta$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The mesh is the gmsh mesh of the Python file: the figures are those of the
+common part (Section 4).
+
+\guidesec{5\quad The printed messages}
+One line per block, \texttt{BLOCK k ...}, with the values of Section 5 of the
+common part (same mesh, same element: the same numbers up to round-off).
+Signs: $\vn$ is oriented so that $m_0>0$.
+
+\guidesec{6\quad FEniCS pitfalls}
+\begin{itemize}[itemsep=1pt]
+\item \textbf{The lips are boundary facets.} After the \texttt{Crack} plugin,
+\texttt{locate\_entities\_boundary} also returns the facets of the lips. Here
+the outer boundary is selected by coordinates (\texttt{outer}), never by
+``boundary facet''.
+\item \textbf{Reactions.} \texttt{LinearProblem} with Dirichlet conditions
+modifies the rows of the constrained nodes; the fluxes $\mat Ku$ need the
+matrix assembled without conditions (Block 2).
+\item \textbf{Serial only.} With MPI, the arrays are distributed and the
+indices of \texttt{tabulate\_dof\_coordinates} are local; run with one
+process.
+\item \textbf{Versions.} \texttt{dolfinx.io.gmshio} became \texttt{dolfinx.io.gmsh}
+in 0.10, and \texttt{LinearProblem} needs \texttt{petsc\_options\_prefix} there;
+the file tries both.
+\item \textbf{Mesh regularity.} The Fourier and sine--sinh fields are not
+polynomials: their gaps carry a discretization error that depends on the size
+\emph{and} the regularity of the mesh (sheet, question f.4).
+\end{itemize}
+
+\guidesec{7\quad Listing of \texttt{rg\_session\_fenics.py}}
+\lstinputlisting[style=pystyle,lastline=231]{fenics/ch3/rg_session_fenics.py}
+\noindent\emph{Blocks 4--9: the same text as in the Python file (Guide~3,
+Section~7).}

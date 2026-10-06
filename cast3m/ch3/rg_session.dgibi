@@ -1,0 +1,622 @@
+***********************************************************************
+*
+*  rg_session.dgibi
+*  Session "Chapter 3, reciprocity gap" - Cast3M version
+*
+*  Identification of a straight crack in a rectangular conductor
+*  from boundary measurements (Andrieux & Ben Abda, 1996).
+*  Same blocks, figures and printed values as rg_session.py
+*  (Python) and rg_session_fenics.py (FEniCS):
+*
+*    BLOCK 0  parameters
+*    BLOCK 1  geometry and mesh (two lips)
+*    BLOCK 2  model, conductivity matrix, centred coordinates  FIG 1
+*    BLOCK 3  procedures: reciprocity gap, measurement, sums
+*    BLOCK 4  experiment E1, opening on the crack            FIG 2,3
+*    BLOCK 5  measurement: Cauchy data on the boundary
+*    BLOCK 6  linear and quadratic adjoint fields
+*    BLOCK 7  polynomial adjoint fields, dipole              FIG 4,5
+*    BLOCK 8  Fourier fields and the sine-sinh series        FIG 6,7
+*    BLOCK 9  turning potential, matrix of experiments       FIG 8,9
+*
+*  RG(v) = sum on the boundary nodes of  u (K v) - q v
+*        = int_Gamma [u] dn v   (sign of the book)
+*  exact for the harmonic polynomials of degree <= 2 (TRI6).
+*
+*  Rules (Cast3M 2026): no operator name as a variable (operators
+*  are read on 4 letters), no case collision (XX = xx), no MASQ,
+*  no ATG, no table of tables, no "a.1", lines <= 72 columns.
+*
+*  STATUS: NOT RUN. Reference values: Python twin, same blocks
+*  (see the guide). Cast3M meshes differently: expect agreement
+*  to about two digits.
+*
+***********************************************************************
+
+ opti dime 2 elem tri6 echo 0;
+* opti trac psc;
+* (uncomment to write the plots to a PostScript file)
+
+
+*----------------------------------------------------------------------
+* BLOCK 0 - Parameters
+*----------------------------------------------------------------------
+
+* rectangle and mesh (nelem/2 elements on the crack)
+ ldom  = 1.5;
+ hdom  = 2.;
+ nelem = 30;
+
+* true crack A-B (used to build the mesh and for the errors only)
+ xpa = 0.5;  ypa = 1.2;
+ xpb = 0.8;  ypb = 1.35;
+
+* relative noise on the measured values (0. = exact data)
+ eps = 0.;
+
+* Fourier fields xi = 1 ... nxi, xi of the length estimate
+ nxi   = 8;
+ xiest = 2.;
+
+* number of sine-sinh terms
+ nsine = 5;
+
+* turning potential: nbeta angles 0, 180/nbeta, ...
+ nbeta = 12;
+
+* plots (vrai / faux)
+ graph = vrai;
+
+ pi  = 3.14159265358979;
+ r2d = 180. / pi;
+
+
+*----------------------------------------------------------------------
+* BLOCK 1 - Geometry and mesh
+*   The domain is cut along p1 - A - B - p3. The lips dplus and
+*   dmoins are two distinct lines with the same end points: the
+*   nodes of the crack are doubled (not the tips) and u can jump.
+*----------------------------------------------------------------------
+
+ p1 = 0. 0.;
+ p2 = ldom 0.;
+ p3 = ldom hdom;
+ p4 = 0. hdom;
+
+ d12 = droite nelem p1 p2;
+ d23 = droite nelem p2 p3;
+ d34 = droite nelem p3 p4;
+ d41 = droite nelem p4 p1;
+
+ pa = xpa ypa;
+ pb = xpb ypb;
+ dplus  = droite (nelem/2) pa pb;
+ dmoins = droite (nelem/2) pa pb;
+ d1a = droite (nelem/2) p1 pa;
+ db3 = droite (nelem/2) pb p3;
+
+ smoins = surf (d12 et d23 et db3 et dmoins et d1a);
+ splus  = surf (d1a et dplus et db3 et d34 et d41);
+ dom  = smoins et splus;
+ cdom = d12 et d23 et d34 et d41;
+
+* true crack: length, tangent, normal
+ lf  = (((xpb - xpa)**2) + ((ypb - ypa)**2))**0.5;
+ tfx = (xpb - xpa) / lf;
+ tfy = (ypb - ypa) / lf;
+ nfx = -1. * tfy;
+ nfy = tfx;
+
+ mess ' ';
+ mess 'BLOCK 1  mesh: ' (nbel dom) ' triangles (TRI6)';
+
+
+*----------------------------------------------------------------------
+* BLOCK 2 - Model, conductivity matrix, centred coordinates
+*   Conductivity K = 1. The centred coordinates xr, yr keep the
+*   adjoint fields small on the boundary.
+*----------------------------------------------------------------------
+
+ mo = dom mode thermique isotrope;
+ ma = mo mate 'K' 1.;
+ KK = cond mo ma;
+
+ x0 = 0.5 * ldom;
+ y0 = 0.5 * hdom;
+ xx yy = coor dom;
+ xr = xx - x0;
+ yr = yy - y0;
+
+* true line n.X = c
+ ctru = (nfx * (xpa - x0)) + (nfy * (ypa - y0));
+
+ mess 'BLOCK 2  ' (nbno dom) ' nodes; true crack: n = ' nfx nfy;
+ mess '         c = ' ctru '  length = ' lf;
+
+ si graph;
+   mess '  FIG 1 : mesh, outer boundary (red), crack (blue)';
+   titr 'FIG 1  mesh, outer boundary (red), crack (blue)';
+   trac (dom et (cdom coul roug) et ((dplus et dmoins) coul bleu));
+ finsi;
+
+
+*----------------------------------------------------------------------
+* BLOCK 3 - Procedures
+*----------------------------------------------------------------------
+
+* reciprocity gap from boundary nodal values
+*   RG(v) = sum ( u (K v) - q v )  on the boundary nodes
+*   q = KK * u : nodal fluxes (reactions), component 'Q'
+*   all fields are reduced to the boundary nodes before XTY
+ debproc rgap ub*chpoint qb*chpoint v*chpoint kk*rigidite;
+   mb = extr ub 'MAIL';
+   vt = exco v 'SCAL' 'T';
+   qv = redu mb (kk * vt);
+   vb = redu mb vt;
+   r = (xty ub qv (mots 'T') (mots 'Q'))
+     - (xty qb vb (mots 'Q') (mots 'T'));
+ finproc r;
+
+* Cauchy data on the boundary cd: potential ub ('T'), flux qb ('Q')
+*   multiplicative Gaussian noise on the MEASURED values only
+*   dmu : nodes where u is measured   (noise level epu)
+*   dmq : nodes where q is measured   (noise level epq)
+ debproc mesbr u*chpoint kk*rigidite cd*maillage dmu*maillage
+   dmq*maillage epu*flottant epq*flottant;
+   ub = redu cd u;
+   qb = redu cd (kk * u);
+   si (epu > 0.);
+     bn = bruit 'BLAN' 'GAUS' 0. epu dmu;
+     lc = extr bn 'COMP';
+     bn = exco bn (extr lc 1) 'T';
+     ub = ub + ((redu dmu ub) * bn);
+   finsi;
+   si (epq > 0.);
+     bn = bruit 'BLAN' 'GAUS' 0. epq dmq;
+     lc = extr bn 'COMP';
+     bn = exco bn (extr lc 1) 'Q';
+     qb = qb + ((redu dmq qb) * bn);
+   finsi;
+ finproc ub qb;
+
+* integral of a list lv over the abscissae ls (trapezoids)
+ debproc ztrap ls*listreel lv*listreel;
+   nl = dime ls;
+   zsum = 0.;
+   repeter bt (nl - 1);
+     i1 = &bt;
+     i2 = i1 + 1;
+     dz = (extr ls i2) - (extr ls i1);
+     zsum = zsum + (0.5 * dz * ((extr lv i1) + (extr lv i2)));
+   fin bt;
+ finproc zsum;
+
+
+*----------------------------------------------------------------------
+* BLOCK 4 - Experiment E1 (direct problem)
+*   Electrodes: u = 0 at the bottom, u = hdom at the top, zero flux
+*   on the vertical sides. Far from the crack u = y: background
+*   field E = (0, 1).
+*----------------------------------------------------------------------
+
+ bbas = bloq 'T' d12;
+ bhau = bloq 'T' d34;
+ u1 = reso (KK et bbas et bhau) (depi bhau hdom);
+ ex1 = 0.;
+ ey1 = 1.;
+
+ si graph;
+   mess '  FIG 2 : potential u1 (E1: electrodes bottom 0 / top hdom)';
+   titr 'FIG 2  potential u1, electrodes bottom (0) / top';
+   trac dom u1 (cont dom);
+ finsi;
+
+* opening [u] = u(upper lip) - u(lower lip) along the crack
+* (both lips have the same nodes in the same order, from A to B)
+ upl = evol 'CHPO' u1 'T' dplus;
+ umo = evol 'CHPO' u1 'T' dmoins;
+ lsaut = (extr upl 'ORDO') - (extr umo 'ORDO');
+
+* abscissa from A along the crack
+ sa  = (tfx * (xx - xpa)) + (tfy * (yy - ypa));
+ evs = evol 'CHPO' sa 'SCAL' dplus;
+ lsa = extr evs 'ORDO';
+ mtru = ztrap lsa lsaut;
+
+* opening of the same crack in an infinite body
+*   2 E_n sqrt(a^2 - s^2),  m0 = pi a^2 E_n
+ a0  = 0.5 * lf;
+ en0 = (ex1 * nfx) + (ey1 * nfy);
+ lsc = lsa - a0;
+ ljin = 2. * en0 * ((abs ((a0 * a0) - (lsc * lsc)))**0.5);
+
+ mess 'BLOCK 4  E1: int [u] on the lips = ' mtru
+   ' (infinite body ' (pi * a0 * a0 * en0) ')';
+
+ si graph;
+   mess '  FIG 3 : opening [u1] on the crack';
+   evj = coul (evol manu 'S' lsc 'SAUT' lsaut) 'JAUN';
+   evi = coul (evol manu 'S' lsc 'SAUT' ljin) 'NOIR';
+   titr 'FIG 3  opening [u1] (yellow), infinite body (black)';
+   dess (evj et evi);
+ finsi;
+
+
+*----------------------------------------------------------------------
+* BLOCK 5 - Measurement: Cauchy data of E1 on the boundary
+*   u imposed on the electrodes, measured on the vertical sides
+*   (not at the corners, where it is imposed); flux imposed (0)
+*   on the vertical sides, measured on the electrodes.
+*----------------------------------------------------------------------
+
+ dver = d23 et d41;
+ dhor = d12 et d34;
+ pcoin = p1 et p2 et p3 et p4;
+ pver = diff (chan 'POI1' dver) pcoin;
+
+ ub qb = mesbr u1 KK cdom pver dhor eps eps;
+
+* RG(1) = - int q : flux balance, 0
+ one = exp (0. * xr);
+ mess 'BLOCK 5  noise eps = ' eps '  RG(1) = ' (rgap ub qb one KK);
+
+
+*----------------------------------------------------------------------
+* BLOCK 6 - Linear and quadratic adjoint fields: normal, line
+*   RG(x) = m0 n_x, RG(y) = m0 n_y, m0 = int [u] > 0   (Step 1)
+*   RG((n.X)^2 - (t.X)^2) = 2 c m0                       (Step 2)
+*----------------------------------------------------------------------
+
+ rx = rgap ub qb xr KK;
+ ry = rgap ub qb yr KK;
+ m0 = ((rx * rx) + (ry * ry))**0.5;
+ nx = rx / m0;
+ ny = ry / m0;
+ tx = -1. * ny;
+ ty = nx;
+
+ eta0 = (nx * xr) + (ny * yr);
+ ss   = (tx * xr) + (ty * yr);
+ v2 = (eta0 * eta0) - (ss * ss);
+ c  = (rgap ub qb v2 KK) / (2. * (rgap ub qb eta0 KK));
+
+ pn = abs ((nx * nfx) + (ny * nfy));
+ si (pn > 1.);
+   pn = 1.;
+ finsi;
+ eang = acos pn;
+
+ mess 'BLOCK 6  RG(x) = ' rx '  RG(y) = ' ry;
+ mess '         normal n = ' nx ny '  angle error (deg) ' eang;
+ mess '         line   c = ' c '  (true ' ctru ')';
+
+
+*----------------------------------------------------------------------
+* BLOCK 7 - Polynomial adjoint fields: moments, centre, length
+*   eta = n.X - c,  s = t.X
+*     v = eta                -> m0 = int [u]
+*     v = s eta              -> m1 = int [u] s  -> centre s0 = m1/m0
+*     v = s'^2 eta - eta^3/3 -> m0 mu2 (s' = s - s0)
+*                                            -> a_mom = 2 sqrt(mu2)
+*   dipole: m0 = pi a^2 E_n                     -> a_dip
+*----------------------------------------------------------------------
+
+ eta = eta0 - c;
+ m0  = rgap ub qb eta KK;
+ s0  = (rgap ub qb (ss * eta) KK) / m0;
+ sp  = ss - s0;
+ v3  = (sp * sp * eta) - ((eta * eta * eta) / 3.);
+ mu2 = (rgap ub qb v3 KK) / m0;
+ amom = 0.;
+ si (mu2 > 0.);
+   amom = 2. * (mu2**0.5);
+ finsi;
+ en   = (ex1 * nx) + (ey1 * ny);
+ adip = ((abs m0) / (pi * (abs en)))**0.5;
+
+* centre and tips of the reconstructed crack
+ xc = x0 + (c * nx) + (s0 * tx);
+ yc = y0 + (c * ny) + (s0 * ty);
+ xm = xc - (adip * tx);
+ ym = yc - (adip * ty);
+ xp = xc + (adip * tx);
+ yp = yc + (adip * ty);
+ da1 = (((xm - xpa)**2) + ((ym - ypa)**2))**0.5;
+ db1 = (((xp - xpb)**2) + ((yp - ypb)**2))**0.5;
+ da2 = (((xp - xpa)**2) + ((yp - ypa)**2))**0.5;
+ db2 = (((xm - xpb)**2) + ((ym - ypb)**2))**0.5;
+ etip = mini (prog (maxi (prog da1 db1)) (maxi (prog da2 db2)));
+
+ mess 'BLOCK 7  m0 = ' m0 '  s0 = ' s0 '  mu2 = ' mu2 '  E_n = ' en;
+ mess '         length (2nd moment) = ' (2. * amom);
+ mess '         length (dipole)     = ' (2. * adip)
+   '  tip error ' etip;
+ mess '         centre = ' xc yc;
+
+ si graph;
+   mess '  FIG 4 : true crack (blue), line (green), result (red)';
+   qm = xm ym;
+   qp = xp yp;
+   lfis = droite 10 qm qp;
+   qfa = (xc - (2. * tx)) (yc - (2. * ty));
+   qfb = (xc + (2. * tx)) (yc + (2. * ty));
+   dfis = droite 20 qfa qfb;
+   titr 'FIG 4  true (blue), line (green), reconstructed (red)';
+   trac (cdom et (dplus coul bleu) et (dfis coul vert)
+     et (lfis coul roug));
+ finsi;
+
+* FIG 5: true opening against the semi-ellipses of area m0
+*   [u] = A sqrt(a^2 - s'^2),  A = 2 m0 / (pi a^2)
+ scx = (tx * xr) + (ty * yr) - s0;
+ lsp = extr (evol 'CHPO' scx 'SCAL' dplus) 'ORDO';
+
+ si graph;
+   mess '  FIG 5 : opening: true, dipole (red), 2nd moment (blue)';
+   evtot = coul (evol manu 'S' lsp 'SAUT' (abs lsaut)) 'JAUN';
+   aa  = adip;
+   amp = 2. * (abs m0) / (pi * aa * aa);
+   lse = prog (-1. * aa) pas (aa / 50.) aa;
+   lve = amp * ((abs ((aa * aa) - (lse * lse)))**0.5);
+   evtot = evtot et (coul (evol manu 'S' lse 'SAUT' lve) 'ROUG');
+   si (amom > 0.);
+     aa  = amom;
+     amp = 2. * (abs m0) / (pi * aa * aa);
+     lse = prog (-1. * aa) pas (aa / 50.) aa;
+     lve = amp * ((abs ((aa * aa) - (lse * lse)))**0.5);
+     evtot = evtot et (coul (evol manu 'S' lse 'SAUT' lve) 'BLEU');
+   finsi;
+   titr 'FIG 5  opening: true (yellow), dipole (red), moment (blue)';
+   dess evtot;
+ finsi;
+
+
+*----------------------------------------------------------------------
+* BLOCK 8 - Fourier adjoint fields and the sine-sinh series
+*   (a) v = exp(xi eta) cos(xi s'), exp(xi eta) sin(xi s'):
+*       RG / xi = int [u] cos(xi s'),  int [u] sin(xi s')
+*       semi-ellipse: C / m0 = 2 J1(xi a)/(xi a)
+*                            = 1 - (xi a)^2/8 + (xi a)^4/192 - ...
+*   (b) v_k = sin(l_k g) sinh(l_k eta) / l_k,  l_k = k pi / L,
+*       g from the point of the line at x = 0:
+*       [u](g) = sum (2/L) RG(v_k) sin(l_k g)
+*   (Cast3M SIN and COS work in degrees: factor r2d)
+*----------------------------------------------------------------------
+
+ mess 'BLOCK 8  Fourier fields, C(xi)/m0 (true opening in brackets):';
+ lxi = prog;
+ lcf = prog;
+ lct = prog;
+ lsf = prog;
+ repeter bxi nxi;
+   xi = flot &bxi;
+   egro = exp (xi * eta);
+   vc = egro * (cos (r2d * xi * sp));
+   vs = egro * (sin (r2d * xi * sp));
+   cf = (rgap ub qb vc KK) / xi;
+   sf = (rgap ub qb vs KK) / xi;
+   ct = ztrap lsa (lsaut * (cos (r2d * xi * lsp)));
+   mess '         xi = ' xi ' : ' (cf / m0) ' (' (ct / mtru) ')'
+     '  S(xi)/m0 = ' (sf / m0);
+   lxi = lxi et (prog xi);
+   lcf = lcf et (prog (cf / m0));
+   lct = lct et (prog (ct / mtru));
+   lsf = lsf et (prog (sf / m0));
+ fin bxi;
+
+* length from xi = xiest: solve x^4/192 - x^2/8 + (1 - rho) = 0
+ vc = (exp (xiest * eta)) * (cos (r2d * xiest * sp));
+ rho = (rgap ub qb vc KK) / (xiest * m0);
+ dsc = (1. / 64.) - ((1. - rho) / 48.);
+ afou = 0.;
+ si ((dsc > 0.) et (rho < 1.));
+   afou = ((96. * ((1. / 8.) - (dsc**0.5)))**0.5) / xiest;
+ finsi;
+ mess '         length (Fourier, xi = ' xiest ') = ' (2. * afou);
+
+ si graph;
+   mess '  FIG 6 : Fourier transform of the opening';
+   lxf = prog 0. pas 0.1 (flot nxi);
+   xa  = lxf * adip;
+   lj1 = 1. - ((xa * xa) / 8.) + ((xa * xa * xa * xa) / 192.)
+       - ((xa * xa * xa * xa * xa * xa) / 9216.);
+   ev6 = coul (evol manu 'XI' lxf 'C/M0' lj1) 'ROUG';
+   ev6 = ev6 et (coul (evol manu 'XI' lxi 'C/M0' lct) 'JAUN');
+   ev6 = ev6 et (coul (evol manu 'XI' lxi 'C/M0' lcf) 'BLEU');
+   ev6 = ev6 et (coul (evol manu 'XI' lxi 'C/M0' lsf) 'VERT');
+   titr 'FIG 6  Fourier: ellipse (red), true (yel.), RG (blue)';
+   dess ev6 'YBOR' -0.5 1.5;
+ finsi;
+
+* (b) sine-sinh series; orient t towards x > 0 (g > 0 in the domain)
+ gnx = nx;
+ gny = ny;
+ gc  = c;
+ gtx = tx;
+ gty = ty;
+ si (tx < 0.);
+   gnx = -1. * nx;
+   gny = -1. * ny;
+   gc  = -1. * c;
+   gtx = -1. * tx;
+   gty = -1. * ty;
+ finsi;
+ ga  = (0. - (x0 + (gc * gnx))) / gtx;
+ xga = x0 + (gc * gnx) + (ga * gtx);
+ yga = y0 + (gc * gny) + (ga * gty);
+ gx  = (gtx * (xx - xga)) + (gty * (yy - yga));
+ gy  = (gnx * (xx - xga)) + (gny * (yy - yga));
+ LL  = (2.**0.5) * (maxi (prog ldom hdom));
+ lg  = prog 0. pas (LL / 400.) LL;
+ lsum = lg * 0.;
+ sgn = 1.;
+ lrn = prog;
+ repeter bs nsine;
+   k  = &bs;
+   lk = (flot k) * pi / LL;
+   vk = (sin ((r2d * lk) * gx)) * (sinh (lk * gy)) / lk;
+   rk = rgap ub qb vk KK;
+   lrn = lrn et (prog rk);
+   si (k ega 1);
+     sgn = rk / (abs rk);
+   finsi;
+   lsum = lsum + (((2. / LL) * rk) * (sin ((r2d * lk) * lg)));
+   si (k ega 1);
+     es1 = coul (evol manu 'G' lg 'SAUT' (sgn * lsum)) 'TURQ';
+   finsi;
+   si (k ega 3);
+     es3 = coul (evol manu 'G' lg 'SAUT' (sgn * lsum)) 'BLEU';
+   finsi;
+   si (k ega 5);
+     es5 = coul (evol manu 'G' lg 'SAUT' (sgn * lsum)) 'ROUG';
+   finsi;
+ fin bs;
+ mess 'BLOCK 8  sine-sinh coefficients RG_k: ';
+ list lrn;
+
+ si graph;
+   mess '  FIG 7 : sine-sinh series: n = 1, 3, 5 and true opening';
+   lga = extr (evol 'CHPO' gx 'SCAL' dplus) 'ORDO';
+   evg = coul (evol manu 'G' lga 'SAUT' (abs lsaut)) 'JAUN';
+   titr 'FIG 7  sine-sinh n = 1 (turq.) 3 (blue) 5 (red), true';
+   dess (evg et es1 et es3 et es5);
+ finsi;
+
+
+*----------------------------------------------------------------------
+* BLOCK 9 - Turning potential and the matrix of the experiments
+*   u = d.X on the whole boundary, d = (cos b, sin b): background
+*   field d. Only the flux is measured. Linearity:
+*   u_b = cos b upx + sin b upy, two solves give all the angles.
+*   Row k of R: (RG(x), RG(y)) of the experiment b_k = m0_k n.
+*   R^T R = [saa sab; sab sdd]: its first eigenvector is n, the
+*   square roots of its eigenvalues are the singular values of R.
+*----------------------------------------------------------------------
+
+ bord = bloq 'T' cdom;
+ fxb = exco (redu cdom xr) 'SCAL' 'T';
+ fyb = exco (redu cdom yr) 'SCAL' 'T';
+ upx = reso (KK et bord) (depi bord fxb);
+ upy = reso (KK et bord) (depi bord fyb);
+
+ tub = table;
+ tqb = table;
+ lbet = prog;
+ lrx = prog;
+ lry = prog;
+ dbet = 180. / (flot nbeta);
+ repeter br nbeta;
+   k   = &br;
+   bet = dbet * (flot (k - 1));
+   cb  = cos bet;
+   sb  = sin bet;
+   ua  = (cb * upx) + (sb * upy);
+   uba qba = mesbr ua KK cdom cdom cdom 0. eps;
+   tub . k = uba;
+   tqb . k = qba;
+   lbet = lbet et (prog bet);
+   lrx  = lrx et (prog (rgap uba qba xr KK));
+   lry  = lry et (prog (rgap uba qba yr KK));
+ fin br;
+
+* R^T R and its eigenvalues
+ saa = 0.;
+ sab = 0.;
+ sdd = 0.;
+ repeter br nbeta;
+   k = &br;
+   saa = saa + ((extr lrx k) * (extr lrx k));
+   sab = sab + ((extr lrx k) * (extr lry k));
+   sdd = sdd + ((extr lry k) * (extr lry k));
+ fin br;
+ hsum = 0.5 * (saa + sdd);
+ hdif = ((0.25 * ((saa - sdd)**2)) + (sab * sab))**0.5;
+ lam1 = hsum + hdif;
+ lam2 = hsum - hdif;
+ sig1 = lam1**0.5;
+ sig2 = (abs lam2)**0.5;
+
+* first eigenvector (sab, lam1 - saa) or (lam1 - sdd, sab)
+ e1x = sab;
+ e1y = lam1 - saa;
+ f1x = lam1 - sdd;
+ f1y = sab;
+ ne1 = ((e1x * e1x) + (e1y * e1y))**0.5;
+ nf1 = ((f1x * f1x) + (f1y * f1y))**0.5;
+ si (ne1 > nf1);
+   nrx = e1x / ne1;
+   nry = e1y / ne1;
+ sinon;
+   nrx = f1x / nf1;
+   nry = f1y / nf1;
+ finsi;
+* same orientation as the normal of Block 6
+ si (((nrx * nx) + (nry * ny)) < 0.);
+   nrx = -1. * nrx;
+   nry = -1. * nry;
+ finsi;
+ pn = abs ((nrx * nfx) + (nry * nfy));
+ si (pn > 1.);
+   pn = 1.;
+ finsi;
+ eanr = acos pn;
+
+* signals m0_k = R_k . n, weights w_k = m0_k / |m|
+ lm0 = (nrx * lrx) + (nry * lry);
+ msig = 0.;
+ repeter br nbeta;
+   msig = msig + ((extr lm0 &br)**2);
+ fin br;
+ msig = msig**0.5;
+
+* virtual experiment sum w_k (u_k, q_k), field d = sum w_k d_k
+ dvx = 0.;
+ dvy = 0.;
+ repeter br nbeta;
+   k  = &br;
+   wk = (extr lm0 k) / msig;
+   dvx = dvx + (wk * (cos (extr lbet k)));
+   dvy = dvy + (wk * (sin (extr lbet k)));
+   si (k ega 1);
+     ubv = wk * (tub . k);
+     qbv = wk * (tqb . k);
+   sinon;
+     ubv = ubv + (wk * (tub . k));
+     qbv = qbv + (wk * (tqb . k));
+   finsi;
+ fin br;
+ tvx = -1. * nry;
+ tvy = nrx;
+ etv = (nrx * xr) + (nry * yr);
+ ssv = (tvx * xr) + (tvy * yr);
+ cvir = (rgap ubv qbv ((etv * etv) - (ssv * ssv)) KK)
+      / (2. * (rgap ubv qbv etv KK));
+ m0v  = rgap ubv qbv (etv - cvir) KK;
+ env  = (dvx * nrx) + (dvy * nry);
+ adv  = ((abs m0v) / (pi * (abs env)))**0.5;
+
+ mess 'BLOCK 9  singular values of R: ' sig1 sig2 '  (rank one)';
+ mess '         normal from R: ' nrx nry '  angle error ' eanr;
+ mess '         |m0| min ' (mini (abs lm0)) '  max ' (maxi (abs lm0));
+ mess '         virtual experiment: d = ' dvx dvy
+   '  signal ' msig;
+ mess '         c = ' cvir '  length (dipole) = ' (2. * adv);
+
+ si graph;
+   mess '  FIG 8 : signal |m0| of the turning potential';
+   alf = acos tfx;
+   lbf = prog 0. pas 1. 180.;
+   lmt = pi * a0 * a0 * (abs (sin (lbf - alf)));
+   ev8 = coul (evol manu 'BETA' lbf 'M0' lmt) 'NOIR';
+   ev8 = ev8 et (coul (evol manu 'BETA' lbet 'M0' (abs lm0)) 'ROUG');
+   titr 'FIG 8  |m0| (red), pi a^2 |sin(beta - alpha)| (black)';
+   dess ev8;
+
+   mess '  FIG 9 : the two columns of R are proportional';
+   ev9 = coul (evol manu 'BETA' lbet 'RG' lrx) 'BLEU';
+   ev9 = ev9 et (coul (evol manu 'BETA' lbet 'RG' lry) 'ROUG');
+   titr 'FIG 9  RG(x) (blue) and RG(y) (red) versus beta';
+   dess ev9;
+ finsi;
+
+ fin;

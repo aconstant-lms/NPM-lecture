@@ -13,6 +13,10 @@
                    a hole in three versions: kirsch_fem.py (printed), kirsch_fenics.py
                    (FEniCS/dolfinx) and kirsch_cast3m.dgibi (Cast3M); the last two are
                    only in the repository, not quoted in the text
+    examples/ch3/  rg_session.py: exercise session of Chapter 3 (reciprocity gap),
+                   gmsh + scikit-fem, same blocks as cast3m/ch3/rg_session.dgibi
+                   and fenics/ch3/rg_session_fenics.py; it draws the figures of
+                   the session guides (python3 rg_session.py 0 ../../../sessions/ch3/figs/python)
     figures/ch4/   figures of Chapter 4 (filament cycles, yield loci, hardening surfaces)
     examples/ch4/  computational exercises of Chapter 4 (1D cycles, viscoplasticity,
                    nonlinear hardening, plane-strain sheet)
