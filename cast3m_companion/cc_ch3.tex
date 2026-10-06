@@ -1,0 +1,338 @@
+%======================================================================
+%  Companion to Chapter 3 -- Identification of a planar crack by the
+%  reciprocity gap
+%======================================================================
+\chapter{Identification of a planar crack by the reciprocity gap}\label{cc:ch3}
+
+\framepart{Outline}
+
+Chapter~\ref{B-ch:rg} of the notes identifies a planar crack from boundary
+data in three steps: the normal, the line (or plane), and the extension. In
+two dimensions all three are computed by one Cast3M file on the example of
+Section~\ref{B-sec:rg-num}: the rectangle $1.5\times2$ with the crack from
+$(0.5,\,1.2)$ to $(0.8,\,1.35)$, of length $0.3354$. The file builds the cracked
+mesh, runs two experiments with electrodes, measures the potential and the flux
+on the boundary, adds noise, and identifies the crack with the adjoint fields of
+the chapter. A Python twin of the file, on the same mesh divisions, gives the
+reference values.
+
+You should then be able to build a crack into a Cast3M mesh, compute a
+reciprocity gap from boundary nodal values only, say which adjoint fields the
+discrete computation represents exactly, and read the effect of the mesh, of
+the noise and of the orientation of the loads on each step of the
+identification.
+
+\section{Where Cast3M enters Chapter 3}\label{cc:sec3-map}
+\index{Cast3M!Chapter 3}%
+
+\begin{gbox}{Chapter 3 of the notes and Cast3M}\label{cc:tab3}
+\small
+\begin{tabular}{@{}p{42mm}@{\hspace{3mm}}p{98mm}@{}}
+Direct problem, Sec.~\ref{B-sec:rg-direct}
+ & \textbf{Exercise~\ref{exo:cc-rg-direct}}: the thermal model on a mesh with
+   two lips; the two openings against the infinite-plate formula; the body
+   without crack, $\RG=0$.\\[1mm]
+Reciprocity gap, Sec.~\ref{B-sec:rg-gap}
+ & \textbf{Section~\ref{cc:sec3-gap}}: $\RG$ from nodal values, exact for
+   adjoint fields of degree at most two on quadratic triangles.\\[1mm]
+Steps 1--2, moments, dipole, Sec.~\ref{B-sec:rg-rec}
+ & \textbf{Exercises~\ref{exo:cc-rg-steps} and~\ref{exo:cc-rg-mesh}}: normal,
+   line, centre, length by the second moment and by the dipole; the cubic
+   field on three meshes.\\[1mm]
+Stability, Sec.~\ref{B-ssec:rg-stab}; Ex.~\ref{B-exo:rg-codes}
+ & \textbf{Exercises~\ref{exo:cc-rg-noise} and~\ref{exo:cc-rg-sine}}: noise on
+   the data, dipole against second moment; the sine--sinh series and its
+   resolution.\\[1mm]
+Several experiments, Sec.~\ref{B-sec:rg-multi}
+ & \textbf{Exercise~\ref{exo:cc-rg-rotation}}: the loads turned by $\beta$,
+   the blind direction, one experiment against a pair.\\[1mm]
+3D cracks, Sec.~\ref{B-sec:rg-rec}
+ & To do: a penny-shaped crack in a cube (\texttt{CUB20}), three experiments,
+   the dipole estimate $a=(3m_0/8E_n)^{1/3}$.\\[1mm]
+Elasticity, Ex.~\ref{B-exo:antiplane}
+ & To do: the same file in anti-plane shear is unchanged (the potential is the
+   displacement $u_3$); in plane elasticity the gap uses the elastic adjoint
+   fields of Andrieux, Ben Abda and Bui.\\
+\end{tabular}
+\end{gbox}
+
+\section{A crack in a mesh}\label{cc:sec3-mesh}
+\index{crack!in a mesh}%
+A crack is a line whose two sides do not share their nodes, except at the tips.
+In gibiane this is two lines with the same end points: each call of \op{droi}
+creates its own interior nodes, and the end points are the same objects.
+\begin{castemcom}
+The crack $A$--$B$ is drawn twice, \texttt{dplus} and \texttt{dmoins}. The two
+lines \texttt{d1a} and \texttt{db3} prolong it to the corners $p_1$ and
+$p_3$, and cut the rectangle into two parts, meshed separately by \op{surf}.
+They share the nodes of \texttt{d1a}, \texttt{db3} and of the tips, and not
+those of the crack: the union is the cracked body.
+
+Meshing the upper part on \texttt{dmoins} instead of \texttt{dplus} gives the
+same body without crack, which the file uses as a check.
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+pa = xpa ypa;  pb = xpb ypb;
+dplus  = droite (nelem/2) pa pb;
+dmoins = droite (nelem/2) pa pb;
+d1a = droite (nelem/2) p1 pa;
+db3 = droite (nelem/2) pb p3;
+smoins = surf (d12 et d23 et db3
+               et dmoins et d1a);
+splus  = surf (d1a et dplus et db3
+               et d34 et d41);
+dom  = smoins et splus;
+\end{verbatim}
+\end{castemlines}
+
+\section{The reciprocity gap from nodal values}\label{cc:sec3-gap}
+\index{reciprocity gap!discrete}%
+With the conductivity matrix $\mat{K}$ of the cracked mesh and the nodal
+potential $\mat{u}$ of an experiment, the nodal fluxes are $\mat{q}=\mat{K}\mat{u}$:
+zero at the free nodes, the reactions of the electrodes at the others. An
+adjoint field $v$ is interpolated at the nodes, with the same value on both
+lips. The file computes, on the nodes of the outer boundary only,
+\begin{equation}\label{cc:eq-rgh}
+  \RG_h(v)=\sum_{i\in\partial\Omega}\bigl(u_i\,(\mat{K}\mat{v})_i-v_i\,q_i\bigr),
+\end{equation}
+where $(\mat{K}\mat{v})_i$ is the nodal flux of $v$. The procedure
+\texttt{rgap} of the file returns $-\RG_h(v)$; the sign cancels in all the
+ratios of the identification.
+
+\begin{gbox}{The discrete reciprocity gap is exact for adjoint fields of degree two}\label{cc:box-rgh}
+On a mesh of quadratic triangles, $\displaystyle \RG_h(v)=\int_\Gamma\jump{u_h}\,\partial_nv\,ds$
+exactly, for every harmonic polynomial $v$ of degree at most two. The normal,
+the line, $m_0$, the centre and the dipole length are therefore exact functions
+of the discrete opening, on any mesh. The cubic field of the second moment and
+the sine--sinh fields are not represented, and their gaps carry a
+discretization error.
+\end{gbox}
+
+\paragraph{Why it works.}
+Split the boundary sums of~\eqref{cc:eq-rgh} into sums over all nodes. Since
+$\mat{q}=\mat{K}\mat{u}$ vanishes away from the outer boundary,
+$\sum_{\partial\Omega}v_iq_i=\mat{v}\T\mat{K}\mat{u}$. For $v$ harmonic and of
+degree at most two, $v$ is its own interpolant, and
+$\displaystyle (\mat{K}\mat{v})_i=\int\nabla v\cdot\nabla N_i$ is the flux of
+$v$ through the boundary of the support of $N_i$: zero at the interior nodes,
+$\displaystyle \int_{\partial\Omega}\partial_\nu v\,N_i$ on the outer boundary, and
+$\displaystyle \mp\int_{\Gamma^\pm}\partial_nv\,N_i$ at the nodes of the lips. Hence
+$\sum_{\partial\Omega}u_i(\mat{K}\mat{v})_i=\mat{u}\T\mat{K}\mat{v}
++\int_{\Gamma}\jump{u_h}\,\partial_nv$, and the symmetry of $\mat{K}$ cancels
+$\mat{u}\T\mat{K}\mat{v}-\mat{v}\T\mat{K}\mat{u}$. For a cubic $v$ the
+interpolant differs from $v$, the interior fluxes $(\mat{K}\mat{v})_i$ no longer
+vanish, and the difference is an error of order $h^2$.
+
+\begin{castemcom}
+The procedure works on boundary data only: \texttt{ub} and \texttt{qb} live on
+the outer boundary, and every field is reduced to that support before the
+scalar products \op{xty}. \texttt{kk * vt} is the nodal flux of the adjoint
+field.
+\end{castemcom}
+\begin{castemlines}
+\begin{verbatim}
+debproc rgap ub*chpoint qb*chpoint
+             v*chpoint kk*rigidite;
+  mb = extr ub 'MAIL';
+  vt = exco v 'SCAL' 'T';
+  qv = redu mb (kk * vt);
+  vb = redu mb vt;
+  r = (xty qb vb (mots 'Q') (mots 'T'))
+    - (xty ub qv (mots 'T') (mots 'Q'));
+finproc r;
+\end{verbatim}
+\end{castemlines}
+
+\framepart{Summary}
+
+\begin{gbox*}
+\begin{itemize}
+\item \textbf{A crack is two lines with the same ends}: separate interior
+  nodes, shared tips; the body without crack is the same mesh with one lip.
+\item \textbf{The gap needs only boundary nodal values}: potentials, the
+  nodal fluxes $\mat{K}\mat{u}$, and the nodal fluxes $\mat{K}\mat{v}$ of the
+  adjoint field.
+\item \textbf{Degree two is exact}: on quadratic triangles the normal, the
+  line, $m_0$, the centre and the dipole length are exact functions of the
+  discrete opening; the second moment and the sine--sinh series carry a
+  discretization error of order $h^2$ that is visible without noise.
+\item \textbf{The dipole estimate is the robust length}: it uses $m_0$ only,
+  and survives $1\%$ noise; the second moment does not.
+\item \textbf{Two loads remove the blind direction}: a single uniform field
+  parallel to the crack sees nothing; the optimal combination of two
+  orthogonal loads sees the crack at every angle.
+\end{itemize}
+\end{gbox*}
+
+\framepart{Exercises}
+
+The exercises use the file \texttt{crack\_rg\_extension.dgibi} and its Python
+twin \texttt{rg\_reference.py}, which builds the same cracked rectangle with
+the same divisions (30 per side, 15 on the crack and on the two cut lines),
+quadratic triangles, and computes the same quantities. The numbers below come
+from the twin; the Cast3M mesh of \op{surf} is different, so expect agreement to
+the second or third digit, and to all digits for the normal and the line.
+
+\framesub{Short questions}
+
+\exercise{The sign of the gap}\label{exo:cc-rg-q-sign}
+\index{reciprocity gap!sign}%
+The procedure \texttt{rgap} computes $\sum(q\,v-u\,\mat{K}v)$, that is
+$-\RG(v)$. Which results of the identification change sign, and which do not?
+\begin{solution}
+$m_0$, $m_1$ and the raw normal $(\RG(x),\RG(y))$ change sign. The normal is
+defined up to its sign anyway, and $c=\RG(v_2)/(2\RG(\eta))$,
+$s_0=m_1/m_0$, $\mu_2=\RG(v_3)/m_0$ and $a=\sqrt{\abs{m_0}/(\pi\abs{E_n})}$ are
+ratios or absolute values: they do not change. The check without crack, where
+every gap vanishes, does not see the sign either; the flux balance
+$\RG(1)=-\sum q_i=0$ checks the fluxes.
+\end{solution}
+
+\exercise{The blind direction of the rectangle}\label{exo:cc-rg-q-blind}
+\index{blind experiment}%
+The potential $u=\vd\cdot\vx$ is imposed on the whole boundary, with
+$\vd=(\cos\beta,\sin\beta)$. For which $\beta$ is the experiment blind, and for
+which is the signal largest?
+\begin{solution}
+Blind when $\vd$ is parallel to the crack, $\vd\cdot\vn=0$:
+$\tan\beta=0.15/0.3$, $\beta=26.57^\circ$ (and $206.57^\circ$). The signal
+$m_0\propto\vd\cdot\vn$ is largest for $\vd=\pm\vn$, $\beta=116.57^\circ$. The
+twin gives $\abs{m_0}=0.0374$ at $0^\circ$, $0.0023$ at $25^\circ$ and the
+maximum $0.0836$ near $115^\circ$.
+\end{solution}
+
+\exercise{Exact or not?}\label{exo:cc-rg-q-exact}
+\index{adjoint field!polynomial}%
+On quadratic triangles, which of the adjoint fields $x$, $y$,
+$(\vn\cdot\vx)^2-(\vt\cdot\vx)^2$, $\eta$, $s\eta$, $s^2\eta-\tfrac13\eta^3$ and
+$\sin(\lambda s)\sinh(\lambda\eta)$ give an exact discrete gap?
+\begin{solution}
+The first five, of degree at most two (Section~\ref{cc:sec3-gap}). The cubic
+field of the second moment and the sine--sinh fields are not in the
+finite element space: their gaps carry an error of order $h^2$, growing with
+$\lambda$ for the sine--sinh fields.
+\end{solution}
+
+\framesub{Problems}
+
+\exercise{The cracked rectangle}\label{exo:cc-rg-direct}
+\index{direct problem!cracked body}%
+Mesh the rectangle $1.5\times2$ with the crack from $(0.5,1.2)$ to
+$(0.8,1.35)$. Experiment E1 imposes $u=0$ at the bottom and $u=2$ at the top
+(background field $\vE=(0,1)$), experiment E2 imposes $u=0$ on the left and
+$u=1.5$ on the right ($\vE=(1,0)$); the other sides are insulated. (a)~Compute
+the openings of E1 and E2 along the crack and compare them with the
+infinite-plate opening $2E_n\sqrt{a^2-s^2}$ of Section~\ref{B-sec:rg-num}.
+(b)~Check that the gaps vanish for the body without crack.
+\begin{solution}
+(a)~Both openings are close to half-ellipses, with $m_0=0.0754$ for E1 and
+$-0.0376$ for E2, in the ratio $\vE_1\cdot\vn:\vE_2\cdot\vn=0.894:(-0.447)$. On
+the middle $80\%$ of the crack the opening of E1 is $0.94$ to $0.97$ times the
+infinite-plate value $2E_n\sqrt{a^2-s^2}$ ($0.974$ at the centre); with 120
+divisions per side, $0.98$ to $0.99$: the rest is the finite body. At the nodes
+next to the tips the ratio falls to $0.8$, because the square-root singularity
+is not resolved. The second-moment length of both true openings is $0.328$,
+below the true length $0.335$ for the same reason.
+(b)~Without crack $\RG(x)$ and $\RG(y)$ vanish to rounding; with the crack the
+flux balance gives $\RG(1)=8\times10^{-14}$.
+\end{solution}
+
+\exercise{The three steps, from one and from two experiments}\label{exo:cc-rg-steps}
+\index{crack!planar, reconstruction}%
+With exact data, identify the crack from E1 alone and from the optimal
+combination of E1 and E2 (Section~\ref{B-sec:rg-multi}): normal, line, centre,
+length by the second moment and by the dipole, and the error on the tips.
+\begin{solution}
+Both give the normal $\pm(0.4472,-0.8944)$ and the line $c=\pm0.2907$ exactly,
+as the box of Section~\ref{cc:sec3-gap} says. E1: $\abs{m_0}=0.0756$,
+second-moment length $0.329$, dipole length $0.328$, tips within $0.004$. The
+combination has the weights $(0.895,-0.447)$, i.e.\ the background field
+normal to the crack ($E_n=1$), and $\abs{m_0}=0.0845$; its dipole length is
+again $0.328$, but its second-moment length drops to $0.302$: the cubic field is
+not exact, and its error is large for E2 on this mesh
+(Exercise~\ref{exo:cc-rg-mesh}). The book's values on a coarser Cast3M mesh,
+$m_0=0.0767$ and $0.330$, differ by the mesh.
+\untested{\texttt{cast3m/ch3/crack\_rg\_extension.dgibi} (version 3)}
+\lstinputlisting[style=gibstyle,firstline=137,lastline=277]{cast3m/ch3/crack_rg_extension.dgibi}
+\end{solution}
+
+\exercise{The second moment on three meshes}\label{exo:cc-rg-mesh}
+\index{moments of the opening!discretization error}%
+Compute the second-moment length from E2 alone, with the exact line and centre,
+on meshes with 30, 60 and 120 divisions per side. Explain why it converges,
+and compare with the dipole length.
+\begin{solution}
+$0.147$, $0.300$ and $0.326$ (E1: $0.329$, $0.333$, $0.334$): the error is
+divided by about 5 and then 4, an $h^2$ convergence towards the continuous
+length $0.335$. The cubic field $s^2\eta-\tfrac13\eta^3$ is not in the space of
+quadratic elements, so its gap carries the error of
+Section~\ref{cc:sec3-gap}; E2 has half the signal of E1 and suffers more. The
+dipole length, $0.328$, $0.331$, $0.333$, is the same for E1 and E2 to
+$0.001$ on every mesh: it uses $m_0=\RG(\eta)$, exact on every mesh, and changes
+only with the discrete opening itself. The twin reads the number of divisions from the
+variable \texttt{RG\_NELEM}.
+\lstinputlisting[firstline=8,lastline=97]{cast3m/ch3/rg_reference.py}
+\end{solution}
+
+\exercise{Noise: the dipole against the second moment}\label{exo:cc-rg-noise}
+\index{dipole}\index{stability!of the extension step}%
+Add a relative Gaussian noise $\epsilon$ to the measured potentials and fluxes
+(not to the imposed ones), 200 times, for $\epsilon=10^{-3}$ and $10^{-2}$, and
+compare the lengths given by the dipole and by the second moment
+(Exercise~\ref{B-exo:rg-codes}).
+\begin{solution}
+At $\epsilon=10^{-3}$ (the default of the file), E1 gives the dipole length
+$0.328\pm0.001$ and the second-moment length $0.325\pm0.073$, with 3 failures
+($\mu_2\le0$) in 200. At $\epsilon=10^{-2}$: dipole $0.328\pm0.010$, second
+moment $0.61\pm0.22$ with 77 failures. The combination of E1 and E2 reduces the
+dipole scatter to $\pm0.007$. The dipole uses only $m_0$, measured with a linear
+field; the second moment needs $\mu_2m_0$, of order $a^4$, through a field that
+contains $\eta^3$. The angle error of the normal is $0.25^\circ$ and
+$2.6^\circ$ at the two noise levels.
+\end{solution}
+
+\exercise{The sine--sinh series}\label{exo:cc-rg-sine}
+\index{sine--sinh adjoint fields}\index{resolution}%
+Compute the coefficients $\RG(v_n)$, $n=1,\dots,7$, of the series of
+Section~\ref{B-sec:rg-num} for E1 with exact data, along the identified line,
+with $L=\sqrt2\times2=2.83$. Plot the partial sums. Which terms can be used, and
+what does the series tell about the crack?
+\begin{solution}
+$\RG(v_n)=0.054$, $0.075$, $0.054$, $0.017$, $-0.021$, then $-0.38$ and
+$-2.30$: the last two are discretization errors of the sine--sinh fields, which
+reach $\sinh(\lambda_7H)\approx10^5$ on the boundary and are not represented by
+elements of size $0.05$. Up to $n=5$ the partial sums show one bump near the
+crack, peaking at $g=0.55$ to $0.65$ (the crack covers $0.56\le g\le0.89$,
+centre $0.73$), of area $0.09$ (against $m_0=0.076$) and maximum $0.11$ to $0.12$
+(against $0.29$ for the true opening). With $H=1.52$ and $\delta=10^{-3}$ the estimate~\eqref{B-eq:rg-res}
+gives about four usable terms and a resolution of $0.7$, twice the length of the
+crack: the series locates the crack and measures its opening area, not its
+shape. Version 2 of the file plotted $n=7$; version 3 stops at $n=5$.
+\end{solution}
+
+\exercise{Turning the loads}\label{exo:cc-rg-rotation}
+\index{several experiments}\index{virtual experiment}%
+Impose $u=\vd\cdot\vx$ on the whole boundary, $\vd=(\cos\beta,\sin\beta)$,
+measure only the flux, with $\epsilon=10^{-3}$, and identify the crack for
+$\beta=0^\circ,5^\circ,\dots,180^\circ$ from this experiment alone and from the
+pair $(\beta,\beta+90^\circ)$ combined.
+\begin{solution}
+With exact data both identify the normal exactly at every angle; only the
+signal $\abs{m_0}$ changes, from $0.0023$ at $25^\circ$ to $0.0836$. With noise,
+the single experiment loses the crack near the blind direction: angle errors
+of $1$ to $2^\circ$ between $10^\circ$ and $35^\circ$, and a tip error of $0.14$ at
+$25^\circ$. The pair keeps angle errors below $0.3^\circ$ and tip errors below
+$0.008$ at every angle: its optimal combination is always the load normal to the
+crack (Section~\ref{B-sec:rg-multi}). By linearity the file computes the two
+fields $u=x$ and $u=y$ once and combines them for every $\beta$.
+\lstinputlisting[style=gibstyle,firstline=473,lastline=536]{cast3m/ch3/crack_rg_extension.dgibi}
+\end{solution}
+
+\begin{chapterbib}{9}
+\bibitem{cc-ab96} S.~Andrieux, A.~Ben Abda, Identification of planar cracks by
+  complete overdetermined data: inversion formulae, \emph{Inverse Problems} 12
+  (1996) 553--563.
+\bibitem{cc-ac09} A.~Constantinescu, \texttt{crack\_reciprocity\_plan.dgibi},
+  Cast3M procedure, CNRS -- \'Ecole Polytechnique, 2009.
+\end{chapterbib}

@@ -5,7 +5,7 @@
 * (Box 5.6; exercise "The radial return on fields in Cast3M" (a))
 *
 * STATUS: UNTESTED. Written against the operator notices (VMIS,
-* MASQ, EXCO, SIGM, ZERO, EXP); not run. See cast3m/README.md for
+* EXCO, SIGM, ZERO, EXP; no MASQ); not run. See cast3m/README.md for
 * the constructions to check first.
 *
 * Reference values, python/examples/ch5/exo_shear.py
@@ -29,10 +29,10 @@
 * andrei.constantinescu@polytechnique.edu
 *
 *----------------------------------------------------------------
-* PROCEDURE smul: product of a scalar field cc (component SCAL)
+* PROCEDURE mulsc: product of a scalar field cc (component SCAL)
 *   by every component of the field x named in the list lcp
 *----------------------------------------------------------------
-debproc smul cc*mchaml x*mchaml lcp*listmots;
+debproc mulsc cc*mchaml x*mchaml lcp*listmots;
   repeter bsm (dime lcp);
     nm = extr lcp &bsm;
     yi = exco (cc * (exco x nm 'SCAL')) 'SCAL' nm;
@@ -45,11 +45,11 @@ debproc smul cc*mchaml x*mchaml lcp*listmots;
 finproc y;
 *
 *----------------------------------------------------------------
-* PROCEDURE devia: deviator of a symmetric tensor field x;
+* PROCEDURE dvsym: deviator of a symmetric tensor field x;
 *   ldia: names of the diagonal components (3 of them, also in
 *   2D: SMZZ or SMTT), loff: names of the off-diagonal ones
 *----------------------------------------------------------------
-debproc devia x*mchaml ldia*listmots loff*listmots;
+debproc dvsym x*mchaml ldia*listmots loff*listmots;
   nd = dime ldia;
   repeter bd1 nd;
     nm = extr ldia &bd1;
@@ -76,12 +76,12 @@ debproc devia x*mchaml ldia*listmots loff*listmots;
 finproc y;
 *
 *----------------------------------------------------------------
-* PROCEDURE hard: isotropic hardening R(alpha) and R'(alpha)
+* PROCEDURE rhar: isotropic hardening R(alpha) and R'(alpha)
 *   tm . 'LOI' = 'LINE': R = sY + K alpha
 *   tm . 'LOI' = 'VOCE': R = sinf - (sinf - sY) exp(-delta alpha)
 *   un: field of ones on the same Gauss points
 *----------------------------------------------------------------
-debproc hard al*mchaml un*mchaml tm*table;
+debproc rhar al*mchaml un*mchaml tm*table;
   sy = tm . 'SIGY';
   si ((tm . 'LOI') ega 'VOCE');
     sinf = tm . 'SINF';
@@ -127,15 +127,16 @@ debproc rrj2 mo*mmodel sigtr*mchaml bet*mchaml al*mchaml
   eta = sigtr - bet;
   qtr = vmis mo eta;
 * un: ones; pla: 1 at the Gauss points where f_trial > 0
-  un  = masq qtr 'SUPERIEUR' -1.;
-  rr0 rp0 = hard al un tm;
+  un  = exp (0. * qtr);
+  rr0 rp0 = rhar al un tm;
   ftr = qtr - rr0;
-  pla = masq ftr 'SUPERIEUR' 0.;
+  af  = abs ftr;
+  pla = (ftr + af) / ((2. * af) + ((1.e-20 * sy) * un));
 * local Newton from dp = 0 (one iteration for linear hardening,
 * monotone convergence for Voce, Box 5.2 step 4)
   dp = 0. * un;
   repeter bnw 30;
-    rr rp = hard (al + dp) un tm;
+    rr rp = rhar (al + dp) un tm;
     gg = pla * (qtr - (a3 * dp) - rr);
     si ((maxi (abs gg)) < (1.e-10 * sy));
       quitter bnw;
@@ -151,9 +152,9 @@ debproc rrj2 mo*mmodel sigtr*mchaml bet*mchaml al*mchaml
 *   beta  = beta_n   + H    dp eta_dev / q
 * (qs: q shifted by 1e-12 sY to avoid 0/0 where dp = 0)
   qs  = qtr + ((1.e-12 * sy) * un);
-  ed  = devia eta ldia loff;
-  sig = sigtr - (smul ((3. * mu) * (dp / qs)) ed lcp);
-  bet2 = bet + (smul (hh * (dp / qs)) ed lcp);
+  ed  = dvsym eta ldia loff;
+  sig = sigtr - (mulsc ((3. * mu) * (dp / qs)) ed lcp);
+  bet2 = bet + (mulsc (hh * (dp / qs)) ed lcp);
   al2  = al + dp;
 finproc sig bet2 al2 dp ftr;
 *
@@ -163,17 +164,17 @@ finproc sig bet2 al2 dp ftr;
 *----------------------------------------------------------------
 debproc uhom xx*chpoint yy*chpoint e11*flottant e22*flottant
              e12*flottant;
-  ux = exco ((e11 * xx) + (e12 * yy)) 'SCAL' 'UX';
-  uy = exco ((e12 * xx) + (e22 * yy)) 'SCAL' 'UY';
-  uu = ux et uy;
+  vx = exco ((e11 * xx) + (e12 * yy)) 'SCAL' 'UX';
+  vy = exco ((e12 * xx) + (e22 * yy)) 'SCAL' 'UY';
+  uu = vx et vy;
 finproc uu;
 *
 *----------------------------------------------------------------
-* PROCEDURE chem: strain path from ea to eb (lists e11 e22 e12)
+* PROCEDURE pchm: strain path from ea to eb (lists e11 e22 e12)
 *   in nst equal steps; the state table st holds SIG, BET, ALP
 *   and is updated in place (z_n -> z_n+1 at every step)
 *----------------------------------------------------------------
-debproc chem mo*mmodel ma*mchaml tm*table st*table
+debproc pchm mo*mmodel ma*mchaml tm*table st*table
              xx*chpoint yy*chpoint ea*listreel eb*listreel
              nst*entier;
   de = eb - ea;
@@ -223,12 +224,12 @@ finproc;
 *----------------------------------------------------------------
 * STEP 3  virgin state: zero stress and back stress, alpha = 0
 *----------------------------------------------------------------
-debproc virg mo*mmodel;
+debproc etat0 mo*mmodel;
   st = table;
   s0 = zero mo 'CONTRAIN';
   st . 'SIG' = s0;
   st . 'BET' = s0;
-  st . 'ALP' = 0. * (masq (vmis mo s0) 'SUPERIEUR' -1.);
+  st . 'ALP' = 0. * (vmis mo s0);
 finproc st;
 *
 *----------------------------------------------------------------
@@ -241,8 +242,8 @@ finproc st;
     si (&bsh ega 2);
       nst = 1000;
     finsi;
-    st = virg mo;
-    chem mo ma tm st xx yy o3 sh nst;
+    st = etat0 mo;
+    pchm mo ma tm st xx yy o3 sh nst;
     s12 = extr (st . 'SIG') 'SMXY' 1 1 1;
     mess 'simple shear, ' nst ' steps: s12 = ' s12
          '   (closed form 149.706775)';
@@ -258,9 +259,9 @@ finproc st;
   ln = prog;  ls11 = prog;  ls12 = prog;  lal = prog;
   repeter bn (dime lisn);
     n = extr lisn &bn;
-    st = virg mo;
-    chem mo ma tm st xx yy o3 ea 500;
-    chem mo ma tm st xx yy ea eb n;
+    st = etat0 mo;
+    pchm mo ma tm st xx yy o3 ea 500;
+    pchm mo ma tm st xx yy ea eb n;
     s11 = extr (st . 'SIG') 'SMXX' 1 1 1;
     s12 = extr (st . 'SIG') 'SMXY' 1 1 1;
     a1  = extr (st . 'ALP') 'SCAL' 1 1 1;

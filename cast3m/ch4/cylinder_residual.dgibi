@@ -58,7 +58,8 @@
 *
   rg = chan 'CHAM' (coor 1 dom) mo 'STRESSES';
   ep = exco (tab . 'VARIABLES_INTERNES' . 20) 'EPSE' 'SCAL';
-  cfe = maxi ((masq ep 'SUPERIEUR' 0.) * rg);
+* plastic points: ep / (ep + tiny) is 1 where EPSE > 0, 0 elsewhere
+  cfe = maxi (rg * (ep / (ep + (1.e-30 * (exp (0. * ep))))));
   mess 'plastic front at the peak: ' cfe ' mm   (closed form 150)';
 *
 * STEP 5  after unloading (index 40): residual stresses, nodal

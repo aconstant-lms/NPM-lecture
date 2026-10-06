@@ -75,19 +75,20 @@
 *
 * STEP 6  hoop stress on the hole against Kirsch, s (1 - 2 cos 2 theta)
 *
-* Loop over the nodes of the hole: theta = atan(y/x) in degrees, hoop stress
+* Loop over the nodes of the hole: theta = acos(x/r) in degrees (no ATG), hoop stress
 * sigma_tt = sx sin^2 + sy cos^2 - 2 sxy sin cos, and Kirsch's value.
   hole = chan poi1 (c1m et c5m);
   lth = prog;  lfe = prog;  lki = prog;
   repe bou (nbno hole);
     pp  = poin hole &bou;
     xx  = coor 1 pp;  yy = coor 2 pp;
-    th  = atg yy xx;
+    th  = acos (xx / (((xx * xx) + (yy * yy)) ** 0.5));
     cc  = cos th;  ss = sin th;
     sx  = extr sgn 'SMXX' pp;
     sy  = extr sgn 'SMYY' pp;
     sxy = extr sgn 'SMXY' pp;
-    stt = ((sx * ss) * ss) + ((sy * cc) * cc) - (((2. * sxy) * ss) * cc);
+    stt = ((sx * ss) * ss) + ((sy * cc) * cc);
+    stt = stt - (((2. * sxy) * ss) * cc);
     lth = lth et (prog th);
     lfe = lfe et (prog stt);
     lki = lki et (prog (s * (1. - (2. * (cos (2. * th))))));

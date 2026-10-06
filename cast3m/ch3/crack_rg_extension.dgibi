@@ -1,0 +1,536 @@
+***********************************************************************
+*
+*  Ecart a la reciprocite - fissure plane (droite) en 2D
+*
+*  d'apres crack_reciprocity_plan.dgibi (A. Constantinescu, 2009)
+*  Andrieux & Ben Abda, Inverse Problems 12 (1996) 553-563
+*
+*  1. normale n        : RG(x), RG(y)
+*  2. plan  n.X = c    : RG((n.X)^2 - (t.X)^2) / (2 RG(n.X))
+*  3. extension        : moments m_k = int [u] s^k ds, k = 0,1,2
+*       centre         : s0 = m1 / m0
+*       demi-longueur  : (a) a = 2 sqrt(mu2)        (moments)
+*                        (b) a = sqrt(m0/(pi E_n))  (dipole)
+*  4. rotation des conditions aux limites (option)
+*
+*  Fonctions test : polynomes harmoniques de degre <= 3.  Avec des
+*  TRI6 le degre <= 2 est represente exactement : l'identite
+*  discrete RG(v) = int [u_h] dn v (RG du livre, saut discret u_h)
+*  est alors exacte, meme sur un
+*  maillage grossier (normale, plan, m0, centre, dipole).  Le
+*  champ cubique du second moment et les champs sinus x sinh ne le
+*  sont pas : erreur de discretisation en h^2, visible SANS bruit
+*  (voir les valeurs de reference ci-dessous).
+*
+*  Coordonnees centrees au milieu du domaine : xr = x - x0 ...
+*
+*  Version 2 (Cast3M 2026) :
+*  - pas de noms d'operateurs (MESU, TRES, ET ...) comme noms
+*    de variables ou de procedures (reconnus sur 4 lettres)
+*  - pas de collision majuscule/minuscule (XX = xx en Gibiane)
+*  - pas de table de tables, pas de MASQ, pas de ATG
+*  - pas de "a.1" (lu comme un reel .1)
+*
+*  Version 3 (relecture, 6 oct. 2026) :
+*  - verification sans fissure : RG = 0 (signe et exactitude)
+*  - rgap : champs reduits au bord avant XTY (supports egaux)
+*  - idfis : plus de division par zero si E1 est aveugle ; rend
+*    aussi les poids (w1, w2) de l'experience virtuelle
+*  - bruit : pas de bruit sur u aux coins (u y est impose)
+*  - trace du saut : saut vrai de l'experience VIRTUELLE (avant :
+*    saut de E1 compare a la demi-ellipse de E1 + E2, trop haute
+*    de 12 a 15 %)
+*  - serie sinus : nn = 5 (n = 6, 7 domines par l'erreur de
+*    discretisation sur ce maillage, meme sans bruit)
+*  - rotation : pas de 5 degres (direction aveugle 26.57 degres)
+*  - variables ux, uy (noms de composantes) renommees upx, upy
+*
+*  STATUT : version 3 NON EXECUTEE. Valeurs de reference du jumeau
+*  Python rg_reference.py (meme maillage 30/15, TRI6, sans bruit) :
+*    E1      : n = +-(0.4472, -0.8944) exacte, c = +-0.2907,
+*              |m0| = 0.0756, longueur moments 0.329, dipole 0.328
+*    E1 + E2 : poids (0.895, -0.447), |m0| = 0.0845, E_n = 1,
+*              longueur moments 0.302 (erreur du champ cubique),
+*              dipole 0.328 ; erreur des pointes 0.004
+*    E2 seule, longueur moments : 0.147 (30), 0.300 (60), 0.326 (120
+*              elements par cote) ; saut vrai : longueur 0.328
+*    serie sinus E1 : RG_n = 0.054 0.075 0.054 0.017 -0.021
+*              (puis -0.38, -2.30 : erreur de discretisation)
+*    rotation : |m0| = 0.0374 (0 deg), 0.0023 (25 deg), max 0.0836
+*    bruit 1e-3 (E1, 200 tirages) : dipole 0.328 +- 0.001,
+*              moments 0.325 +- 0.073 (3 echecs)
+*    bruit 1e-2 (E1) : dipole 0.328 +- 0.010, moments 0.61 +- 0.22
+*              (77 echecs sur 200)
+*    rotation, bruit 1e-3 sur le flux : experience seule, erreur
+*              des pointes 0.14 a 25 deg ; paire < 0.008 partout
+*  (livre, maillage Cast3M plus grossier : m0 = 0.0767, 0.330)
+*
+***********************************************************************
+
+ opti dime 2 elem tri6 echo 0;
+* opti trac psc;
+* (decommenter pour ecrire les traces dans un fichier PostScript)
+
+*----------------------------------------------------------------------
+* Parametres
+*----------------------------------------------------------------------
+ ldom  = 1.5;
+ hdom  = 2.;
+ nelem = 30;
+ xpa = 0.5;  ypa = 1.2;
+ xpb = 0.8;  ypb = 1.35;
+* bruit relatif (gaussien, moyenne nulle) sur les grandeurs mesurees
+ eps   = 0.001;
+* traces, methode sinus/sinh d'origine, etude en rotation
+ graph  = vrai;
+ osinus = vrai;
+ orota  = vrai;
+ pi  = 3.14159265358979;
+ r2d = 180. / pi;
+
+*----------------------------------------------------------------------
+* Geometrie (comme le fichier d'origine)
+*----------------------------------------------------------------------
+ p1 = 0. 0.;
+ p2 = ldom 0.;
+ p3 = ldom hdom;
+ p4 = 0. hdom;
+ d12 = droite nelem p1 p2;
+ d23 = droite nelem p2 p3;
+ d34 = droite nelem p3 p4;
+ d41 = droite nelem p4 p1;
+ pa = xpa ypa;
+ pb = xpb ypb;
+* deux lignes distinctes de memes extremites = levres de la fissure
+ dplus  = droite (nelem/2) pa pb;
+ dmoins = droite (nelem/2) pa pb;
+ d1a = droite (nelem/2) p1 pa;
+ db3 = droite (nelem/2) pb p3;
+ smoins = surf (d12 et d23 et db3 et dmoins et d1a);
+ splus  = surf (d1a et dplus et db3 et d34 et d41);
+ dom  = smoins et splus;
+ cdom = d12 et d23 et d34 et d41;
+ si graph;
+   trac (dom et (cdom coul roug) et ((dplus et dmoins) coul bleu));
+ finsi;
+
+* fissure vraie (pour verification seulement)
+ lf  = (((xpb - xpa)**2) + ((ypb - ypa)**2))**0.5;
+ tfx = (xpb - xpa) / lf;
+ tfy = (ypb - ypa) / lf;
+ nfx = -1. * tfy;
+ nfy = tfx;
+
+*----------------------------------------------------------------------
+* Modele, conductivite, coordonnees centrees
+*----------------------------------------------------------------------
+ mo = dom mode thermique isotrope;
+ ma = mo mate 'K' 1.;
+ KK = cond mo ma;
+
+ x0 = 0.5 * ldom;
+ y0 = 0.5 * hdom;
+ xx yy = coor dom;
+ xr = xx - x0;
+ yr = yy - y0;
+
+*----------------------------------------------------------------------
+* Procedures
+*----------------------------------------------------------------------
+* ecart a la reciprocite  RG(v) = int (q v - u dn v)
+* (flux nodaux = reactions KK*u ; flux de v = KK*v)
+* C'est -RG(v) du livre : le signe disparait dans les rapports.
+* Tous les champs sont reduits aux noeuds du bord (support de ub)
+* avant XTY : seules les donnees au bord interviennent.
+ debproc rgap ub*chpoint qb*chpoint v*chpoint kk*rigidite;
+   mb = extr ub 'MAIL';
+   vt = exco v 'SCAL' 'T';
+   qv = redu mb (kk * vt);
+   vb = redu mb vt;
+   r = (xty qb vb (mots 'Q') (mots 'T'))
+     - (xty ub qv (mots 'T') (mots 'Q'));
+ finproc r;
+
+* mesure au bord cd : potentiel ub (comp. T) et flux qb (comp. Q)
+* bruit multiplicatif independant, seulement sur les grandeurs
+* MESUREES :
+*   dmu : partie du bord ou le flux est impose (u mesure)
+*   dmq : partie du bord ou u est impose (flux mesure)
+*   epu, epq : niveaux de bruit (0. = pas de bruit)
+ debproc mesbr u*chpoint kk*rigidite cd*maillage dmu*maillage
+   dmq*maillage epu*flottant epq*flottant;
+   ub = redu cd u;
+   qb = redu cd (kk * u);
+   si (epu > 0.);
+     bn = bruit 'BLAN' 'GAUS' 0. epu dmu;
+     lc = extr bn 'COMP';
+     bn = exco bn (extr lc 1) 'T';
+     ub = ub + ((redu dmu ub) * bn);
+   finsi;
+   si (epq > 0.);
+     bn = bruit 'BLAN' 'GAUS' 0. epq dmq;
+     lc = extr bn 'COMP';
+     bn = exco bn (extr lc 1) 'Q';
+     qb = qb + ((redu dmq qb) * bn);
+   finsi;
+ finproc ub qb;
+
+* identification a partir de 1 ou 2 experiences
+*   (ub1,qb1) champ de fond (ex1,ey1) ; (ub2,qb2) (ex2,ey2)
+*   nexp = 1 : seule la premiere est utilisee
+*   comb = vrai : experience virtuelle optimale (combinaison)
+*          faux : la plus forte des deux
+ debproc idfis ub1*chpoint qb1*chpoint ub2*chpoint qb2*chpoint
+   xr*chpoint yr*chpoint kk*rigidite ex1*flottant ey1*flottant
+   ex2*flottant ey2*flottant nexp*entier comb*logique;
+   rx1 = rgap ub1 qb1 xr kk;
+   ry1 = rgap ub1 qb1 yr kk;
+   rx2 = 0.;
+   ry2 = 0.;
+   si (nexp > 1);
+     rx2 = rgap ub2 qb2 xr kk;
+     ry2 = rgap ub2 qb2 yr kk;
+   finsi;
+   r1 = ((rx1 * rx1) + (ry1 * ry1))**0.5;
+   r2 = ((rx2 * rx2) + (ry2 * ry2))**0.5;
+* direction provisoire : experience la plus forte
+* (test avant la division : E1 peut etre aveugle, r1 = 0)
+   si (r2 > r1);
+     nx0 = rx2 / r2;
+     ny0 = ry2 / r2;
+   sinon;
+     nx0 = rx1 / r1;
+     ny0 = ry1 / r1;
+   finsi;
+* signaux int[u] de chaque experience et poids
+   s1 = (rx1 * nx0) + (ry1 * ny0);
+   s2 = (rx2 * nx0) + (ry2 * ny0);
+   w1 = 0.;
+   w2 = 0.;
+   si comb;
+     sn = ((s1 * s1) + (s2 * s2))**0.5;
+     w1 = s1 / sn;
+     w2 = s2 / sn;
+   sinon;
+     si ((abs s2) > (abs s1));
+       w2 = s2 / (abs s2);
+     sinon;
+       w1 = s1 / (abs s1);
+     finsi;
+   finsi;
+* experience (virtuelle) utilisee
+   ub = (w1 * ub1) + (w2 * ub2);
+   qb = (w1 * qb1) + (w2 * qb2);
+* 1. normale : RG(x), RG(y) de l'experience utilisee
+   rx = (w1 * rx1) + (w2 * rx2);
+   ry = (w1 * ry1) + (w2 * ry2);
+   rn = ((rx * rx) + (ry * ry))**0.5;
+   nx = rx / rn;
+   ny = ry / rn;
+   en = (w1 * ((ex1 * nx) + (ey1 * ny)))
+      + (w2 * ((ex2 * nx) + (ey2 * ny)));
+* 2. plan n.X = c
+   tx = -1. * ny;
+   ty = nx;
+   eta0 = (nx * xr) + (ny * yr);
+   ss   = (tx * xr) + (ty * yr);
+   v2 = (eta0 * eta0) - (ss * ss);
+   c = (rgap ub qb v2 kk) / (2. * (rgap ub qb eta0 kk));
+* 3. moments : dn v = s^k sur la droite, v = Im(z^(k+1))/(k+1)
+   eta = eta0 - c;
+   m0 = rgap ub qb eta kk;
+   m1 = rgap ub qb (ss * eta) kk;
+   s0 = m1 / m0;
+   sp = ss - s0;
+   v2c = (sp * sp * eta) - ((eta * eta * eta) / 3.);
+   mom2 = (rgap ub qb v2c kk) / m0;
+   amom = 0.;
+   si (mom2 > 0.);
+     amom = 2. * (mom2**0.5);
+   finsi;
+   adip = ((abs m0) / (3.14159265358979 * (abs en)))**0.5;
+ finproc nx ny c s0 amom adip m0 en w1 w2;
+
+* erreurs par rapport a la fissure vraie (angle en degres)
+ debproc erfis nx*flottant ny*flottant c*flottant s0*flottant
+   a*flottant x0*flottant y0*flottant xpa*flottant ypa*flottant
+   xpb*flottant ypb*flottant nfx*flottant nfy*flottant;
+   pn = abs ((nx * nfx) + (ny * nfy));
+   si (pn > 1.);
+     pn = 1.;
+   finsi;
+   eang = acos pn;
+   tx = -1. * ny;
+   ty = nx;
+   xm = x0 + (c * nx) + ((s0 - a) * tx);
+   ym = y0 + (c * ny) + ((s0 - a) * ty);
+   xp = x0 + (c * nx) + ((s0 + a) * tx);
+   yp = y0 + (c * ny) + ((s0 + a) * ty);
+   da1 = (((xm - xpa)**2) + ((ym - ypa)**2))**0.5;
+   db1 = (((xp - xpb)**2) + ((yp - ypb)**2))**0.5;
+   da2 = (((xp - xpa)**2) + ((yp - ypa)**2))**0.5;
+   db2 = (((xm - xpb)**2) + ((ym - ypb)**2))**0.5;
+   e1 = maxi (prog da1 db1);
+   e2 = maxi (prog da2 db2);
+   etip = mini (prog e1 e2);
+ finproc eang etip xm ym xp yp;
+
+*----------------------------------------------------------------------
+* Experiences (champ de fond unitaire)
+*   E1 : electrodes bas (u = 0) / haut (u = hdom)  -> E = (0,1)
+*   E2 : electrodes gauche (0) / droite (ldom)     -> E = (1,0)
+*----------------------------------------------------------------------
+ bbas = bloq 'T' d12;
+ bhau = bloq 'T' d34;
+ bgau = bloq 'T' d41;
+ bdro = bloq 'T' d23;
+ u1 = reso (KK et bbas et bhau) (depi bhau hdom);
+ u2 = reso (KK et bgau et bdro) (depi bdro ldom);
+
+ si graph;
+   titr 'potentiel, experience E1';
+   trac dom u1 (cont dom);
+ finsi;
+
+* saut vrai sur la fissure (verification), E1 et E2 ; les deux
+* levres ont le meme nombre de noeuds, dans le meme ordre
+ upl = evol 'CHPO' u1 'T' dplus;
+ umo = evol 'CHPO' u1 'T' dmoins;
+ lsau1 = (extr upl 'ORDO') - (extr umo 'ORDO');
+ lsaut = abs lsau1;
+ upl = evol 'CHPO' u2 'T' dplus;
+ umo = evol 'CHPO' u2 'T' dmoins;
+ lsau2 = (extr upl 'ORDO') - (extr umo 'ORDO');
+
+*----------------------------------------------------------------------
+* Verification sans fissure : la partie haute est maillee sur la
+* levre basse (memes noeuds), le corps est sain et RG(v) = 0 pour
+* tout v.  RG(y) controle le signe des flux nodaux : il vaudrait
+* -2 x aire = -6 avec le signe oppose (RG(x) = 0 dans les deux cas).
+*----------------------------------------------------------------------
+ spl0 = surf (d1a et dmoins et db3 et d34 et d41);
+ dom0 = smoins et spl0;
+ mo0 = dom0 mode thermique isotrope;
+ KK0 = cond mo0 (mo0 mate 'K' 1.);
+ xx0 yy0 = coor dom0;
+ u10 = reso (KK0 et bbas et bhau) (depi bhau hdom);
+ ub0 = redu cdom u10;
+ qb0 = redu cdom (KK0 * u10);
+ mess ' sans fissure : RG(x) = ' (rgap ub0 qb0 (xx0 - x0) KK0)
+   '  RG(y) = ' (rgap ub0 qb0 (yy0 - y0) KK0) '  (0 attendu)';
+
+*----------------------------------------------------------------------
+* Mesures
+*   E1 : u mesure sur les cotes verticaux, flux mesure bas/haut
+*   E2 : u mesure bas/haut, flux mesure sur les cotes verticaux
+*----------------------------------------------------------------------
+ dver = d23 et d41;
+ dhor = d12 et d34;
+* noeuds ou u est mesure : cotes sans les coins (u y est impose)
+ pcoin = p1 et p2 et p3 et p4;
+ pver = diff (chan 'POI1' dver) pcoin;
+ phor = diff (chan 'POI1' dhor) pcoin;
+ ub1 qb1 = mesbr u1 KK cdom pver dhor eps eps;
+ ub2 qb2 = mesbr u2 KK cdom phor dver eps eps;
+
+ mess ' ';
+ mess ' fissure vraie : n = ' nfx nfy;
+ mess '   c = ' ((nfx * (xpa - x0)) + (nfy * (ypa - y0)));
+ mess '   longueur = ' lf;
+ mess ' bruit relatif = ' eps;
+
+*----------------------------------------------------------------------
+* Identification : E1 seule (kexp = 1), E1 + E2 combinees (kexp = 2)
+*----------------------------------------------------------------------
+ repeter bk 2;
+   kexp = &bk;
+   si (kexp ega 1);
+     mess ' ';
+     mess ' ===== donnees E1';
+   sinon;
+     mess ' ';
+     mess ' ===== donnees E1 + E2 combinees';
+   finsi;
+   nx ny c s0 amom adip m0 en w1 w2 = idfis ub1 qb1 ub2 qb2
+     xr yr KK 0. 1. 1. 0. kexp vrai;
+   ea1 ta1 xm ym xp yp = erfis nx ny c s0 amom x0 y0
+     xpa ypa xpb ypb nfx nfy;
+   ea2 ta2 xm ym xp yp = erfis nx ny c s0 adip x0 y0
+     xpa ypa xpb ypb nfx nfy;
+   mess ' normale        n = ' nx ny;
+   mess ' erreur angle (deg) = ' ea1;
+   mess ' plan           c = ' c;
+   mess ' m0 = int[u]      = ' m0 '  E_n = ' en;
+   mess ' centre        s0 = ' s0;
+   si (amom > 0.);
+     mess ' longueur (moments) = ' (2. * amom) ' err. pointes ' ta1;
+   sinon;
+     mess ' longueur (moments) : echec, mu2 <= 0';
+   finsi;
+   mess ' longueur (dipole)  = ' (2. * adip) ' err. pointes ' ta2;
+   mess ' pointes (dipole) : ' xm ym ' / ' xp yp;
+ fin bk;
+
+*----------------------------------------------------------------------
+* Traces : droite identifiee, fissure reconstruite, saut
+* (resultat E1 + E2, dernier passage de la boucle)
+*----------------------------------------------------------------------
+ tx = -1. * ny;
+ ty = nx;
+ qm = xm ym;
+ qp = xp yp;
+ lfis = droite 10 qm qp;
+* droite support (longue, pour le trace)
+ xc = x0 + (c * nx) + (s0 * tx);
+ yc = y0 + (c * ny) + (s0 * ty);
+ qfa = (xc - (2. * tx)) (yc - (2. * ty));
+ qfb = (xc + (2. * tx)) (yc + (2. * ty));
+ dfis = droite 20 qfa qfb;
+
+ si graph;
+   titr 'fissure vraie (bleu), droite (vert), support (rouge)';
+   trac (cdom et (dplus coul bleu) et (dfis coul vert)
+     et (lfis coul roug));
+ finsi;
+
+* saut vrai de l'experience VIRTUELLE w1 E1 + w2 E2 (celle dont
+* m0 et E_n ont servi) en fonction de s = t.X, et demi-ellipse
+* reconstruite par le dipole
+ scx = (tx * xr) + (ty * yr);
+ evs = evol 'CHPO' scx 'SCAL' dplus;
+ lsauc = abs ((w1 * lsau1) + (w2 * lsau2));
+ evj = coul (evol manu 'S' (extr evs 'ORDO') 'SAUT' lsauc) 'JAUN';
+ aa  = adip;
+ amp = 2. * (abs m0) / (pi * aa * aa);
+ lsr = prog (s0 - aa) pas (aa / 50.) (s0 + aa);
+ dl  = lsr - s0;
+ lvr = amp * ((abs ((dl * dl * -1.) + (aa * aa)))**0.5);
+ evr = coul (evol manu 'S' lsr 'SAUT' lvr) 'ROUG';
+ si graph;
+   titr 'saut : vrai (jaune), demi-ellipse dipole (rouge)';
+   dess (evj et evr);
+ finsi;
+
+*----------------------------------------------------------------------
+* Methode d'origine (sinus x sinh), formule corrigee, pour comparaison
+*   v_n = sin(l_n g) sinh(l_n h) / l_n , l_n = n pi / LL
+*   dn v_n = sin(l_n g) sur la droite  ->  RG_n = int [u] sin(l_n g)
+*   [u](g) = sum (2/LL) RG_n sin(l_n g) , g depuis le point x = 0
+*   (donnees E1 seules)
+*----------------------------------------------------------------------
+ si osinus;
+   LL = 1.4142 * (maxi (prog ldom hdom));
+* orienter t vers les x croissants (g > 0 dans le domaine)
+   si (tx < 0.);
+     nx = -1. * nx;
+     ny = -1. * ny;
+     c  = -1. * c;
+     tx = -1. * tx;
+     ty = -1. * ty;
+   finsi;
+* point de la droite d'abscisse x = 0 (coordonnees absolues)
+   ga = (0. - (x0 + (c * nx))) / tx;
+   xga = x0 + (c * nx) + (ga * tx);
+   yga = y0 + (c * ny) + (ga * ty);
+   gx = (tx * (xx - xga)) + (ty * (yy - yga));
+   gy = (nx * (xx - xga)) + (ny * (yy - yga));
+   lg = prog 0. pas (LL / 400.) LL;
+   lsum = lg * 0.;
+* n <= 5 : sur ce maillage RG_6 et RG_7 sont domines par l'erreur
+* de discretisation de sin x sinh, meme sans bruit (jumeau Python :
+* RG_n = 0.054 0.075 0.054 0.017 -0.021 -0.38 -2.30)
+   nn = 5;
+   sgn = 1.;
+   repeter bs nn;
+     n = &bs;
+     ln = n * pi / LL;
+     vn = (sin ((r2d * ln) * gx)) * (sinh (ln * gy)) / ln;
+     rn = rgap ub1 qb1 vn KK;
+     mess ' sinus n = ' n '  RG_n = ' rn;
+     si (n ega 1);
+       sgn = rn / (abs rn);
+     finsi;
+     lsum = lsum + (((2. / LL) * rn) * (sin ((r2d * ln) * lg)));
+     si (n ega 3);
+       esin3 = coul (evol manu 'G' lg 'SAUT' (sgn * lsum)) 'BLEU';
+     finsi;
+     si (n ega 4);
+       esin4 = coul (evol manu 'G' lg 'SAUT' (sgn * lsum)) 'VERT';
+     finsi;
+     si (n ega 5);
+       esin5 = coul (evol manu 'G' lg 'SAUT' (sgn * lsum)) 'ROUG';
+     finsi;
+   fin bs;
+* saut vrai dans la meme abscisse g
+   evg = evol 'CHPO' gx 'SCAL' dplus;
+   evjg = coul (evol manu 'G' (extr evg 'ORDO') 'SAUT' lsaut) 'JAUN';
+   si graph;
+     titr 'serie sinus n = 3 (bleu), 4 (vert), 5 (rouge), vrai';
+     dess (evjg et esin3 et esin4 et esin5);
+   finsi;
+ finsi;
+
+*----------------------------------------------------------------------
+* Rotation des conditions aux limites
+*   potentiel impose u = d.X sur tout le bord, d = (cos b, sin b)
+*   (champ de fond E = d) ; linearite : u_b = cos b upx + sin b upy
+*   flux seul mesure (bruite) ; experience seule / paire (b, b+90)
+*----------------------------------------------------------------------
+ si orota;
+   bord = bloq 'T' cdom;
+   fxb = exco (redu cdom xr) 'SCAL' 'T';
+   fyb = exco (redu cdom yr) 'SCAL' 'T';
+   upx = reso (KK et bord) (depi bord fxb);
+   upy = reso (KK et bord) (depi bord fyb);
+* pas de 5 degres : la direction aveugle (E parallele a la fissure)
+* est atan(0.15/0.3) = 26.57 degres
+   repeter br 37;
+     bet = 5. * (&br - 1);
+     cb = cos bet;
+     sb = sin bet;
+     ua = (cb * upx) + (sb * upy);
+     uo = (cb * upy) - (sb * upx);
+     uba qba = mesbr ua KK cdom cdom cdom 0. eps;
+     ubo qbo = mesbr uo KK cdom cdom cdom 0. eps;
+     msb = -1. * sb;
+* experience seule
+     nx ny c s0 amom adip m0 en w1 w2 = idfis uba qba uba qba
+       xr yr KK cb sb cb sb 1 vrai;
+     ea1 ta1 xm ym xp yp = erfis nx ny c s0 adip x0 y0
+       xpa ypa xpb ypb nfx nfy;
+* paire (b, b + 90) combinee
+     nx ny c s0 amom adip m0b en w1 w2 = idfis uba qba ubo qbo
+       xr yr KK cb sb msb cb 2 vrai;
+     ea2 ta2 xm ym xp yp = erfis nx ny c s0 adip x0 y0
+       xpa ypa xpb ypb nfx nfy;
+     mess ' beta = ' bet ' m0 = ' m0 ' angle ' ea1 ' pointes ' ta1;
+     mess '     paire : angle ' ea2 ' pointes ' ta2;
+     si (&br ega 1);
+       lbet = prog bet;
+       lm01 = prog (abs m0);
+       lea1 = prog ea1;
+       lta1 = prog ta1;
+       lea2 = prog ea2;
+       lta2 = prog ta2;
+     sinon;
+       lbet = lbet et (prog bet);
+       lm01 = lm01 et (prog (abs m0));
+       lea1 = lea1 et (prog ea1);
+       lta1 = lta1 et (prog ta1);
+       lea2 = lea2 et (prog ea2);
+       lta2 = lta2 et (prog ta2);
+     finsi;
+   fin br;
+   si graph;
+     titr 'signal int[u] en fonction de beta (experience seule)';
+     dess (evol manu 'BETA' lbet 'M0' lm01);
+     titr 'erreur angle (deg) : seule (rouge), paire (vert)';
+     dess ((coul (evol manu 'BETA' lbet 'DEG' lea1) 'ROUG')
+       et (coul (evol manu 'BETA' lbet 'DEG' lea2) 'VERT'));
+     titr 'erreur pointes : seule (rouge), paire (vert)';
+     dess ((coul (evol manu 'BETA' lbet 'ERR' lta1) 'ROUG')
+       et (coul (evol manu 'BETA' lbet 'ERR' lta2) 'VERT'));
+   finsi;
+ finsi;
+
+ fin;

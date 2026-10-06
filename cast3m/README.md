@@ -2,13 +2,15 @@
 
 Cast3M versions of exercises of the notes, sorted by chapter. They are
 the files printed in the companion document `cast3m_companion/`
-(exercises numbered C<chapter>.<n>); Chapter 3 (reciprocity gap) is
-treated separately.
+(exercises numbered C<chapter>.<n>).
 
 | file | book exercise | companion | status |
 |---|---|---|---|
 | `ch1/springs_multipliers.dgibi` | Ch. 1, spring chain, constraint, reciprocity | C1.1 | untested |
 | `ch2/kirsch_elements.dgibi` | Ch. 2, Kirsch (d): T3/T6/Q4/Q8, 3 meshes, balance of reactions | C2.1 | untested |
+| `ch3/crack_rg_extension.dgibi` | Ch. 3, crack in the rectangle: steps 1-2, moments, dipole, sine-sinh series, noise, rotation of the loads | C3.1-C3.9 | version 3 untested (version 2, the author's, was run) |
+| `ch3/crack_rg_extension_v2.dgibi` | the author's version 2, kept for comparison | -- | run with Cast3M 2026 |
+| `ch3/rg_reference.py` | Python twin of the file (scikit-fem, triangle): the reference values | C3.4-C3.9 | run |
 | `ch4/sheet_plane_strain.dgibi` | Ch. 4, stretching of a sheet (MEC563 file, SI units, sY = 200 MPa) | C4.1 | author's file, run in the course |
 | `ch4/sheet_vm_250.dgibi` | Ch. 4, same exercise with the data of `exo_sheet.py` | C4.1 | untested |
 | `ch4/filament_cyclic.dgibi` | Ch. 4, cyclic loading, isotropic/kinematic hardening (bar element) | C4.2 | untested |
@@ -67,6 +69,22 @@ runs, posterior standard deviations (0.0059, 0.0009, 0.0079); JAX + BFGS: 210
 runs); from (0.7, 1.5, 3) p_true SciPy stops at E/E_true = 0.4424, J = 522.5.
 With Cast3M the numbers should agree to the PASAPAS tolerance.
 
+## Rules from a real run (author, Cast3M 2026)
+
+The header of `ch3/crack_rg_extension_v2.dgibi` records what a run with
+Cast3M 2026 required; all the files here now follow it:
+
+- no operator name as a variable or procedure name: operators are recognised
+  on their first 4 letters (procedures renamed: `mulsc`, `dvsym`, `rhar`,
+  `pchm`, `etat0`, `pinc`, `mplq`; `trac1` renamed `ctr`);
+- no upper/lower case collision: `XX` and `xx` are the same name;
+- no table of tables built in one chained assignment, no `MASQ`, no `ATG`
+  (fields of ones are `exp (0. * f)`, the plastic mask is
+  `(f + abs f) / (2 abs f + tiny)`, the plastic zone `ep / (ep + tiny)`;
+  angles by `ACOS`);
+- no token like `a.1` (read as the real .1);
+- and, as always, code within 72 columns (a longer line is cut).
+
 ## Constructions to check first
 
 The files were written against the operator notices and the Cast3M
@@ -79,8 +97,9 @@ likely to need a fix; each one is used in the files listed.
 2. `EXCO` on an `MCHAML` renaming a component in both directions,
    `exco x 'SMXX' 'SCAL'` and `exco y 'SCAL' 'SMXX'`, and `ET` joining the
    components back into one field (`ch5/*`).
-3. The component name of `VMIS` (assumed `SCAL`), `MASQ` and `EXP` applied to
-   an `MCHAML` (`ch5/*`).
+3. The component name of `VMIS` (assumed `SCAL`), `EXP` and `ABS` applied to
+   an `MCHAML`, and the division of two `MCHAML` (the masks replacing `MASQ`)
+   (`ch4/cylinder_residual`, `ch5/*`).
 4. `CHAN 'CHAM' (coor 1 dom) mo 'STRESSES'` for the radius of the Gauss points
    (`ch4/cylinder_residual`, `ch5/cylinder_radial_return`).
 5. The name `EPSE` of the cumulated plastic strain in the internal variables
@@ -96,7 +115,7 @@ likely to need a fix; each one is used in the files listed.
 9. The residual `ff - (bsig mo s) - (aa * uu)` of the hand-written equilibrium
    loop, taken from the Cast3M introduction (Chapter "Elastoplasticity")
    (`ch5/cylinder_radial_return`).
-10. The type of the stress field rebuilt by `smul` and `devia` from components
+10. The type of the stress field rebuilt by `mulsc` and `dvsym` from components
     (`EXCO` + `ET`): if `-` with the trial stress or a later `VMIS` refuses it,
     give it back its type with `chan 'TYPE' ... 'CONTRAINTES'` (`ch5/*`).
 11. `DROI n p q 'DINI' d1 'DFIN' d2` with a positive `n`: the count is imposed
@@ -105,6 +124,9 @@ likely to need a fix; each one is used in the files listed.
 12. The gibiane reading of numbers written by the drivers as `2.000000000000e+05`
     (`ch7`), and a `PRECISION` of 1e-10 in `PASAPAS`: if it subdivides or fails,
     use 1e-8 and a relative step of 1e-3 in `castem_run.jacobian_fd`.
+13. Chapter 3: `BRUI 'BLAN' 'GAUS'` on a `POI1` mesh, `DIFF` of two `POI1`
+    meshes, `EXTR chpoint 'MAIL'`, and `SURF` on a contour whose lines are not
+    head to tail (unchanged from version 2, which ran) (`ch3/*`).
 
 A review of the files by a second reader (logic, procedure signatures, loop
 names, 72-column lines, left-to-right arithmetic) found and fixed a variable

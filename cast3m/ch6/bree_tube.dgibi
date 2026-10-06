@@ -71,8 +71,8 @@
   lun = prog (dime ltt) * 1.;
   llam = abs (sin ((180. / pi0) * ltt));
   rr = coor 1 dom;
-  un = rr masq 'SUPERIEUR' 0.;
-  tau = exco ((-1. * (tau0 / e)) * (rr - (rm * un))) 'SCAL' 'T';
+  rmc = manu 'CHPO' dom 1 'SCAL' rm;
+  tau = exco ((-1. * (tau0 / e)) * (rr - rmc)) 'SCAL' 'T';
   t0 = 0. * tau;
   chp = char 'MECA' fp (evol manu 'TEMPS' ltt 'P' lun);
   cht = char 'T' tau (evol manu 'TEMPS' ltt 'LAMB' llam);
@@ -82,8 +82,9 @@
   tab . 'CARACTERISTIQUES' = ma;
   tab . 'BLOCAGES_MECANIQUES' = aa;
   tab . 'CHARGEMENT' = chp et cht;
-  tab . 'TEMPERATURES' = table;
-  tab . 'TEMPERATURES' . 0 = t0;
+  ttem = table;
+  ttem . 0 = t0;
+  tab . 'TEMPERATURES' = ttem;
   tab . 'TEMPS_CALCULES' = ltt;
   pasapas tab;
 *
@@ -96,8 +97,8 @@
   eold = 0.;
   repeter bc ncyc;
     ii = &bc * nstep;
-    ur = extr (tab . 'DEPLACEMENTS' . ii) 'UR' pmid;
-    eth = (ur / rm) / ey;
+    urm = extr (tab . 'DEPLACEMENTS' . ii) 'UR' pmid;
+    eth = (urm / rm) / ey;
     lc = lc et (prog (flot &bc));
     le = le et (prog eth);
     ld = ld et (prog (eth - eold));

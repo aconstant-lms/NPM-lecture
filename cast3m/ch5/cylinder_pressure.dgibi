@@ -33,22 +33,23 @@
 *
   you = 2.e5; nu = 0.3;
   lal = prog 0. pas 0.002 0.3;
-  lsi = (prog 600.) - ((prog 350.) * (exp (-30. * lal)));
+  nl = dime lal;
+  lsi = (prog nl * 600.) - ((prog nl * 350.) * (exp (-30. * lal)));
   leps = (lsi / you) + lal;
   lsi = (prog 0.) et lsi;
   leps = (prog 0.) et leps;
-  trac1 = evol manu 'EPS' leps 'SIG' lsi;
-  dess trac1;
+  ctr = evol manu 'EPS' leps 'SIG' lsi;
+  dess ctr;
 *
   mod_p = mode dom 'MECANIQUE' 'ELASTIQUE' 'ISOTROPE'
                    'PLASTIQUE' 'ISOTROPE';
-  mat_p = mate mod_p 'YOUN' you 'NU' nu 'TRAC' trac1;
+  mat_p = mate mod_p 'YOUN' you 'NU' nu 'TRAC' ctr;
 *
 * STEP 4  boundary conditions: plane strain (UZ = 0 on both faces)
 *
   bl1 = bloq uz l12;
   bl2 = bloq uz l34;
-  AA = bl1 et bl2;
+  aa = bl1 et bl2;
 *
 * STEP 5  loading: unit pressure on the bore, amplitude 0 -> 320 MPa
 *
@@ -64,7 +65,7 @@
   tab = table;
   tab . 'MODELE' = mod_p;
   tab . 'CARACTERISTIQUES' = mat_p;
-  tab . 'BLOCAGES_MECANIQUES' = AA;
+  tab . 'BLOCAGES_MECANIQUES' = aa;
   tab . 'CHARGEMENT' = ch_p;
   tab . 'TEMPS_CALCULES' = prog 0. pas 1. 10.;
   pasapas tab;
@@ -72,13 +73,14 @@
 * STEP 7  bore displacement against pressure
 *
   lp = prog; lu = prog;
-  repeter loop (dime tab . deplacements);
+  repeter loop (dime (tab . 'DEPLACEMENTS'));
     ii = &loop - 1;
-    lp = lp et (prog (320. * (tab . temps . ii) / 10.));
-    lu = lu et (prog (extr tab . deplacements . ii 'UR' p1));
+    lp = lp et (prog (320. * (tab . 'TEMPS' . ii) / 10.));
+    lu = lu et (prog (extr (tab . 'DEPLACEMENTS' . ii) 'UR' p1));
   fin loop;
   ev_u = evol manu 'u(a) [mm]' lu 'p [MPa]' lp;
   dess ev_u;
   list lu;
 *
   opti donn 5;
+fin;
