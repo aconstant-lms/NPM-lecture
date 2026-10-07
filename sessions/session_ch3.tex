@@ -4,9 +4,9 @@
 %
 %  One PDF, in the order of use:
 %    1. the session sheet (questions only, at most 8 pages: printed)
-%    2. the guides of the three codes, same blocks and same structure:
+%    2. the session sheet with the answers
+%    3. the guides of the three codes, same blocks and same structure:
 %       Cast3M, FEniCS, Python
-%    3. the session sheet with the answers (at the end, to cut out)
 %  The sheet is written once (ch3/sheet.tex) and printed twice: the
 %  answer environments are shown only in the second copy.
 %
@@ -32,7 +32,13 @@
 \answersfalse
 \input{ch3/sheet}
 
-%---- 2. the guides ------------------------------------------------------
+%---- 2. the session sheet with the answers ------------------------------
+\clearpage
+\answerstrue
+\setcounter{spart}{0}
+\input{ch3/sheet}
+
+%---- 3. the guides ------------------------------------------------------
 \clearpage
 \begingroup\sloppy
 \input{ch3/codes}
@@ -43,11 +49,5 @@
 \clearpage
 \input{ch3/guide_python}
 \endgroup
-
-%---- 3. the session sheet with the answers ------------------------------
-\clearpage
-\answerstrue
-\setcounter{spart}{0}
-\input{ch3/sheet}
 
 \end{document}

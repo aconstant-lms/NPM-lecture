@@ -3,10 +3,10 @@
 One PDF per session, in the order of use:
 
 1. the session sheet: questions only (at most 8 pages, printed);
-2. the guides of the three codes, with the same blocks and the same
+2. the session sheet with the answers;
+3. the guides of the three codes, with the same blocks and the same
    structure (running, parameters, blocks, figures, printed values,
-   pitfalls, listing): Cast3M, FEniCS, Python;
-3. the session sheet with the answers, at the end (to cut out).
+   pitfalls, listing): Cast3M, FEniCS, Python.
 
 The sheet is written once (`ch3/sheet.tex`) and printed twice: the
 `answer` environments appear only in the second copy (`\answerstrue`).
