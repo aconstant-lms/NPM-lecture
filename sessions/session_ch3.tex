@@ -3,7 +3,8 @@
 %  A. Constantinescu, LMS, CNRS & Ecole Polytechnique
 %
 %  One PDF, in the order of use:
-%    1. the session sheet (questions only, at most 8 pages: printed)
+%    1. the session sheet (questions only, at most 8 pages: printed);
+%       off for now: \questionsheettrue below puts it back
 %    2. the session sheet with the answers
 %    3. the guides of the three codes, same blocks and same structure:
 %       Cast3M, FEniCS, Python
@@ -24,16 +25,20 @@
 
 \renewcommand{\sessionchapter}{Chapter 3 -- Reciprocity}
 \drafttrue        % \draftfalse hides the red status notes
+\newif\ifquestionsheet
+\questionsheetfalse  % \questionsheettrue prints the sheet without answers first
 
 \begin{document}
 \pagestyle{session}
 
-%---- 1. the session sheet, questions only ------------------------------
+%---- 1. the session sheet, questions only (switched off for now) -------
+\ifquestionsheet
 \answersfalse
 \input{ch3/sheet}
+\clearpage
+\fi
 
 %---- 2. the session sheet with the answers ------------------------------
-\clearpage
 \answerstrue
 \setcounter{spart}{0}
 \input{ch3/sheet}

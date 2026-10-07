@@ -2,7 +2,8 @@
 
 One PDF per session, in the order of use:
 
-1. the session sheet: questions only (at most 8 pages, printed);
+1. the session sheet: questions only (at most 8 pages, printed); off for
+   now, `\questionsheettrue` in `session_ch3.tex` puts it back;
 2. the session sheet with the answers;
 3. the guides of the three codes, with the same blocks and the same
    structure (running, parameters, blocks, figures, printed values,
